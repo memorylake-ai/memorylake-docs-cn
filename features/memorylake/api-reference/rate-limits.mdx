@@ -16,7 +16,7 @@ API 请求受速率限制，以确保公平使用和系统稳定性。限制在�
 | 每 IP 地址，上传端点 | 独立且更严格的按分钟计数桶 |
 
 <Note>
-当任一限制被超出时，API 返回 HTTP 状态码 `429 Too Many Requests` 并带有 `Retry-After` 响应头。按账户的限制由您所在的访问组设定，因此可能与上方展示的默认值不同 —— 如需更高限制，请联系支持团队。
+当任一限制被超出时，API 返回 HTTP 状态码 `429 Too Many Requests` 并带有 `Retry-After` 响应头。按账户的限制由您所在的访问组设定，因此可能与上方展示的默认值不同 —— 如需更高限制，请联系 [contact@data.cloud](mailto:contact@data.cloud)。
 </Note>
 
 ## 速率限制超出响应
@@ -73,12 +73,12 @@ async function apiRequestWithBackoff(url, options, maxRetries = 3) {
 | 最大文件大小 | 取决于您的套餐；大文件会自动通过分片方式上传 |
 
 <Note>
-存储额度与您的订阅绑定。请在[控制台](https://app.memorylake.cn/panel/billing)的 **Billing** 中查看当前套餐；如果预计有异常大的上传量，请联系支持团队。
+存储额度与您的订阅绑定。请在[控制台](https://app.memorylake.cn/panel/billing)的 **Billing** 中查看当前套餐；如果预计有异常大的上传量，请联系 [contact@data.cloud](mailto:contact@data.cloud)。
 </Note>
 
 ## 申请更高限制
 
-如需申请更高的速率限制，请联系支持团队并提供以下信息：
+如需申请更高的速率限制，请发送邮件至 [contact@data.cloud](mailto:contact@data.cloud) 并提供以下信息：
 - 当前使用模式和峰值请求量
 - 预期的未来使用量
 - 使用场景描述

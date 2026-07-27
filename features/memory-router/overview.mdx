@@ -12,7 +12,7 @@ Memory Router 是一个透明网关，位于您的应用与模型之间。将现
 - **共享记忆池**——Router 与 [MemoryLake API](/features/memorylake/overview) 读写同一份记忆，因此只有一个真实来源
 
 <Note>
-Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关：`/openai/v1` 与 `/anthropic/v1` 端点当前无法调用，控制台 **Integrations** 下也不会出现 Memory Router 卡片。本章节保留完整说明，供您提前评估接入方案；如需在中国站使用，请联系商务了解开放计划。中国站当前可用的记忆接入方式是 [REST API](/features/memorylake/api-reference/overview)、[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)与 [Agent 插件](/features/memorylake/mcp-servers/openclaw-plugin)。
+Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关：`/openai/v1` 与 `/anthropic/v1` 端点当前无法调用，控制台 **Integrations** 下也不会出现 Memory Router 卡片。本章节保留完整说明，供您提前评估接入方案；如需在中国站使用，请联系 [contact@data.cloud](mailto:contact@data.cloud) 了解开放计划。中国站当前可用的记忆接入方式是 [REST API](/features/memorylake/api-reference/overview)、[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)与 [Agent 插件](/features/memorylake/mcp-servers/openclaw-plugin)。
 </Note>
 
 <Info>
@@ -46,7 +46,7 @@ Memory Router 把这一切压缩成一次 base URL 变更加一个查询参数�
 | **极简接入** | 更换 base URL 并传入 `boundary_id`。SDK 和代码保持原样。 |
 | **BYOK 或托管** | 使用您自己的模型厂商密钥（传输加密，绝不存储），或使用 MemoryLake 托管模型，仅需一个密钥。 |
 | **自动记忆** | 调用前召回并注入相关记忆；调用后异步提取新记忆——绝不拖慢响应。 |
-| **按 Boundary 划定范围** | [Boundary](#boundaries-the-memory-scope) 精确定义一段会话的记忆归属于哪个工作空间、哪些项目和哪些 Actor。 |
+| **按 Boundary 划定范围** | [Boundary](#boundary：记忆范围) 精确定义一段会话的记忆归属于哪个工作空间、哪些项目和哪些 Actor。 |
 | **共享记忆池** | Router 与 MemoryLake API 读写同一份记忆——只有一个真实来源。 |
 | **可追溯** | 每个响应都带有 `X-Trace-ID` 头，每次调用都会进入控制台 Logs，包含模型、Token 和密钥来源等明细。 |
 
