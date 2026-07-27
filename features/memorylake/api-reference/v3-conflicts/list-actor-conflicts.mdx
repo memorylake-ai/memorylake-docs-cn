@@ -1,0 +1,128 @@
+---
+title: "列出 Actor 记忆冲突"
+description: "返回某个 Actor 事实之间的记忆冲突分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memories/conflicts
+```
+
+当 MemoryLake 提取关于某个 Actor 的事实时，会将新事实与该 Actor 已有的事实进行对比。如果检测到矛盾，该矛盾会被记录为**记忆冲突**。使用此端点可按时间倒序列出该 Actor 的冲突，以便呈现给用户审查。
+
+您可以按解决状态筛选，仅显示需要关注的未解决冲突，或仅显示已解决的冲突以供审计。如需查看项目知识内部的冲突，请改用[列出记忆冲突](/features/memorylake/api-reference/v3-conflicts/list-conflicts)。
+
+<Note>
+**所需权限：** `workspace:actor_fact_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="resolved" type="boolean">
+按解决状态筛选。传入 `true` 仅返回已解决的冲突，`false` 仅返回未解决的冲突。省略则两者都返回。
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的冲突数量。范围：1–100。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页结果
+</ParamField>
+
+<RequestExample>
+```bash 未解决的冲突
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts?resolved=false&page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 全部冲突
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts?page_size=50' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="冲突分页列表">
+  <ResponseField name="items" type="array">
+  冲突对象数组
+  <Expandable title="冲突对象">
+    <ResponseField name="id" type="string">冲突标识符</ResponseField>
+    <ResponseField name="name" type="string">简要描述冲突的标题</ResponseField>
+    <ResponseField name="description" type="string">矛盾的详细说明</ResponseField>
+    <ResponseField name="category" type="string">冲突类别：`m2m`（事实与事实）或 `m2d`（事实与文档）</ResponseField>
+    <ResponseField name="resolved" type="boolean">冲突是否已解决</ResponseField>
+    <ResponseField name="resolve" type="object">解决记录。仅在冲突已解决时存在，否则为 `null`。完整结构请参见[获取 Actor 记忆冲突](/features/memorylake/api-reference/v3-conflicts/get-actor-conflict)。</ResponseField>
+    <ResponseField name="stale" type="boolean">冲突检测之后，涉及的事实是否已发生变化。过时的冲突可能不再准确。</ResponseField>
+    <ResponseField name="conflict_type" type="string">冲突类型：`logical` 或 `knowledge`</ResponseField>
+    <ResponseField name="fact_ids" type="array">冲突涉及的事实 ID</ResponseField>
+    <ResponseField name="fact_snapshots" type="array">
+    检测时涉及事实的快照
+    <Expandable title="事实快照">
+      <ResponseField name="fact_id" type="string">事实标识符</ResponseField>
+      <ResponseField name="fact_text" type="string">检测时的事实文本</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="file_chunks" type="array">
+    事实与文档冲突所引用的文档摘录
+    <Expandable title="文件块">
+      <ResponseField name="text" type="string">冲突的摘录文本</ResponseField>
+      <ResponseField name="document_id" type="string">该摘录所属文档的 ID</ResponseField>
+      <ResponseField name="document_name" type="string">文档显示名称</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="created_at" type="string">冲突首次检测时间</ResponseField>
+    <ResponseField name="updated_at" type="string">冲突最后更新时间</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页结果的令牌。当没有更多页时不返回。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "conf-def456",
+        "name": "Contradicting dietary preference",
+        "description": "One fact states the user is vegetarian; another says their favorite dish is steak.",
+        "category": "m2m",
+        "resolved": false,
+        "resolve": null,
+        "stale": false,
+        "conflict_type": "logical",
+        "fact_ids": ["fact-101", "fact-102"],
+        "fact_snapshots": [
+          {
+            "fact_id": "fact-101",
+            "fact_text": "User is vegetarian"
+          },
+          {
+            "fact_id": "fact-102",
+            "fact_text": "User's favorite dish is steak"
+          }
+        ],
+        "file_chunks": [],
+        "created_at": "2025-01-20T14:30:00Z",
+        "updated_at": "2025-01-20T14:30:00Z"
+      }
+    ],
+    "continuation_token": null
+  }
+}
+```
+</ResponseExample>

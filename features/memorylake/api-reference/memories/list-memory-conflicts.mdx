@@ -1,0 +1,139 @@
+---
+title: "列出记忆冲突"
+description: "浏览项目中记忆与记忆、记忆与文档之间的冲突"
+---
+
+```
+GET /openapi/memorylake/api/v2/projects/{id}/memories/conflicts
+```
+
+当添加新记忆时，MemoryLake 会将其与两方面进行对比：项目中已有的记忆和项目中的文档。如果新记忆与任一方面存在矛盾，该矛盾会被记录为**冲突**。冲突分为两类：
+
+- **`m2m` —— 记忆与记忆**：新记忆与已有记忆相矛盾。
+- **`m2d` —— 记忆与文档**：新记忆与项目文档中的内容相矛盾。
+
+使用此端点向最终用户展示冲突（"审查未解决的冲突"），或获取与你即将显示的特定记忆相关的冲突。
+
+<Note>
+**所需权限：** [`project:mem_list`](/features/team-collaboration/permission-reference#查看”事实”标签页) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page" type="integer" default="1">
+页码（从 1 开始）
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="50">
+每页数量，1–100
+</ParamField>
+
+<ParamField query="category" type="string">
+按冲突类别筛选：
+
+- `m2m` —— 记忆与记忆。
+- `m2d` —— 记忆与文档。
+</ParamField>
+
+<ParamField query="conflict_type" type="string">
+按不一致类型筛选：
+
+- `logical` —— 陈述之间的矛盾或冲突。
+- `knowledge` —— 关于事实或引用内容的分歧。
+</ParamField>
+
+<ParamField query="resolved" type="boolean">
+仅筛选已解决（`true`）或未解决（`false`）的冲突。省略则返回全部。
+</ParamField>
+
+<ParamField query="stale" type="boolean">
+按底层内容自检测到冲突以来是否已发生变化进行筛选。过时的冲突可能不再准确。
+</ParamField>
+
+<ParamField query="memory_ids" type="string">
+逗号分隔的记忆 ID 列表。返回涉及所列任何记忆的冲突。
+</ParamField>
+
+<RequestExample>
+```bash 未解决的冲突
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts?resolved=false&page=1&page_size=50' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 涉及特定记忆的冲突
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts?memory_ids=mem-001,mem-002' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="冲突分页列表">
+  <ResponseField name="items" type="array">
+  冲突对象数组
+  <Expandable title="冲突">
+    <ResponseField name="id" type="string">冲突 ID</ResponseField>
+    <ResponseField name="name" type="string">简短标题</ResponseField>
+    <ResponseField name="description" type="string">矛盾的详细解释</ResponseField>
+    <ResponseField name="category" type="string">`m2m`（记忆与记忆）或 `m2d`（记忆与文档）</ResponseField>
+    <ResponseField name="conflict_type" type="string">`logical`（矛盾的陈述）或 `knowledge`（关于事实或引用的分歧）</ResponseField>
+    <ResponseField name="resolved" type="boolean">冲突是否已解决</ResponseField>
+    <ResponseField name="resolve" type="object">解决详情 —— 仅在 `resolved` 为 `true` 时存在。完整结构请参见[获取记忆冲突](/features/memorylake/api-reference/memories/get-memory-conflict)。</ResponseField>
+    <ResponseField name="stale" type="boolean">底层内容自检测以来是否已发生变化</ResponseField>
+    <ResponseField name="memory_ids" type="array">冲突涉及的记忆 ID</ResponseField>
+    <ResponseField name="memory_snapshots" type="array">检测时捕获的记忆快照</ResponseField>
+    <ResponseField name="file_chunks" type="array">涉及的文档摘录。当 `category` 为 `m2d` 时非空。</ResponseField>
+    <ResponseField name="event_id" type="string">触发检测的事件 ID</ResponseField>
+    <ResponseField name="created_at" type="string">首次检测时间</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="total" type="integer">匹配的冲突总数</ResponseField>
+  <ResponseField name="page" type="integer">当前页码（从 1 开始）</ResponseField>
+  <ResponseField name="page_size" type="integer">每页数量</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "conf-abc123",
+        "name": "Contradicting restaurant preferences",
+        "description": "An earlier memory says the user prefers spicy food; a later one says they avoid it.",
+        "category": "m2m",
+        "conflict_type": "logical",
+        "resolved": false,
+        "stale": false,
+        "memory_ids": ["mem-001", "mem-002"],
+        "memory_snapshots": [
+          { "memory_id": "mem-001", "memory_text": "User prefers spicy food" },
+          { "memory_id": "mem-002", "memory_text": "User avoids spicy food" }
+        ],
+        "file_chunks": [],
+        "event_id": "evt-xyz",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z"
+      }
+    ],
+    "total": 1,
+    "page": 1,
+    "page_size": 50
+  }
+}
+```
+</ResponseExample>
+
+<Note>
+如需查看单个冲突的完整详情 —— 包括已解决时的嵌套解决记录以及 `m2d` 情况下的文档摘录 —— 请调用[获取记忆冲突](/features/memorylake/api-reference/memories/get-memory-conflict)。
+</Note>

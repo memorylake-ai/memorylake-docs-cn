@@ -1,0 +1,148 @@
+---
+title: "获取 Agent"
+description: "通过 ID 或自定义 ID 检索 Agent"
+---
+
+```
+GET /openapi/memorylake/api/v3/agents/{id}
+```
+
+检索单个 Agent。默认情况下，`id` 路径参数与内部 Agent ID 匹配。设置 `by_custom_id=true` 可改为按自定义标识符查找 Agent。
+
+<Note>
+**所需权限：** `agent:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Agent 标识符。默认作为内部 ID 解释，当 `by_custom_id` 为 `true` 时作为自定义 ID 解释。
+</ParamField>
+
+### 查询参数
+
+<ParamField query="by_custom_id" type="boolean">
+当为 `true` 时，`id` 路径参数将与 Agent 的 `custom_id` 而非内部 `id` 进行匹配。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2m1n3' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Agent 对象">
+  <ResponseField name="id" type="string">Agent 唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">Agent 名称</ResponseField>
+  <ResponseField name="description" type="string">Agent 描述</ResponseField>
+  <ResponseField name="metadata" type="object">用于存储 Agent 附加信息的任意键值对</ResponseField>
+  <ResponseField name="version" type="integer">当前活跃版本号</ResponseField>
+  <ResponseField name="model" type="string">Agent 使用的模型</ResponseField>
+  <ResponseField name="capabilities" type="array">Agent 支持的能力标识符列表</ResponseField>
+  <ResponseField name="policies" type="object">
+  约束 Agent 行为的执行策略
+  <Expandable title="Policies 对象">
+    <ResponseField name="max_turns" type="integer">每次运行的最大对话轮次数</ResponseField>
+    <ResponseField name="max_tool_calls" type="integer">每轮的最大工具调用次数</ResponseField>
+    <ResponseField name="allow_tools" type="array">Agent 可调用的工具白名单</ResponseField>
+    <ResponseField name="deny_tools" type="array">Agent 不可调用的工具黑名单</ResponseField>
+    <ResponseField name="subagent_timeout" type="integer">子 Agent 在被取消前可运行的最大秒数</ResponseField>
+    <ResponseField name="subagent_max_concurrency" type="integer">可同时运行的最大子 Agent 数量</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="output" type="object">
+  Agent 的输出配置
+  <Expandable title="Output 对象">
+    <ResponseField name="mode" type="string">输出模式</ResponseField>
+    <ResponseField name="json_schema" type="object">结构化输出的 JSON Schema</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="subagents" type="array">
+  附加到此 Agent 的子 Agent 定义
+  <Expandable title="Subagent 对象">
+    <ResponseField name="name" type="string">子 Agent 名称</ResponseField>
+    <ResponseField name="mode" type="string">子 Agent 的执行模式</ResponseField>
+    <ResponseField name="context" type="string">传递给子 Agent 的上下文指令</ResponseField>
+    <ResponseField name="inherit_tools" type="boolean">子 Agent 是否继承父 Agent 的工具</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="skills" type="array">
+  附加到此 Agent 的技能
+  <Expandable title="Skill 引用">
+    <ResponseField name="skill_id" type="string">技能标识符</ResponseField>
+    <ResponseField name="skill_version" type="integer">技能版本号</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="custom_id" type="string">用于外部系统集成的自定义标识符</ResponseField>
+  <ResponseField name="actor_id" type="string">与此 Agent 关联的 Actor 标识符</ResponseField>
+  <ResponseField name="latest_version" type="integer">此 Agent 可用的最新版本号</ResponseField>
+  <ResponseField name="system_prompt" type="string">用于指示 Agent 的系统提示词</ResponseField>
+  <ResponseField name="model_settings" type="object">模型特定设置，如温度和最大 token 数</ResponseField>
+  <ResponseField name="runtime_bindings" type="object">工具和数据源的运行时绑定配置</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "agt_r8k2m1n3",
+    "name": "Support Assistant",
+    "description": "Handles customer support inquiries using knowledge base",
+    "metadata": {
+      "team": "customer-success",
+      "tier": "production"
+    },
+    "version": 3,
+    "model": "gpt-4o",
+    "capabilities": ["tool_use", "memory_read", "memory_write"],
+    "policies": {
+      "max_turns": 20,
+      "max_tool_calls": 10,
+      "allow_tools": ["search_kb", "create_ticket"],
+      "deny_tools": [],
+      "subagent_timeout": 300,
+      "subagent_max_concurrency": 3
+    },
+    "output": {
+      "mode": "text",
+      "json_schema": null
+    },
+    "subagents": [
+      {
+        "name": "ticket-creator",
+        "mode": "delegate",
+        "context": "Create support tickets from conversation context",
+        "inherit_tools": false
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": "skl_kb_search",
+        "skill_version": 2
+      }
+    ],
+    "custom_id": "support-assistant-v1",
+    "actor_id": "act_p4q7w2x9",
+    "latest_version": 3,
+    "system_prompt": "You are a helpful support assistant. Use the knowledge base to answer questions accurately.",
+    "model_settings": {
+      "temperature": 0.7,
+      "max_tokens": 4096
+    },
+    "runtime_bindings": {
+      "knowledge_base": "kb_prod_docs"
+    },
+    "created_at": "2025-03-10T09:00:00Z",
+    "updated_at": "2025-04-22T14:30:00Z"
+  }
+}
+```
+</ResponseExample>

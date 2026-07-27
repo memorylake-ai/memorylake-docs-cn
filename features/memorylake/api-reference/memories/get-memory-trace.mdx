@@ -1,0 +1,86 @@
+---
+title: "获取记忆追踪"
+description: "返回记忆的完整变更历史"
+---
+
+```
+GET /openapi/memorylake/api/v2/projects/{id}/memories/{memoryId}/trace
+```
+
+返回记忆的完整变更历史 —— 它经历的所有版本，以及触发每次变更的原始对话消息。
+
+<Note>
+**所需权限：** [`project:mem_read`](/features/team-collaboration/permission-reference#阅读事实内容) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="memoryId" type="string" required>
+要追踪的记忆 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/mem-123/trace' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="记忆追踪">
+  <ResponseField name="memory_id" type="string">记忆 ID</ResponseField>
+  <ResponseField name="current_memory" type="string">当前记忆内容</ResponseField>
+  <ResponseField name="trace" type="array">
+  变更历史条目数组
+  <Expandable title="追踪条目">
+    <ResponseField name="history_id" type="string">历史条目 ID</ResponseField>
+    <ResponseField name="event_type" type="string">事件类型（例如 `ADD`、`UPDATE`、`DELETE`）</ResponseField>
+    <ResponseField name="new_memory" type="string">此次变更后的记忆内容</ResponseField>
+    <ResponseField name="expired" type="boolean">此时记忆是否已过期</ResponseField>
+    <ResponseField name="changed_at" type="string">变更时间戳</ResponseField>
+    <ResponseField name="event_id" type="string">关联的事件 ID</ResponseField>
+    <ResponseField name="source_messages" type="array">触发此次变更的原始对话消息</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "memory_id": "mem-123",
+    "current_memory": "User prefers Hangzhou cuisine restaurants",
+    "trace": [
+      {
+        "history_id": "19135a2d-2cc6-45db-bfc7-959d8fc117b2",
+        "event_type": "ADD",
+        "new_memory": "User prefers Hangzhou cuisine restaurants",
+        "expired": false,
+        "changed_at": "2024-01-15T10:00:00Z",
+        "event_id": "batch-637d4f2ded6243feb926e5cf15f69b97",
+        "source_messages": [
+          {
+            "role": "user",
+            "content": "What restaurants do you recommend in Hangzhou?",
+            "timestamp": 1705312800
+          },
+          {
+            "role": "assistant",
+            "content": "I recommend trying Grandma's Kitchen for Hangzhou cuisine.",
+            "timestamp": 1705312800
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

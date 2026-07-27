@@ -1,0 +1,62 @@
+---
+title: "工作原理"
+description: "一个透明网关，负责拦截、召回、转发与记忆——范围由 Boundary 划定"
+---
+
+<Note>
+Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关，本页描述的是该能力的完整形态，供您提前评估接入方案；如需在中国站使用，请联系商务了解开放计划。
+</Note>
+
+## 透明网关
+
+Memory Router 位于您的应用与模型厂商之间。您的应用与 Router 的交互方式和直连模型厂商完全一致——同样的载荷、同样的 SDK、同样的响应结构——Router 在中途透明地加上一层记忆。
+
+因为 Router 使用与您的模型厂商相同的协议，接入它只需**更换 base URL 加上一个 `boundary_id` 查询参数**。代码的其他部分都不用动。
+
+## 四个步骤
+
+<Steps>
+<Step title="拦截">
+您的应用把请求发给 Memory Router 而不是模型厂商——同样的载荷、同样的 SDK、同样的响应结构。URL 上的 `boundary_id` 告知 Router 这段会话属于哪个记忆范围。
+</Step>
+
+<Step title="召回">
+Router 在该 Boundary 的范围内检索历史记忆，只把相关上下文注入提示词。
+</Step>
+
+<Step title="转发">
+增强后的请求发往模型——可以是您自己的模型厂商（BYOK），也可以是 MemoryLake 托管模型。
+</Step>
+
+<Step title="记忆">
+新记忆在后台异步提取并存储——响应绝不会因此延迟。
+</Step>
+</Steps>
+
+## Boundary 定义范围
+
+每个启用记忆的请求都带有 `boundary_id`。**Boundary** 将会话绑定到一个工作空间、一个或多个项目、一个人类 Actor 和一个助手 Actor——这样 Router 就能准确知道该读谁的记忆、该把新记忆写到哪里。
+
+- 一个用户对一个助手？一个 Boundary。
+- 同一个产品服务大量用户？为每个用户（或每个用户—助手组合）建一个 Boundary，记忆就绝不会在用户之间泄漏。
+- **不带** `boundary_id` 的请求会完全跳过记忆层，直接透传给模型。
+
+<Info>
+记忆的提取与存储是**异步**进行的。模型响应一旦就绪即刻返回；写入新记忆绝不会给调用增加延迟。
+</Info>
+
+## 共享记忆池
+
+Router 与 [MemoryLake API](/features/memorylake/overview) 操作同一个记忆池。通过 Router 存入的内容可以通过 API 检索（并在控制台中查看），反之亦然——跨会话、跨应用、跨模型都只有一个真实来源。
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="快速入门" icon="rocket" href="/features/memory-router/quickstart">
+三步上线。
+</Card>
+
+<Card title="部署模式" icon="key" href="/features/memory-router/deployment-modes">
+BYOK 与 MemoryLake 托管的对比、端点和支持的模型厂商。
+</Card>
+</CardGroup>

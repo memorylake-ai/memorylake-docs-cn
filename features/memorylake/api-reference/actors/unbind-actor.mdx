@@ -1,0 +1,45 @@
+---
+title: "从工作空间解绑 Actor"
+description: "移除 Actor 与工作空间的绑定关系"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}
+```
+
+移除 Actor 与工作空间的绑定关系。Actor 本身不会被删除，之后可以重新绑定。解绑后，Actor 将无法再参与此工作空间中的新会话。
+
+<Note>
+**所需权限：** `workspace:actor_unbind`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+要从工作空间解绑的 Actor ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-7k8m9n0p1q2r/actors/act-a1b2c3d4e5f6' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

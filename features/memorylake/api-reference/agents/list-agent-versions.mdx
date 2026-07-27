@@ -1,0 +1,180 @@
+---
+title: "列出 Agent 版本"
+description: "返回指定 Agent 的分页版本列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/agents/{id}/versions
+```
+
+返回指定 Agent 所有版本的分页列表，按版本号排序。每个版本捕获了创建时 Agent 配置的快照。
+
+<Note>
+**所需权限：** `agent:version_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Agent 标识符
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer">
+每页返回的版本数量
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应中的 token，用于获取下一页结果
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2m1n3/versions?page_size=10' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页版本列表">
+  <ResponseField name="items" type="array">
+  Agent 版本对象数组
+  <Expandable title="Agent 版本对象">
+    <ResponseField name="version" type="integer">版本号</ResponseField>
+    <ResponseField name="model" type="string">此版本使用的模型</ResponseField>
+    <ResponseField name="capabilities" type="array">能力标识符列表</ResponseField>
+    <ResponseField name="policies" type="object">
+    此版本的执行策略
+    <Expandable title="Policies 对象">
+      <ResponseField name="max_turns" type="integer">每次运行的最大对话轮次数</ResponseField>
+      <ResponseField name="max_tool_calls" type="integer">每轮的最大工具调用次数</ResponseField>
+      <ResponseField name="allow_tools" type="array">Agent 可调用的工具白名单</ResponseField>
+      <ResponseField name="deny_tools" type="array">Agent 不可调用的工具黑名单</ResponseField>
+      <ResponseField name="subagent_timeout" type="integer">子 Agent 在被取消前可运行的最大秒数</ResponseField>
+      <ResponseField name="subagent_max_concurrency" type="integer">可同时运行的最大子 Agent 数量</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="output" type="object">
+    此版本的输出配置
+    <Expandable title="Output 对象">
+      <ResponseField name="mode" type="string">输出模式</ResponseField>
+      <ResponseField name="json_schema" type="object">结构化输出的 JSON Schema</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="subagents" type="array">
+    此版本中的子 Agent 定义
+    <Expandable title="Subagent 对象">
+      <ResponseField name="name" type="string">子 Agent 名称</ResponseField>
+      <ResponseField name="mode" type="string">子 Agent 的执行模式</ResponseField>
+      <ResponseField name="context" type="string">传递给子 Agent 的上下文指令</ResponseField>
+      <ResponseField name="inherit_tools" type="boolean">子 Agent 是否继承父 Agent 的工具</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="skills" type="array">
+    此版本中的技能
+    <Expandable title="Skill 引用">
+      <ResponseField name="skill_id" type="string">技能标识符</ResponseField>
+      <ResponseField name="skill_version" type="integer">技能版本号</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="agent_id" type="string">父 Agent 标识符</ResponseField>
+    <ResponseField name="system_prompt" type="string">此版本使用的系统提示词</ResponseField>
+    <ResponseField name="model_settings" type="object">此版本的模型特定设置</ResponseField>
+    <ResponseField name="runtime_bindings" type="object">此版本的运行时绑定配置</ResponseField>
+    <ResponseField name="created_at" type="string">版本创建时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页结果的 token。当没有更多页时不返回。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "version": 3,
+        "model": "gpt-4o",
+        "capabilities": ["tool_use", "memory_read", "memory_write"],
+        "policies": {
+          "max_turns": 20,
+          "max_tool_calls": 10,
+          "allow_tools": ["search_kb", "create_ticket"],
+          "deny_tools": [],
+          "subagent_timeout": 300,
+          "subagent_max_concurrency": 3
+        },
+        "output": {
+          "mode": "text",
+          "json_schema": null
+        },
+        "subagents": [
+          {
+            "name": "ticket-creator",
+            "mode": "delegate",
+            "context": "Create support tickets from conversation context",
+            "inherit_tools": false
+          }
+        ],
+        "skills": [
+          {
+            "skill_id": "skl_kb_search",
+            "skill_version": 2
+          }
+        ],
+        "agent_id": "agt_r8k2m1n3",
+        "system_prompt": "You are a helpful support assistant. Use the knowledge base to answer questions accurately.",
+        "model_settings": {
+          "temperature": 0.7,
+          "max_tokens": 4096
+        },
+        "runtime_bindings": {
+          "knowledge_base": "kb_prod_docs"
+        },
+        "created_at": "2025-04-22T14:30:00Z"
+      },
+      {
+        "version": 2,
+        "model": "gpt-4o",
+        "capabilities": ["tool_use", "memory_read"],
+        "policies": {
+          "max_turns": 15,
+          "max_tool_calls": 8,
+          "allow_tools": ["search_kb"],
+          "deny_tools": [],
+          "subagent_timeout": 300,
+          "subagent_max_concurrency": 2
+        },
+        "output": {
+          "mode": "text",
+          "json_schema": null
+        },
+        "subagents": [],
+        "skills": [
+          {
+            "skill_id": "skl_kb_search",
+            "skill_version": 1
+          }
+        ],
+        "agent_id": "agt_r8k2m1n3",
+        "system_prompt": "You are a helpful support assistant.",
+        "model_settings": {
+          "temperature": 0.7,
+          "max_tokens": 2048
+        },
+        "runtime_bindings": {
+          "knowledge_base": "kb_prod_docs"
+        },
+        "created_at": "2025-03-25T11:00:00Z"
+      }
+    ],
+    "continuation_token": null
+  }
+}
+```
+</ResponseExample>

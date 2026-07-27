@@ -1,0 +1,82 @@
+---
+title: "获取会话"
+description: "通过 ID 或自定义 ID 检索会话"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations/{conversationId}
+```
+
+通过 ID 检索单个会话。您也可以通过将 `by_custom_id` 查询参数设置为 `true`，使用 `custom_id` 查找会话。
+
+<Note>
+**所需权限：** `workspace:conv_read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="conversationId" type="string" required>
+会话 ID，或当 `by_custom_id` 为 `true` 时为 `custom_id` 值
+</ParamField>
+
+### 查询参数
+
+<ParamField query="by_custom_id" type="boolean" default="false">
+当为 `true` 时，将 `conversationId` 路径参数视为 `custom_id` 查找，而非内部 ID
+</ParamField>
+
+<RequestExample>
+```bash By ID
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations/conv_7d2e3f4a5b6c7d8e' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash By custom_id
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations/session-20250601-042?by_custom_id=true' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="会话对象">
+  <ResponseField name="id" type="string">会话唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">会话的显示名称</ResponseField>
+  <ResponseField name="kind" type="string">会话类型：`DIRECT` 或 `GROUP`</ResponseField>
+  <ResponseField name="metadata" type="object">附加到会话的任意键值元数据</ResponseField>
+  <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
+  <ResponseField name="rw_project_ids" type="array">此会话读写记忆的项目 ID 列表</ResponseField>
+  <ResponseField name="actor_ids" type="array">参与会话的 Actor ID 列表</ResponseField>
+  <ResponseField name="current_message_id" type="string">会话中最新消息的 ID</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "conv_7d2e3f4a5b6c7d8e",
+    "name": "Product Feedback Call",
+    "kind": "DIRECT",
+    "metadata": {
+      "channel": "zoom",
+      "language": "en"
+    },
+    "custom_id": "session-20250601-042",
+    "rw_project_ids": ["proj_def456"],
+    "actor_ids": ["actor_user_jane", "actor_interviewer_alex"],
+    "current_message_id": "msg_9e4b2c3d5f6a7b8c",
+    "created_at": "2025-06-01T14:00:00Z",
+    "updated_at": "2025-06-01T14:32:00Z"
+  }
+}
+```
+</ResponseExample>

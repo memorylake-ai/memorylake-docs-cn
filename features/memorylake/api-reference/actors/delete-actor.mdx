@@ -1,0 +1,45 @@
+---
+title: "删除 Actor"
+description: "永久删除一个 Actor"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/actors/{id}
+```
+
+永久删除一个 Actor。该 Actor 的所有工作空间绑定也会被移除。
+
+<Note>
+**所需权限：** `actor:delete`
+</Note>
+
+<Warning>
+此操作不可逆。与该 Actor 关联的记忆和会话历史不会被删除，但该 Actor 将无法再在新会话中被引用。
+</Warning>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Actor ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors/act-a1b2c3d4e5f6' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

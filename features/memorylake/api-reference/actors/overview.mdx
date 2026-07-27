@@ -1,0 +1,42 @@
+---
+title: "概述"
+description: "Actor 是 MemoryLake 的身份层 — 所有记忆的主体"
+---
+
+**Actor** 代表 MemoryLake 中的参与者身份。会话中的每条消息都归属于一个 actor，从对话中提取的每个事实都与之关联。Actor 是**记忆的主体** — 它是 MemoryLake "记住的对象"。
+
+## Actor 类型
+
+| 类型 | 说明 |
+|------|------|
+| `HUMAN` | 与你的应用交互的终端用户 |
+| `ASSISTANT` | AI Agent（[创建 Agent](/features/memorylake/api-reference/agents/create-agent) 时自动生成） |
+
+## 工作流程
+
+1. **创建** actor，使用 `custom_id` 映射到你系统中的用户 ID
+2. **绑定** actor 到一个或多个工作空间
+3. **使用** actor 的 ID [追加消息](/features/memorylake/api-reference/conversations/create-message)到会话中
+4. **查询** actor 积累的事实，通过 [Actor 事实](/features/memorylake/api-reference/facts/list-actor-facts)
+
+## Actor 事实 vs 项目事实
+
+MemoryLake 在两个维度存储事实：
+
+- **Actor 事实** — 关于特定人或 agent 的知识，跨工作空间内所有项目积累。例如：*"Jane 偏好深色模式"*
+- **项目事实** — 限定在特定项目内的知识。例如：*"Q1 营收为 1250 万美元"*
+
+当一个 actor 在多个项目的对话中参与时，其 actor 事实会跟随他 — 实现跨应用的**按用户记忆**。
+
+## 端点
+
+| 操作 | 方法 | 路径 |
+|------|------|------|
+| [列出 Actor](/features/memorylake/api-reference/actors/list-actors) | `GET` | `/api/v3/actors` |
+| [创建 Actor](/features/memorylake/api-reference/actors/create-actor) | `POST` | `/api/v3/actors` |
+| [获取 Actor](/features/memorylake/api-reference/actors/get-actor) | `GET` | `/api/v3/actors/{id}` |
+| [更新 Actor](/features/memorylake/api-reference/actors/update-actor) | `PATCH` | `/api/v3/actors/{id}` |
+| [删除 Actor](/features/memorylake/api-reference/actors/delete-actor) | `DELETE` | `/api/v3/actors/{id}` |
+| [绑定到工作空间](/features/memorylake/api-reference/actors/bind-actor) | `POST` | `/api/v3/workspaces/{id}/actors` |
+| [列出工作空间 Actor](/features/memorylake/api-reference/actors/list-workspace-actors) | `GET` | `/api/v3/workspaces/{id}/actors` |
+| [从工作空间解绑](/features/memorylake/api-reference/actors/unbind-actor) | `DELETE` | `/api/v3/workspaces/{id}/actors/{actorId}` |

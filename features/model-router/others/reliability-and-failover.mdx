@@ -1,0 +1,70 @@
+---
+title: "可靠性与故障转移"
+description: "自动重试、通道切换和流式回退，减少异常和速率限制的影响"
+---
+
+## 核心能力（概述）
+- 遇到 429 或上游异常时，平台会自动重试并切换到已启用且健康的通道。
+- 流式调用提供心跳和异常回退机制，在异常时自动关闭连接以避免挂起。
+- 动态速率限制在高并发时进行削峰保护，保障主要路由和任务接口的稳定性。
+
+## 使用方法
+- 使用前：在模型目录中确认 API Key 可以看到多个通道（如果未配置，请联系管理员）。
+- 调用时：正常使用 `/v1`、`/claude/v1/messages`、`/gemini/:version/models/:model` 或任务接口；无需附加额外参数即可享受自动重试和切换。
+- 扩容前：先以小流量验证；批量或长时间流式场景可以分批提交以减少瞬时并发。
+
+## 请求示例（流式聊天）
+<CodeGroup>
+```ts TypeScript
+await fetch("https://app.memorylake.cn/v1/chat/completions", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-demo123",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    model: "gpt-4o-mini",
+    messages: [{ role: "user", content: "Please give me an opening script for a product launch event" }],
+    stream: true
+  })
+});
+```
+```py Python
+import requests
+
+resp = requests.post(
+    "https://app.memorylake.cn/v1/chat/completions",
+    headers={
+        "Authorization": "Bearer sk-demo123",
+        "Content-Type": "application/json",
+    },
+    json={
+        "model": "gpt-4o-mini",
+        "messages": [{"role": "user", "content": "Please give me an opening script for a product launch event"}],
+        "stream": True,
+    },
+)
+```
+```bash cURL
+curl https://app.memorylake.cn/v1/chat/completions \
+  -H "Authorization: Bearer sk-demo123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Please give me an opening script for a product launch event"}],
+    "stream": true
+  }'
+```
+</CodeGroup>
+
+## 使用提醒
+- 自动重试和通道切换依赖于已启用且健康的备用通道；未启用时无法切换。
+- 速率限制生效时，速度可能会降低；建议分批或错峰调用。
+- 流式传输异常时，平台会关闭连接；您可以根据需要在客户端补充重试逻辑。
+
+## 相关文档
+
+- [直接 API 请求](/features/model-router/getting-started/use-api-key/direct-api-requests)
+- [错误处理](/features/model-router/others/error-handling)
+- [限制与前提条件](/features/model-router/others/limits-and-prerequisites)
+- [查看可用模型列表](/features/model-router/list-available-models)

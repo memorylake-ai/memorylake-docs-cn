@@ -1,0 +1,154 @@
+---
+title: "Actor 与记忆"
+description: "Actor 如何在 MemoryLake 中提供每用户身份和跨项目记忆"
+---
+
+## 什么是 Actor？
+
+Actor 是 MemoryLake 中的参与者身份。每个参与会话的人或 AI 助手都会获得一个 Actor，MemoryLake 利用该身份将事实关联到正确的参与者。
+
+Actor 是记忆的**主体**。当 MemoryLake 提取出"Jane 偏好简洁的回答"这样的事实时，会将该事实附加到 Jane 的 Actor 上。这个事实会跨工作空间中每个项目跟随 Jane——如果她从客服机器人切换到产品助手，她的偏好已经是已知的。
+
+### Actor 类型
+
+MemoryLake 支持两种 Actor 类型：
+
+| 类型 | 描述 | 示例 |
+|---|---|---|
+| `HUMAN` | 与您的应用交互的真实用户 | 终端用户、团队成员 |
+| `ASSISTANT` | AI Agent 或机器人 | 客服 Agent、编程助手 |
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/actors \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "Jane",
+    "type": "HUMAN"
+  }'
+```
+
+### Actor 与 Agent
+
+当您在 MemoryLake 中创建一个 **Agent**（包含模型、系统提示和能力的 AI Agent 定义）时，系统会自动为其生成一个 Actor。这意味着 Agent 也会积累记忆——系统可以了解 Agent 最常使用哪些工具、遵循哪些模式以及需要什么上下文。
+
+您不需要为 Agent 手动创建 Actor。Actor 会作为 Agent 生命周期的一部分自动创建。
+
+## 两种记忆范围
+
+MemoryLake 从会话中提取事实，并以两种范围存储：
+
+### 项目事实
+
+项目事实是从会话中提取的、适用于整个项目的知识。这些事实不与任何特定 Actor 关联。
+
+**项目事实示例：**
+- "计费功能目标是 Q3 上线"
+- "团队使用 PostgreSQL 作为数据库"
+- "工单超过 24 小时应升级处理"
+
+项目事实的作用域限定在单个项目内，当您查询该项目所在工作空间时会出现在搜索结果中。
+
+### Actor 事实
+
+Actor 事实是与特定人或助手关联的知识。这些事实会跨工作空间中的所有项目跟随该 Actor。
+
+**Actor 事实示例：**
+- "Jane 偏好简洁的回答"
+- "Jane 在 Acme Corp 担任产品经理"
+- "Jane 在所有应用中使用深色模式"
+
+Actor 事实是 MemoryLake 每用户记忆机制的核心。无论 Jane 与哪个项目交互，她的偏好和上下文都是可用的。
+
+<Note>
+两种类型的事实都是从会话中自动提取的。您不需要手动分类事实——MemoryLake 在提取过程中自动判断适当的范围。
+</Note>
+
+## 每用户记忆的工作原理
+
+以下是一个实际示例。假设 Jane 在同一个工作空间中与三个不同的项目交互：
+
+```
+工作空间: "Acme Corp"
+
+  项目: "Support Bot"
+    Jane 说: "I prefer email over chat for follow-ups"
+    -> Actor 事实: "Jane prefers email over chat for follow-ups"
+
+  项目: "Product Assistant"  
+    Jane 说: "I manage the billing team"
+    -> Actor 事实: "Jane manages the billing team"
+
+  项目: "Engineering Docs"
+    Jane 搜索计费相关的架构文档
+    -> 助手已经知道 Jane 负责计费（来自她的 Actor 事实）
+```
+
+当 Jane 切换到新项目时，助手可以查询她的 Actor 事实并立即知道：
+- 她偏好邮件而非聊天进行后续跟进
+- 她管理计费团队
+- 她偏好简洁的回答
+- 她使用深色模式
+
+这一切都是自动完成的。您提交消息时带上 Jane 的 `actor_id`，MemoryLake 会处理其余部分。
+
+### 将 Actor 绑定到工作空间
+
+要让 Actor 的事实在工作空间内可访问，Actor 必须被**绑定**到该工作空间。绑定操作告诉 MemoryLake 该 Actor 参与了此工作空间的项目。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspace_id}/actors/{actor_id}/bind \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY"
+```
+
+<Tip>
+在提交会话之前绑定 Actor。这确保事实从一开始就被正确关联并可搜索。
+</Tip>
+
+详情请参阅[绑定 Actor API 参考](/features/memorylake/api-reference/actors/bind-actor)。
+
+## 管理事实
+
+您对 MemoryLake 提取的事实拥有完全控制权。对于项目事实和 Actor 事实，您都可以：
+
+- **列表**所有事实，查看 MemoryLake 学到了什么
+- **获取**特定事实（按 ID）
+- **更新**事实，进行修正或完善
+- **遗忘**事实，永久删除
+- **批量遗忘**多个事实
+
+这对于数据隐私（当用户请求删除时移除其事实）、修正不准确的提取结果或随时间管理知识库非常有用。
+
+<Warning>
+遗忘事实是永久性的。事实将被删除且无法恢复。请谨慎使用批量遗忘。
+</Warning>
+
+## 最佳实践
+
+**每个真实身份对应一个 Actor。** 不要为同一个人创建多个 Actor。只有当事实积累在单一 Actor 身份上时，记忆才能正常工作。
+
+**在用户消息中包含 `actor_id`。** 向会话提交消息时，在用户发送的消息上包含 `actor_id`。这是 MemoryLake 知道将事实关联到哪个 Actor 的方式。
+
+**人用 HUMAN，机器人用 ASSISTANT。** 类型区分帮助 MemoryLake 理解会话动态，从而更准确地提取事实。
+
+**先绑定再会话。** 在提交会话之前将 Actor 绑定到工作空间。这确保事实被正确索引并可搜索。
+
+## 下一步
+
+<CardGroup cols={2}>
+<Card title="记忆管道" icon="diagram-project" href="/features/memorylake/core-concepts/memory-pipeline">
+了解会话如何转化为结构化事实
+</Card>
+
+<Card title="工作空间与项目" icon="layer-group" href="/features/memorylake/core-concepts/workspaces-and-projects">
+了解 Actor 所在的资源层级结构
+</Card>
+
+<Card title="Actor API" icon="code" href="/features/memorylake/api-reference/actors/overview">
+Actor 操作的完整 API 参考
+</Card>
+
+<Card title="Actor 事实 API" icon="code" href="/features/memorylake/api-reference/facts/list-actor-facts">
+列表和管理 Actor 事实的 API 参考
+</Card>
+</CardGroup>

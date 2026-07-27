@@ -1,0 +1,105 @@
+---
+title: "概览"
+description: "开箱即用的记忆网关，只需更换 base URL 即可为您的 LLM 调用加上持久记忆"
+---
+
+## 快速了解
+
+Memory Router 是一个透明网关，位于您的应用与模型之间。将现有 SDK 指向 MemoryLake，附加一个记忆 Boundary（记忆范围），每一段会话便获得长期记忆——无需引入新 SDK，也无需自建检索管道。
+
+- **极简接入**——更换 base URL 并传入 `boundary_id`；SDK 和代码保持原样
+- **BYOK（自带密钥）或托管**——使用您自己的模型厂商密钥（传输加密，绝不存储），或使用 MemoryLake 托管模型，仅需一个密钥
+- **共享记忆池**——Router 与 [MemoryLake API](/features/memorylake/overview) 读写同一份记忆，因此只有一个真实来源
+
+<Note>
+Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关：`/openai/v1` 与 `/anthropic/v1` 端点当前无法调用，控制台 **Integrations** 下也不会出现 Memory Router 卡片。本章节保留完整说明，供您提前评估接入方案；如需在中国站使用，请联系商务了解开放计划。中国站当前可用的记忆接入方式是 [REST API](/features/memorylake/api-reference/overview)、[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)与 [Agent 插件](/features/memorylake/mcp-servers/openclaw-plugin)。
+</Note>
+
+<Info>
+Memory Router 原生支持 OpenAI 与 Anthropic 协议。您的提示词、流式输出和工具调用完全不变。
+</Info>
+
+## 它解决什么问题
+
+每次 LLM 调用都是无状态的。为了伪造连续性，您必须在每一轮重发完整历史——既慢又贵，最终还会撑爆上下文窗口。接入向量数据库和检索管道固然能解决，但那是数周的管道工程，而且要长期维护。
+
+<CardGroup cols={2}>
+<Card title="没有记忆层" icon="circle-x">
+- 每次调用都重发完整聊天历史——Token 成本随会话长度攀升。
+- 长会话触及上下文窗口上限，任务中途开始被截断。
+- 记忆只存在于单个应用中——换模型或换会话，上下文就消失了。
+</Card>
+
+<Card title="自己从零搭建" icon="hammer">
+- 搭建向量数据库、Embedding 管道、分块与检索逻辑。
+- 编写提取、去重和相关性排序逻辑——还要持续调优。
+- 在您支持的每个模型厂商、每个模型上都要维护一遍。
+</Card>
+</CardGroup>
+
+Memory Router 把这一切压缩成一次 base URL 变更加一个查询参数。**记忆层就是网关本身。**
+
+## 您将获得
+
+| 能力 | 含义 |
+| --- | --- |
+| **极简接入** | 更换 base URL 并传入 `boundary_id`。SDK 和代码保持原样。 |
+| **BYOK 或托管** | 使用您自己的模型厂商密钥（传输加密，绝不存储），或使用 MemoryLake 托管模型，仅需一个密钥。 |
+| **自动记忆** | 调用前召回并注入相关记忆；调用后异步提取新记忆——绝不拖慢响应。 |
+| **按 Boundary 划定范围** | [Boundary](#boundaries-the-memory-scope) 精确定义一段会话的记忆归属于哪个工作空间、哪些项目和哪些 Actor。 |
+| **共享记忆池** | Router 与 MemoryLake API 读写同一份记忆——只有一个真实来源。 |
+| **可追溯** | 每个响应都带有 `X-Trace-ID` 头，每次调用都会进入控制台 Logs，包含模型、Token 和密钥来源等明细。 |
+
+## Boundary：记忆范围
+
+Router 上的记忆是**按请求显式开启**的。**Boundary** 将一段会话绑定到它的记忆范围——一个工作空间、一个或多个项目、一个人类 Actor 和一个助手 Actor。您在控制台创建一次 Boundary，随后在每次调用时传入它的 id：
+
+```text
+POST /openai/v1/chat/completions?boundary_id=<your-boundary-id>
+```
+
+- **带 `boundary_id`**——该范围内的记忆会被召回并注入，会话产生的新记忆也会写回其中。
+- **不带 `boundary_id`**——请求原样透传给模型，记忆功能关闭。
+
+这让记忆变得显式且可控：同一个端点可以并行服务启用记忆的产品流量和纯透传流量。
+
+## 直连 API 调用 vs. Memory Router
+
+|  | 直连模型厂商 | 使用 Memory Router |
+| --- | --- | --- |
+| 长期记忆 | 需要您自建自托管 | 内置，自动生效 |
+| 密钥与账号 | 必须有模型厂商账号 | BYOK 或仅用一个 MemoryLake 密钥 |
+| 代码改动 | 新 SDK + 检索管道 | 更换 base URL + `boundary_id` |
+| 跨会话与跨模型 | 记忆按应用孤立 | 共享记忆池 |
+| 记忆范围划定 | 临时拼凑，各应用自行处理 | 按工作空间/项目/Actor 的显式 Boundary |
+| 可观测性 | 默认没有 | `X-Trace-ID` + 控制台调用日志 |
+
+## 快速开始
+
+1. **[获取 MemoryLake 密钥和 Boundary](/features/memory-router/quickstart#第-1-步：获取密钥和-boundary)**：在控制台创建 API Key 和 Boundary。
+2. **[选择模式并替换 base URL](/features/memory-router/deployment-modes)**：选择 BYOK 或 MemoryLake 托管，并将 SDK 指向 Router。
+3. **[照常调用](/features/memory-router/quickstart#第-3-步：照常调用)**：像今天一样发送请求——记忆会自动召回与存储。
+
+## 文档
+
+<CardGroup cols={2}>
+<Card title="工作原理" icon="route" href="/features/memory-router/how-it-works">
+了解这个透明网关，以及每次请求背后发生了什么。
+</Card>
+
+<Card title="快速入门" icon="rocket" href="/features/memory-router/quickstart">
+三步上线，提供 BYOK 与托管模式的可直接复制代码。
+</Card>
+
+<Card title="部署模式" icon="key" href="/features/memory-router/deployment-modes">
+对比 BYOK 与 MemoryLake 托管，了解端点、支持的模型厂商和密钥安全性。
+</Card>
+
+<Card title="可观测性" icon="activity" href="/features/memory-router/observability">
+追踪请求、读懂控制台调用日志，并理解错误约定。
+</Card>
+
+<Card title="常见问题" icon="circle-help" href="/features/memory-router/faq">
+关于代码改动、模型厂商、安全性和开通方式的常见问题。
+</Card>
+</CardGroup>

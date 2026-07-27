@@ -1,0 +1,96 @@
+---
+title: "列出项目"
+description: "返回工作空间中项目的分页列表，支持可选的筛选条件"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects
+```
+
+返回指定工作空间中项目的分页列表。您可以通过名称模糊匹配筛选结果，并使用 `page_size` 和 `continuation_token` 控制分页。
+
+<Note>
+**所需权限：** `project:list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer">
+每页返回的项目数量
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页结果
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按项目名称模糊筛选（部分匹配）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="项目分页列表">
+  <ResponseField name="items" type="array">
+  项目对象数组
+  <Expandable title="项目对象">
+    <ResponseField name="id" type="string">项目唯一标识符</ResponseField>
+    <ResponseField name="name" type="string">项目名称</ResponseField>
+    <ResponseField name="description" type="string">项目描述</ResponseField>
+    <ResponseField name="industries" type="array">
+    分配给项目的行业分类
+    <Expandable title="行业对象">
+      <ResponseField name="id" type="string">行业标识符</ResponseField>
+      <ResponseField name="name" type="string">行业名称</ResponseField>
+      <ResponseField name="description" type="string">行业描述</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="custom_id" type="string">用于外部系统集成的自定义标识符</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页结果的令牌。当没有更多页面时不返回该字段。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "proj_def456",
+        "name": "Customer Research",
+        "description": "Interview transcripts and survey analysis",
+        "industries": [
+          {
+            "id": "ind_tech01",
+            "name": "Technology",
+            "description": "Software and technology sector"
+          }
+        ],
+        "custom_id": "research-2024-q1",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-02-10T08:15:00Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0SWQiOiJwcm9qX2RlZjQ1NiJ9"
+  }
+}
+```
+</ResponseExample>

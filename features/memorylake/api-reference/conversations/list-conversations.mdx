@@ -1,0 +1,90 @@
+---
+title: "列出会话"
+description: "返回工作空间中会话的分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations
+```
+
+返回工作空间中会话的分页列表。使用分页令牌遍历大型结果集。
+
+<Note>
+**所需权限：** `workspace:conv_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的会话数量
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的分页令牌，用于获取下一页结果
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页会话列表">
+  <ResponseField name="items" type="array">
+  会话对象数组
+  <Expandable title="会话对象">
+    <ResponseField name="id" type="string">会话唯一标识符</ResponseField>
+    <ResponseField name="name" type="string">会话的显示名称</ResponseField>
+    <ResponseField name="kind" type="string">会话类型：`DIRECT` 或 `GROUP`</ResponseField>
+    <ResponseField name="metadata" type="object">附加到会话的任意键值元数据</ResponseField>
+    <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
+    <ResponseField name="rw_project_ids" type="array">此会话读写记忆的项目 ID 列表</ResponseField>
+    <ResponseField name="actor_ids" type="array">参与会话的 Actor ID 列表</ResponseField>
+    <ResponseField name="current_message_id" type="string">会话中最新消息的 ID</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string|null">
+  用于获取下一页的分页令牌。当没有更多结果时为 `null`。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "conv_8f3a1b2c4d5e6f7a",
+        "name": "Onboarding Session",
+        "kind": "DIRECT",
+        "metadata": {
+          "channel": "web",
+          "language": "en"
+        },
+        "custom_id": "session-20250601-001",
+        "rw_project_ids": ["proj_def456"],
+        "actor_ids": ["actor_user_jane", "actor_assistant_v2"],
+        "current_message_id": "msg_9e4b2c3d5f6a7b8c",
+        "created_at": "2025-06-01T09:15:00Z",
+        "updated_at": "2025-06-01T09:42:00Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0X2lkIjoiY29udl84ZjNhMWIyYzRkNWU2ZjdhIn0"
+  }
+}
+```
+</ResponseExample>

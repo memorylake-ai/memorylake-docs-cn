@@ -1,0 +1,53 @@
+---
+title: "概览"
+description: "统一的模型路由和多模态任务入口，兼容主流协议和渠道"
+---
+
+## 快速介绍
+
+Model Router 提供统一的模型路由和多模态任务入口，兼容主流协议和渠道。
+
+- 一个入口覆盖主流模型和任务，兼容 OpenAI 风格调用，无需更换 SDK
+- 保留 Claude、Gemini 等原生路径，降低迁移和切换成本
+- 内置稳定性保障、配额结算、通知和安全策略，帮助您在生产环境中放心集成
+
+**Base URL**：`https://app.memorylake.cn` — OpenAI 兼容路径为 `/v1`，Claude 原生路径为 `/claude/v1`，Gemini 原生路径为 `/gemini/:version`。使用与平台其他能力相同的 `sk-…` Key 进行鉴权（[详情](/authentication)）。
+
+<Note>
+希望为您的 LLM 调用增加**记忆**能力，而不只是路由？请参阅 [Memory Router](/features/memory-router/overview)，它在相同协议之上叠加了长期记忆。
+</Note>
+
+## 快速开始
+
+1. **[创建 API Key](/features/model-router/getting-started/create-api-key)**：在控制台生成 API Key
+2. **[查看可用模型](/features/model-router/list-available-models)**：了解可以使用哪些模型
+3. **[使用 API Key](/features/model-router/getting-started/use-api-key/overview)**：选择 API 调用方式
+4. **[监控用量](/features/model-router/view-usage-and-billing)**：追踪 API 用量和计费
+
+## 文档
+
+<CardGroup cols={2}>
+<Card title="快速入门" icon="rocket" href="/features/model-router/getting-started/create-api-key">
+了解如何创建 API Key 并开始使用 Model Router。
+</Card>
+
+<Card title="使用 API Key" icon="key" href="/features/model-router/getting-started/use-api-key/overview">
+了解使用 API Key 的不同方式：直接请求、代码示例或 AI 应用集成。
+</Card>
+
+<Card title="查看可用模型" icon="list" href="/features/model-router/list-available-models">
+查看您的 API Key 可以使用哪些模型。
+</Card>
+
+<Card title="查看用量与计费" icon="credit-card" href="/features/model-router/view-usage-and-billing">
+监控 API 用量并了解计费详情。
+</Card>
+
+<Card title="错误处理" icon="alert-circle" href="/features/model-router/others/error-handling">
+了解常见错误及排查方法。
+</Card>
+
+<Card title="限制与前提条件" icon="shield" href="/features/model-router/others/limits-and-prerequisites">
+了解使用限制和前提条件。
+</Card>
+</CardGroup>

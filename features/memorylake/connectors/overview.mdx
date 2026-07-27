@@ -1,0 +1,118 @@
+---
+title: "外部连接器"
+description: "将 WPS、Lark 等外部文档服务挂载到您的 MemoryLake 文件库"
+---
+
+## 概述
+
+MemoryLake 连接器可将外部文档服务直接挂载到您的文件库中。无需离开 MemoryLake 即可浏览 WPS、Lark、OneDrive、SharePoint 和 Dropbox 中的文件，并将它们关联到项目，让您的 AI 助手把这些内容作为上下文使用。
+
+## 什么是连接器？
+
+连接器是一种集成能力，它可以：
+- **挂载外部文档库**：以专属空间的形式挂载到您的个人文件库（例如 "WPS Space"、"Lark Space"）
+- **使用 OAuth 认证**：安全访问，您的密码不会离开外部服务
+- **提供只读访问**：可浏览、下载外部内容并关联到项目
+- **按需加载内容**：展开文件夹时才从外部服务拉取其内容
+
+{/* SCREENSHOT: Connector section showing available connectors */}
+
+<Warning>
+连接器**仅在个人空间中可用**。在团队和组织工作空间中，外部连接器受策略限制处于禁用状态——卡片会显示，但无法连接。
+</Warning>
+
+## 可用连接器
+
+<CardGroup cols={2}>
+<Card title="WPS（金山办公）" icon="file-word" href="/features/memorylake/connectors/wps-integration">
+  **状态**：可用
+  连接您的 WPS 账户，以 "WPS Space" 的形式浏览文档库。
+</Card>
+
+<Card title="Lark（飞书）" icon="comments" href="/features/memorylake/connectors/wps-integration#lark（飞书）流程完全相同">
+  **状态**：可用
+  连接您的 Lark 账户，以 "Lark Space" 的形式浏览文档。流程与 WPS 相同。
+</Card>
+
+<Card title="Dropbox" icon="dropbox">
+  **状态**：可用
+  连接 Dropbox 账户，以专属空间的形式浏览文件。流程与 WPS 相同。
+</Card>
+
+<Card title="OneDrive" icon="microsoft">
+  **状态**：可用
+  连接 OneDrive 账户，以专属空间的形式浏览文件。流程与 WPS 相同。
+</Card>
+
+<Card title="SharePoint" icon="microsoft">
+  **状态**：可用
+  连接 SharePoint 站点，以专属空间的形式浏览文档库。流程与 WPS 相同。
+</Card>
+
+<Card title="Google Drive / 钉钉 / 百度网盘" icon="plug">
+  **状态**：即将推出
+</Card>
+</CardGroup>
+
+<Note>
+连接器的可用性可能因部署环境而异。控制台中的连接器板块始终显示您当前环境已启用的连接器。
+</Note>
+
+## 连接器工作原理
+
+<Steps>
+<Step title="发起连接">
+在连接器板块中点击某个连接器卡片。
+</Step>
+
+<Step title="OAuth 认证">
+弹出窗口会打开该服务的登录页面。登录并批准 MemoryLake 的只读访问请求。
+</Step>
+
+<Step title="浏览挂载空间">
+连接完成后，文件库树中会出现一个专属空间（例如 "WPS Space"）。展开文件夹即可浏览——内容会按需从外部服务拉取。
+</Step>
+</Steps>
+
+如果外部服务的授权过期，展开该空间时会提示您重新授权——只需一次 OAuth 往返即可恢复。
+
+## 连接器能力
+
+### 您可以做什么
+
+- **浏览**：在文件库树中浏览外部文档结构
+- **下载**：下载外部服务中的文件
+- **关联**：将外部文档关联到项目（AI 助手即可获得其内容作为上下文）
+
+### 限制
+
+- **只读**：无法通过 MemoryLake 上传、编辑或删除外部内容
+- **仅限个人空间**：连接器在团队和组织工作空间中处于禁用状态
+- **实时性**：外部服务中的变更会在您重新展开或刷新文件夹后显示
+- **文件类型**：项目处理仅覆盖 MemoryLake 支持的格式
+
+<Note>
+要修改外部服务中的文件，请使用其原生应用。MemoryLake 提供便捷的只读访问以及与您的项目的集成。
+</Note>
+
+## 常见用例
+
+<AccordionGroup>
+<Accordion title="统一文档访问">
+在一处访问多个服务中的文档。无需切换应用，即可与 MemoryLake 文件一起浏览 WPS、Lark、OneDrive、SharePoint 和 Dropbox 中的文档库。
+</Accordion>
+
+<Accordion title="从外部文档获取 AI 上下文">
+将外部文档关联到 MemoryLake 项目。通过 MCP 或 OpenClaw 插件接入的 AI 助手即可搜索和读取这些内容——无需您重新上传任何文件。
+</Accordion>
+
+<Accordion title="迁移规划">
+在把外部内容迁入 MemoryLake 之前先预览和下载。在决定全量导入之前，先用挂载内容验证项目工作流。
+</Accordion>
+</AccordionGroup>
+
+## 后续步骤
+
+<Card title="WPS 与 Lark 集成" icon="file" href="/features/memorylake/connectors/wps-integration">
+连接 WPS 或 Lark 账户的分步指南
+</Card>

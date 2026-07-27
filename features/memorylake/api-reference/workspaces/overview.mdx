@@ -1,0 +1,42 @@
+---
+title: "概述"
+description: "工作空间是 MemoryLake 中用于数据隔离的顶层命名空间"
+---
+
+**工作空间（Workspace）**是 MemoryLake 中的顶层组织边界，充当数据隔离的命名空间 — 项目、文档、会话和事实都限定在工作空间范围内。
+
+## 使用场景
+
+创建不同的工作空间来隔离不同租户、团队或环境之间的数据。工作空间内的所有数据对其他工作空间不可见。
+
+常见模式：
+- **多租户应用** — 每个客户一个工作空间
+- **环境隔离** — 开发、测试、生产分别使用不同工作空间
+- **团队隔离** — 每个业务部门一个工作空间
+
+## 资源关系
+
+```
+Workspace
+├── Projects（知识容器）
+│   ├── Documents
+│   ├── Conversations → Facts（项目级）
+│   └── Project Facts
+├── Actor 绑定（谁可以参与）
+│   └── Actor Facts（按用户记忆）
+└── Agent 绑定（哪些 Agent 可用）
+```
+
+- [Actors](/features/memorylake/api-reference/actors/overview) 和 [Agents](/features/memorylake/api-reference/agents/overview) 全局创建后**绑定**到工作空间中运作。
+- [Projects](/features/memorylake/api-reference/v3-projects/overview) 存在于工作空间内，持有实际的记忆数据。
+- [搜索](/features/memorylake/api-reference/search/search-memories)在工作空间级别运作，查询其中所有项目的内容。
+
+## 端点
+
+| 操作 | 方法 | 路径 |
+|------|------|------|
+| [列出工作空间](/features/memorylake/api-reference/workspaces/list-workspaces) | `GET` | `/api/v3/workspaces` |
+| [创建工作空间](/features/memorylake/api-reference/workspaces/create-workspace) | `POST` | `/api/v3/workspaces` |
+| [获取工作空间](/features/memorylake/api-reference/workspaces/get-workspace) | `GET` | `/api/v3/workspaces/{id}` |
+| [更新工作空间](/features/memorylake/api-reference/workspaces/update-workspace) | `PATCH` | `/api/v3/workspaces/{id}` |
+| [删除工作空间](/features/memorylake/api-reference/workspaces/delete-workspace) | `DELETE` | `/api/v3/workspaces/{id}` |

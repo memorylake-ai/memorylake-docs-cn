@@ -1,0 +1,86 @@
+---
+title: "部署与数据存储"
+description: "MemoryLake 中国站的服务地址、数据存储地域，以及私有化部署选项"
+---
+
+本页说明中国站的服务形态、数据存放位置与可选的部署方式，便于您评估合规与选型。
+
+## 服务地址
+
+| 用途 | 地址 |
+|---|---|
+| 控制台 | `https://app.memorylake.cn` |
+| REST API | `https://app.memorylake.cn/openapi/memorylake` |
+| OpenAPI 规范 | `https://app.memorylake.cn/openapi/memorylake/api-docs/open-api` |
+| Model Router（兼容 OpenAI） | `https://app.memorylake.cn/v1` |
+| Model Router（Claude 原生） | `https://app.memorylake.cn/claude/v1` |
+| MCP Server（OAuth2） | `https://app.memorylake.cn/memorylake/mcp/v2` |
+| 文档 | `https://docs.memorylake.cn` |
+
+<Note>
+中国站与国际站（`app.memorylake.ai`）是**相互独立的部署**：账号、工作空间、记忆数据、API Key 均不互通，两边的用量与配额也各自独立计算。请确认您的 API Key 是在哪一侧创建的，并使用对应的服务地址。
+</Note>
+
+## 数据存储
+
+您上传的文件、会话记录与提取出的记忆，存放在中国站部署所使用的境内云基础设施上；控制台、API 与检索服务同样运行在境内。
+
+<Warning>
+以下事项请在签约或上生产前与商务或您的客户成功经理书面确认，本文档不构成合规承诺：具体的存储地域与可用区、数据备份与保留策略、是否涉及跨境传输、以及您所处行业要求的资质证明（如等级保护测评结论）。
+</Warning>
+
+### 涉及第三方模型服务时
+
+当您使用 Model Router 调用模型，或让 Agent 使用联网检索、Open Data 等能力时，**请求内容会被转发给相应的模型服务方或数据源**。这类调用是否出境、由哪一方处理，取决于您选择的模型与能力。若您有数据不出境的要求：
+
+- 在调用前通过模型目录确认所选模型的提供方
+- 需要严格约束时，请联系商务确认可用的境内模型范围，或采用私有化部署
+- 避免在提示词与上传文件中放入不应外发的敏感信息
+
+## 部署形态
+
+<CardGroup cols={2}>
+<Card title="公有云（中国站）" icon="cloud">
+即本站文档描述的形态：注册即用，共享基础设施，按用量计费。适合团队快速起步与中小规模生产。
+</Card>
+
+<Card title="私有化部署" icon="server">
+部署在您自有的云账号或机房内，数据完全由您掌控，可对接内网模型服务。功能开关、连接器与集成范围可按需裁剪，因此与本文档描述可能存在差异。
+</Card>
+</CardGroup>
+
+私有化部署已在国内多家企业客户落地，支持主流公有云与自有机房。如需评估，请通过[官网联系表单](https://memorylake.cn/zh/contact)提交需求。
+
+<Note>
+私有化环境的功能集由部署方配置决定 —— 例如是否启用外部连接器、是否开放 Model Router、以及可用的模型清单。请以您环境的控制台实际显示为准；本文档描述的是公有云中国站的默认配置。
+</Note>
+
+## 与国际站的功能差异
+
+中国站与国际站基于同一套产品，但开放的功能范围不同。当前中国站的主要差异：
+
+| 能力 | 中国站 |
+|---|---|
+| MemoryLake Memory（记忆平台） | 可用 |
+| Model Router | 可用 |
+| MCP Server（OAuth2） | 可用 |
+| Agent 插件（OpenClaw / QClaw / Hermes） | 可用 |
+| REST API | 可用 |
+| Memory Router | 暂未开放 |
+| Memory Arena | 暂未开放 |
+| 数据库自然语言查询（NL2SQL） | 暂未开放 |
+| 聊天记录导入（Claude / ChatGPT / Gemini） | 暂未开放 |
+
+功能范围会随版本调整，控制台中实际显示的入口即为当前可用范围。
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="快速上手" icon="rocket" href="/quickstart">
+五分钟内在控制台体验记忆能力。
+</Card>
+
+<Card title="认证与 API Key" icon="key" href="/authentication">
+创建 Key 并调用中国站的 API。
+</Card>
+</CardGroup>

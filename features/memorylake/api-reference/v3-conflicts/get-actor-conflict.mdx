@@ -1,0 +1,119 @@
+---
+title: "获取 Actor 记忆冲突"
+description: "获取某个 Actor 事实之间单个记忆冲突的完整详情"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memories/conflicts/{conflictId}
+```
+
+返回单个冲突的完整记录，包括检测时捕获的事实快照、涉及的文档摘录，以及冲突已解决时的解决记录。
+
+<Note>
+**所需权限：** `workspace:actor_fact_read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+<ParamField path="conflictId" type="string" required>
+冲突 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts/conf-def456' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="冲突对象">
+  <ResponseField name="id" type="string">冲突标识符</ResponseField>
+  <ResponseField name="name" type="string">简要描述冲突的标题</ResponseField>
+  <ResponseField name="description" type="string">矛盾的详细说明</ResponseField>
+  <ResponseField name="category" type="string">冲突类别：`m2m`（事实与事实）或 `m2d`（事实与文档）</ResponseField>
+  <ResponseField name="resolved" type="boolean">冲突是否已解决</ResponseField>
+  <ResponseField name="resolve" type="object">
+  解决记录。仅在冲突已解决时存在，否则为 `null`。
+  <Expandable title="解决记录">
+    <ResponseField name="id" type="string">解决记录标识符</ResponseField>
+    <ResponseField name="strategy" type="string">已应用的策略：`keep_fact`、`trust_fact`、`trust_document` 或 `dismiss`</ResponseField>
+    <ResponseField name="keep_fact_id" type="string">当 `strategy` 为 `keep_fact` 时保留的事实</ResponseField>
+    <ResponseField name="forgotten_fact_ids" type="array">解决过程中被遗忘的事实 ID</ResponseField>
+    <ResponseField name="created_at" type="string">冲突解决的时间</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="stale" type="boolean">冲突检测之后，涉及的事实是否已发生变化</ResponseField>
+  <ResponseField name="conflict_type" type="string">冲突类型：`logical` 或 `knowledge`</ResponseField>
+  <ResponseField name="fact_ids" type="array">冲突涉及的事实 ID</ResponseField>
+  <ResponseField name="fact_snapshots" type="array">
+  检测时涉及事实的快照
+  <Expandable title="事实快照">
+    <ResponseField name="fact_id" type="string">事实标识符</ResponseField>
+    <ResponseField name="fact_text" type="string">检测时的事实文本</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="file_chunks" type="array">
+  事实与文档冲突所引用的文档摘录
+  <Expandable title="文件块">
+    <ResponseField name="text" type="string">冲突的摘录文本</ResponseField>
+    <ResponseField name="document_id" type="string">该摘录所属文档的 ID</ResponseField>
+    <ResponseField name="document_name" type="string">文档显示名称</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="created_at" type="string">冲突首次检测时间</ResponseField>
+  <ResponseField name="updated_at" type="string">冲突最后更新时间</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "conf-def456",
+    "name": "Contradicting dietary preference",
+    "description": "One fact states the user is vegetarian; another says their favorite dish is steak.",
+    "category": "m2m",
+    "resolved": true,
+    "resolve": {
+      "id": "res-1a2b3c4d",
+      "strategy": "keep_fact",
+      "keep_fact_id": "fact-101",
+      "forgotten_fact_ids": ["fact-102"],
+      "created_at": "2025-01-21T09:15:00Z"
+    },
+    "stale": false,
+    "conflict_type": "logical",
+    "fact_ids": ["fact-101", "fact-102"],
+    "fact_snapshots": [
+      {
+        "fact_id": "fact-101",
+        "fact_text": "User is vegetarian"
+      },
+      {
+        "fact_id": "fact-102",
+        "fact_text": "User's favorite dish is steak"
+      }
+    ],
+    "file_chunks": [],
+    "created_at": "2025-01-20T14:30:00Z",
+    "updated_at": "2025-01-21T09:15:00Z"
+  }
+}
+```
+</ResponseExample>
+
+<Tip>
+如需解决该冲突，请调用[解决 Actor 记忆冲突](/features/memorylake/api-reference/v3-conflicts/resolve-actor-conflict)并传入您想要应用的策略。
+</Tip>

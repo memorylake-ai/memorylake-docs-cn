@@ -1,0 +1,48 @@
+---
+title: "遗忘事实"
+description: "将事实标记为已遗忘而不删除它"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/facts/{factId}/forget
+```
+
+将事实标记为已遗忘（已过期），而不永久删除它。该事实仍可用于审计目的，但会从未来的检索和搜索中排除。要一次遗忘多个事实，请使用[批量遗忘事实](/features/memorylake/api-reference/facts/batch-forget-facts)。
+
+<Note>
+**所需权限：** `project:mem_delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="factId" type="string" required>
+要遗忘的事实 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/projects/proj_a1b2c3d4e5f6/memories/facts/fact_8f3a1b2c4d5e/forget' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 对象。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>

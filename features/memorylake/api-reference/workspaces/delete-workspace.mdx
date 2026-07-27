@@ -1,0 +1,45 @@
+---
+title: "删除工作空间"
+description: "永久删除工作空间"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{id}
+```
+
+<Warning>
+这是一个破坏性操作。工作空间及其所有关联数据将被永久删除。
+</Warning>
+
+通过 ID 永久删除工作空间。
+
+<Note>
+**所需权限：** `workspace:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+工作空间 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

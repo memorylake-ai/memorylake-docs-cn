@@ -1,0 +1,124 @@
+---
+title: "获取记忆冲突"
+description: "检索单个记忆冲突的完整详情"
+---
+
+```
+GET /openapi/memorylake/api/v2/projects/{id}/memories/conflicts/{conflictId}
+```
+
+返回单个冲突的完整记录。你始终可以获取到检测时捕获的记忆快照。对于记忆与文档（`m2d`）类型的冲突，你还可以获取与记忆相矛盾的文档摘录 —— 源文档已从项目中移除的摘录会被丢弃。
+
+<Note>
+**所需权限：** [`project:mem_read`](/features/team-collaboration/permission-reference#阅读事实内容) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="conflictId" type="string" required>
+冲突 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts/conf-abc123' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="冲突">
+  <ResponseField name="id" type="string">冲突 ID</ResponseField>
+  <ResponseField name="name" type="string">简短标题</ResponseField>
+  <ResponseField name="description" type="string">矛盾的详细解释</ResponseField>
+  <ResponseField name="category" type="string">`m2m`（记忆与记忆）或 `m2d`（记忆与文档）</ResponseField>
+  <ResponseField name="conflict_type" type="string">
+  不一致的类型：
+
+  - `logical` —— 陈述之间的矛盾或冲突。
+  - `knowledge` —— 关于事实或引用内容的分歧。
+  </ResponseField>
+  <ResponseField name="resolved" type="boolean">冲突是否已解决</ResponseField>
+  <ResponseField name="resolve" type="object">
+  解决记录 —— 仅在 `resolved` 为 `true` 时存在。
+  <Expandable title="解决详情">
+    <ResponseField name="id" type="string">解决记录 ID</ResponseField>
+    <ResponseField name="strategy" type="string">应用的策略：`keep_memory`、`trust_memory`、`trust_document` 或 `dismiss`</ResponseField>
+    <ResponseField name="keep_memory_id" type="string">策略需要选择时保留的记忆</ResponseField>
+    <ResponseField name="forgotten_memory_ids" type="array">解决过程中被遗忘的记忆</ResponseField>
+    <ResponseField name="resolved_by" type="string">解决冲突的操作者</ResponseField>
+    <ResponseField name="created_at" type="string">冲突解决的时间</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="stale" type="boolean">底层内容自检测以来是否已发生变化</ResponseField>
+  <ResponseField name="memory_ids" type="array">冲突涉及的记忆</ResponseField>
+  <ResponseField name="memory_snapshots" type="array">
+  检测冲突时每条记忆文本的快照
+  <Expandable title="记忆快照">
+    <ResponseField name="memory_id" type="string">记忆标识符</ResponseField>
+    <ResponseField name="memory_history_id" type="string">历史版本 ID（如有）</ResponseField>
+    <ResponseField name="memory_text" type="string">检测时的记忆文本</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="file_chunks" type="array">
+  文档摘录 —— 当 `category` 为 `m2d` 时非空
+  <Expandable title="文件块">
+    <ResponseField name="document_id" type="string">项目文档 ID</ResponseField>
+    <ResponseField name="document_name" type="string">文档显示名称</ResponseField>
+    <ResponseField name="chunk" type="object">
+    文档中匹配的文本片段
+    <Expandable title="Chunk">
+      <ResponseField name="type" type="string">`text`</ResponseField>
+      <ResponseField name="text" type="string">纯文本内容</ResponseField>
+      <ResponseField name="range" type="string">可选的位置提示（例如页码或单元格范围）</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="event_id" type="string">触发检测的事件 ID</ResponseField>
+  <ResponseField name="created_at" type="string">首次检测时间</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "conf-abc123",
+    "name": "Contradicting restaurant preferences",
+    "description": "An earlier memory says the user prefers spicy food; a later one says they avoid it.",
+    "category": "m2m",
+    "conflict_type": "logical",
+    "resolved": false,
+    "stale": false,
+    "memory_ids": ["mem-001", "mem-002"],
+    "memory_snapshots": [
+      {
+        "memory_id": "mem-001",
+        "memory_text": "User prefers spicy food"
+      },
+      {
+        "memory_id": "mem-002",
+        "memory_text": "User avoids spicy food"
+      }
+    ],
+    "file_chunks": [],
+    "event_id": "evt-xyz",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-01-15T10:30:00Z"
+  }
+}
+```
+</ResponseExample>
+
+<Tip>
+获取冲突详情后，可以使用[解决记忆冲突](/features/memorylake/api-reference/memories/resolve-memory-conflict)来做出决策。返回的 `forgotten_memory_ids` 会告诉你哪些记忆被移除了，以便你的 UI 保持同步。
+</Tip>

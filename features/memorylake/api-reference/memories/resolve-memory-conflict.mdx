@@ -1,0 +1,107 @@
+---
+title: "解决记忆冲突"
+description: "对记忆冲突应用解决策略"
+---
+
+```
+POST /openapi/memorylake/api/v2/projects/{id}/memories/conflicts/{conflictId}/resolve
+```
+
+记录用户对冲突的决策。根据策略的不同，一个或多个冲突记忆可能会被遗忘 —— 这些 ID 会在 `forgotten_memory_ids` 中返回，以便你的 UI 可以更新相应的记忆行。
+
+<Note>
+**所需权限：** [`project:mem_conflict_resolve`](/features/team-collaboration/permission-reference#解决事实冲突) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="conflictId" type="string" required>
+冲突 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="strategy" type="string" required>
+解决策略。每种策略适用于特定的冲突类型：
+
+| 策略 | 操作说明 | 被遗忘的记忆 |
+|---|---|---|
+| `keep_memory` | 保留冲突集中的一条记忆；丢弃其余。**需要**提供 `keep_memory_id`。适用于记忆与记忆冲突。 | 未被选中的记忆 |
+| `trust_memory` | 保留记忆，并将文件端的分歧视为已解决。适用于记忆与文档冲突。 | 无 |
+| `trust_document` | 丢弃冲突记忆，以文档为准。适用于记忆与文档冲突。 | 冲突的记忆 |
+| `dismiss` | 标记为已解决但不更改任何记忆 —— 用于冲突为误报的情况。 | 无 |
+</ParamField>
+
+<ParamField body="keep_memory_id" type="string">
+要保留的 `memory_id`。当 `strategy` 为 `keep_memory` 时必填；其他情况下忽略。
+</ParamField>
+
+<RequestExample>
+```bash 保留特定记忆
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts/conf-abc123/resolve' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "strategy": "keep_memory",
+    "keep_memory_id": "mem-002"
+  }'
+```
+
+```bash 信任记忆
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts/conf-abc123/resolve' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "strategy": "trust_memory"
+  }'
+```
+
+```bash 信任文档
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts/conf-abc123/resolve' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "strategy": "trust_document"
+  }'
+```
+
+```bash 忽略
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/conflicts/conf-abc123/resolve' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "strategy": "dismiss"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="解决结果">
+  <ResponseField name="id" type="string">冲突 ID</ResponseField>
+  <ResponseField name="resolved" type="boolean">冲突是否已标记为已解决</ResponseField>
+  <ResponseField name="strategy" type="string">应用的策略</ResponseField>
+  <ResponseField name="resolve_id" type="string">此次解决的审计记录 ID</ResponseField>
+  <ResponseField name="forgotten_memory_ids" type="array">解决过程中被遗忘的记忆（可能为空）</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "conf-abc123",
+    "resolved": true,
+    "strategy": "keep_memory",
+    "resolve_id": "resv-0001",
+    "forgotten_memory_ids": ["mem-001"]
+  }
+}
+```
+</ResponseExample>

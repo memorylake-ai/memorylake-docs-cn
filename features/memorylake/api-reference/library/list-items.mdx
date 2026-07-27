@@ -1,0 +1,124 @@
+---
+title: "列出条目"
+description: "列出文件库中某个文件夹下的文件和子文件夹"
+---
+
+```
+GET /openapi/memorylake/api/v1/drives/items/{item_id}/children
+```
+
+返回文件夹下的直接子条目（文件和文件夹）。使用游标分页：如果响应中返回了 `continuation_token`，将其传回下一次请求以获取下一页。当响应中不包含该令牌时，表示已到达末尾。
+
+<Note>
+**所需权限：** [`drive:item_read`](/features/team-collaboration/permission-reference#读取文件) · `service`
+</Note>
+
+### 路径参数
+
+<ParamField path="item_id" type="string" required>
+父文件夹。传入 `MY_SPACE` 表示工作空间根目录，或传入任何文件夹的 `item_id` 来列出其内容。
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="50">
+每页条目数，范围 1-50。省略时默认为 50。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+前一次调用返回的令牌。首次请求时省略。
+</ParamField>
+
+<RequestExample>
+```bash First page
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/MY_SPACE/children?page_size=50' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash Next page
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/MY_SPACE/children?page_size=50&continuation_token=Y6Wa982_Jj_A9-Kw40' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页文件库条目">
+  <ResponseField name="items" type="array">
+  文件库条目数组
+  <Expandable title="文件库条目">
+    <ResponseField name="uri" type="string">Drive 资源 URI</ResponseField>
+    <ResponseField name="item_id" type="string">条目 ID</ResponseField>
+    <ResponseField name="name" type="string">条目名称</ResponseField>
+    <ResponseField name="type" type="string">条目类型：`file` 或 `directory`</ResponseField>
+    <ResponseField name="size" type="integer">文件大小（字节，仅文件类型）</ResponseField>
+    <ResponseField name="etag" type="string">条目的 ETag</ResponseField>
+    <ResponseField name="parent_item_id" type="string">父条目 ID</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+    <ResponseField name="x_attrs" type="object">扩展属性（字符串到字符串的映射）</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">下一页的令牌。当为最后一页时，该字段缺失或为 `null`。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "uri": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+        "item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+        "name": "Reports",
+        "type": "directory",
+        "parent_item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:root",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z",
+        "x_attrs": {}
+      },
+      {
+        "uri": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7",
+        "item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7",
+        "name": "report.pdf",
+        "type": "file",
+        "size": 10485760,
+        "etag": "d41d8cd98f00b204e9800998ecf8427e",
+        "parent_item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:root",
+        "created_at": "2024-01-15T10:30:00Z",
+        "updated_at": "2024-01-15T10:30:00Z",
+        "x_attrs": {}
+      }
+    ],
+    "continuation_token": "Y6Wa982_Jj_A9-Kw40"
+  }
+}
+```
+</ResponseExample>
+
+### 遍历所有页面
+
+```python
+import requests
+
+BASE = "https://app.memorylake.cn/openapi/memorylake/api/v1"
+HEADERS = {"Authorization": "Bearer sk_xxxxxx"}
+
+def list_all(parent_id: str):
+    token = None
+    while True:
+        params = {"page_size": 50}
+        if token:
+            params["continuation_token"] = token
+        resp = requests.get(
+            f"{BASE}/drives/items/{parent_id}/children",
+            headers=HEADERS, params=params,
+        ).json()["data"]
+        yield from resp["items"]
+        token = resp.get("continuation_token")
+        if not token:
+            break
+```

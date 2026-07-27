@@ -1,0 +1,1080 @@
+---
+title: "权限参考"
+description: "了解每项权限的作用，以及缺少权限时您会看到的提示"
+---
+
+您在 MemoryLake 中能做什么 -- 能打开哪些页面、能点击哪些按钮、哪些 API 调用会成功 -- 取决于团队管理员授予您的权限。本页是您的指南：
+
+- 每项能力都以通俗语言描述了**它能让您做什么**以及**缺少时您会看到什么**。
+- 每个条目都显示了确切的**权限标识符** -- 如果您需要申请某项权限，可以将其复制给管理员。
+
+### 权限如何传递给您
+
+权限通过管理员控制的三个层级传递到每位成员：
+
+1. **角色** -- 内置角色（Owner / Admin / Member）自带一组默认能力。所有者还可以通过克隆父角色或从空白开始创建**自定义角色**。请参阅[角色与权限](/features/team-collaboration/roles-permissions)。
+2. **权限策略** -- 叠加在角色之上的 Allow / Deny 规则。管理员使用这些规则来覆盖角色默认值（例如允许成员创建项目）。
+3. **资源范围** -- 针对每位成员的特定工作空间、项目或其他资源的白名单，以及在每个资源上允许的操作子集。这就是将 `instance` 级别的能力缩小到一两个工作空间或项目的方式。
+
+API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创建者的角色和资源范围。移除成员会撤销其拥有的所有 API Key。
+
+## 如何发现缺少的权限
+
+您无需记忆任何内容。MemoryLake 会以可预测的方式展示缺失的权限：
+
+<CardGroup cols={2}>
+  <Card title="在控制台中" icon="display">
+    - **标签页消失** -- 侧边菜单中的某个标签页需要您没有的权限。
+    - **按钮变灰** -- 悬停时工具提示会准确告诉您缺少哪项权限。
+    - **列表显示为空** -- 即使您知道其中应该有内容。
+    - **直接打开 URL** 会将您重定向回去，或显示"无权限"页面。
+  </Card>
+  <Card title="调用 API 时" icon="code">
+    - 请求被拒绝，返回 **HTTP 403** 和 `INSUFFICIENT_PERMISSION` 错误码。
+    - 错误响应会告诉您缺少哪项权限。
+    - 完整的错误信封请参阅[错误处理](/features/memorylake/api-reference/errors)。
+  </Card>
+</CardGroup>
+
+<Tip>如果控制台中的某个按钮变灰且您不知道原因，请将鼠标悬停在上面。工具提示始终会显示您所需的确切权限名称。</Tip>
+
+## 权限如何分组
+
+权限存在于五种资源上。以下所有能力都属于其中之一：
+
+<CardGroup cols={3}>
+  <Card title="工作空间" icon="building">
+    您的租户级数据边界 -- 会话、Actor 和 Agent 绑定、Actor 事实、A2A 操作以及工作空间范围的搜索。所有 `workspace:*` 能力都属于此类。
+  </Card>
+  <Card title="Actor" icon="user">
+    独立的记忆载体 -- 跨项目积累事实的人和助手。所有 `actor:*` 能力都属于此类。
+  </Card>
+  <Card title="Agent" icon="robot">
+    AI Agent 定义 -- 模型、系统提示词、能力和版本化配置。所有 `agent:*` 能力都属于此类。
+  </Card>
+  <Card title="项目" icon="folder">
+    工作空间内的知识领域 -- 文档、项目范围的事实和 MCP 服务器。所有 `project:*` 能力都属于此类。
+  </Card>
+  <Card title="文件库" icon="hard-drive">
+    您的共享文件空间 -- 位于每个项目底层的存储。所有 `drive:*` 能力都属于此类。
+  </Card>
+</CardGroup>
+
+## 权限如何授予
+
+每项能力都有一个**级别** -- `instance` 或 `service` -- 决定管理员是否可以将其缩小到特定资源。以下每个条目的**级别**行都会显示该信息。
+
+<CardGroup cols={2}>
+  <Card title="Instance 级别" icon="filter">
+    作用于特定的资源实例（一个工作空间、一个项目、一个 Actor、一个 Agent）。角色的策略使该操作**可用**；成员的**资源范围**决定他们可以在**哪些实例**上执行该操作 -- 管理员可以在同一对话框中授予对工作空间 A 的访问权限，同时保留对工作空间 B 的限制。
+
+    涵盖打开、编辑、删除和搜索特定工作空间或项目，以及对其内容的所有操作。在目录中标记为 `instance`。
+  </Card>
+  <Card title="Service 级别" icon="globe">
+    作用于资源类型整体 -- 没有特定实例可以缩小范围。一旦角色的策略授予该权限，它将在团队范围内生效；**资源范围对这些能力无效**。
+
+    - **浏览资源列表**和**创建新资源** -- 这些不作用于特定实例。
+    - **所有文件库能力** -- 文件库是一个共享文件空间。
+
+    在目录中标记为 `service`。
+  </Card>
+</CardGroup>
+
+<Note>如果某项功能在特定工作空间或项目中不起作用，首先要问的通常是：**我是否有权限打开该工作空间或项目？** Instance 级别的能力仅在您被授予访问权限的资源内有效。</Note>
+
+---
+
+## 常用角色配方
+
+以下是典型的能力组合，可作为**起点**使用 -- 无论您是构建自定义角色，还是在内置 Member 角色之上添加**权限策略**。它们不是预构建的角色 -- 所有者通过 **Team > Permission Settings** 组装它们，然后在分配角色时通过成员的**资源范围**将 `instance` 能力缩小到正确的资源。
+
+<AccordionGroup>
+  <Accordion title="只读项目查看者">
+    可以浏览和打开项目、阅读其文档和事实，但不能更改任何内容。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | `workspace:read` | `instance` | 打开项目所在的工作空间 |
+    | `project:list` | `service` | 在列表和切换器中看到项目 |
+    | `project:read` | `instance` | 打开项目主页和各标签页 |
+    | `project:doc_list` | `instance` | 查看"文件"标签页 |
+    | `project:doc_read` | `instance` | 阅读单个文档 |
+    | `project:mem_list` | `instance` | 查看"事实"标签页 |
+    | `project:mem_read` | `instance` | 阅读单条事实 |
+    | `project:mcp_read` | `instance` | 查看"集成"标签页 |
+    | `project:mcp_list` | `instance` | 查看已有的 MCP 服务器（只读） |
+    | `drive:item_read` | `service` | 在文件库中预览和下载文件 |
+
+    将 `instance` 权限授予查看者应该看到的**特定工作空间和项目**。
+  </Accordion>
+
+  <Accordion title="文档管理员">
+    只读查看者的所有权限，**加上**上传、替换和移除项目文档的能力。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | （只读查看者的所有权限） | | |
+    | `project:doc_add` | `instance` | 向项目添加文档 |
+    | `project:doc_delete` | `instance` | 从项目移除文档 |
+    | `drive:item_add` | `service` | 向文件库上传新文件 |
+    | `drive:item_modify` | `service` | 重命名、移动、编辑元数据、保存评论 |
+    | `drive:item_delete` | `service` | 从文件库删除文件 |
+
+    `drive:item_*` 权限组是启用实际上传界面的关键；没有它，`project:doc_add` 允许用户将**已有的**文件库文件导入项目，但上传按钮将保持灰色不可用。
+  </Accordion>
+
+  <Accordion title="完整项目管理员">
+    文档管理员的所有权限，**加上**管理项目本身、其事实、冲突和 MCP 集成的能力。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | （文档管理员的所有权限） | | |
+    | `project:create` | `service` | 创建新项目 |
+    | `project:modify` | `instance` | 重命名/编辑/分享项目 |
+    | `project:delete` | `instance` | 删除项目 |
+    | `project:mem_modify` | `instance` | 更新事实 |
+    | `project:mem_delete` | `instance` | 遗忘事实 |
+    | `project:mem_conflict_resolve` | `instance` | 解决事实冲突 |
+    | `project:mcp_add` | `instance` | 创建 MCP 服务器 |
+    | `project:mcp_delete` | `instance` | 撤销 MCP 服务器 |
+  </Accordion>
+
+  <Accordion title="工作空间管理员">
+    完整的工作空间生命周期管理 -- 创建、配置和删除工作空间，管理会话，以及控制哪些 Actor 和 Agent 在每个工作空间中运行。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | `workspace:list` | `service` | 浏览可用的工作空间 |
+    | `workspace:create` | `service` | 创建新工作空间 |
+    | `workspace:read` | `instance` | 打开工作空间 |
+    | `workspace:modify` | `instance` | 编辑工作空间设置 |
+    | `workspace:delete` | `instance` | 删除工作空间 |
+    | `workspace:conv_list` | `instance` | 列出会话 |
+    | `workspace:conv_read` | `instance` | 阅读会话历史 |
+    | `workspace:conv_append` | `instance` | 发送消息 |
+    | `workspace:conv_delete` | `instance` | 删除会话 |
+    | `workspace:actor_list` | `instance` | 查看绑定了哪些 Actor |
+    | `workspace:actor_bind` | `instance` | 向工作空间添加 Actor |
+    | `workspace:actor_unbind` | `instance` | 从工作空间移除 Actor |
+    | `workspace:agent_list` | `instance` | 查看绑定了哪些 Agent |
+    | `workspace:agent_bind` | `instance` | 向工作空间添加 Agent |
+    | `workspace:agent_unbind` | `instance` | 从工作空间移除 Agent |
+    | `workspace:a2a` | `instance` | 执行 A2A 协议操作 |
+
+    将 `instance` 权限授予管理员应该管理的**特定工作空间**。
+  </Accordion>
+
+  <Accordion title="仅会话集成者">
+    用于在工作空间中读写会话的 API 凭证所需的最小权限集，无需管理工作空间本身。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | `workspace:read` | `instance` | 打开工作空间 |
+    | `workspace:conv_list` | `instance` | 列出会话 |
+    | `workspace:conv_read` | `instance` | 阅读会话消息 |
+    | `workspace:conv_append` | `instance` | 向会话发送消息 |
+
+    如果集成还需要清理旧会话，请添加 `workspace:conv_delete`。
+  </Accordion>
+
+  <Accordion title="Agent 运维者">
+    可以跨工作空间创建、配置和部署 Agent -- 但不需要项目或文档访问权限。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | `agent:list` | `service` | 浏览可用的 Agent |
+    | `agent:create` | `service` | 创建新 Agent |
+    | `agent:read` | `instance` | 查看 Agent 配置 |
+    | `agent:modify` | `instance` | 更新 Agent 身份信息 |
+    | `agent:version_list` | `instance` | 查看版本历史 |
+    | `agent:version_create` | `instance` | 发布新版本 |
+    | `agent:version_read` | `instance` | 查看特定版本详情 |
+    | `workspace:read` | `instance` | 打开工作空间 |
+    | `workspace:agent_list` | `instance` | 查看绑定了哪些 Agent |
+    | `workspace:agent_bind` | `instance` | 将 Agent 绑定到工作空间 |
+    | `workspace:agent_unbind` | `instance` | 从工作空间移除 Agent |
+
+    如果运维者还需要管理 Agent 交互的 Actor，请添加 `actor:*` 权限。
+  </Accordion>
+
+  <Accordion title="MCP 集成者（单项目 API Key）">
+    用于支撑一个 MCP 服务器的最小能力集，供外部客户端读取项目内容使用。
+
+    | Identifier | Level | 用途 |
+    |---|---|---|
+    | `workspace:read` | `instance` | 打开项目所在的工作空间 |
+    | `project:read` | `instance` | 打开项目 |
+    | `project:doc_list` | `instance` | 枚举文档 |
+    | `project:doc_read` | `instance` | 获取文档详情 |
+    | `project:doc_search` | `instance` | 对文档进行语义搜索 |
+    | `project:mem_list` | `instance` | 枚举事实 |
+    | `project:mem_read` | `instance` | 获取事实详情 |
+    | `project:mem_search` | `instance` | 搜索事实 |
+    | `project:search` | `instance` | 文档 + 事实组合搜索 |
+
+    如果集成还需要写回产生事实的会话，请添加 `workspace:conv_append`。
+
+    <Note>API Key 是一个 **Service Account** -- 它继承创建者的角色和资源范围。要将此 Key 限制到单个项目，请将**创建者**的资源范围设置为该项目；您无法单独限定 Key 的范围。如果创建者的角色或范围发生变化，Key 会随之变化。</Note>
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## 工作空间操作
+
+### 浏览工作空间
+
+允许您在列表页面和工作空间切换器中查看团队的工作空间。
+
+**缺少时：** 即使您有权访问特定工作空间，工作空间列表也会显示为空。
+
+**Identifier：** `workspace:list`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+<Note>仅有此权限不能让您打开任何工作空间。打开工作空间需要下一项权限。</Note>
+
+---
+
+### 创建新工作空间
+
+允许您从零开始创建全新的工作空间。
+
+**缺少时：** "新建工作空间"按钮被隐藏或变灰。
+
+**Identifier：** `workspace:create`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+---
+
+### 打开工作空间
+
+允许您打开工作空间并查看其内容。此权限还控制工作空间范围的搜索 -- [Search Memories](/features/memorylake/api-reference/search/search-memories) API 需要此权限。
+
+**缺少时：** 工作空间卡片显示为淡化状态，点击无反应。直接输入工作空间 URL 会显示整页的"无权限"消息。工作空间级别的搜索调用返回 403。
+
+**Identifier：** `workspace:read`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 编辑工作空间设置
+
+允许您重命名工作空间、编辑其描述以及更改其配置。
+
+**缺少时：** 所有"重命名"和"编辑"选项在出现的地方均变灰。
+
+**Identifier：** `workspace:modify`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 删除工作空间
+
+允许您永久删除一个工作空间。
+
+<Warning>删除工作空间是破坏性操作 -- 其会话、Actor 绑定、Agent 绑定以及所有工作空间范围的数据将一并被移除。</Warning>
+
+**缺少时：** 所有工作空间卡片和对话框中的"删除"选项均变灰。
+
+**Identifier：** `workspace:delete`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## 管理工作空间中的会话
+
+会话属于工作空间范围 -- 它们存在于工作空间中，并关联到一个或多个用于存储提取事实的项目。
+
+### 列出会话
+
+允许您查看工作空间中的会话列表。
+
+**缺少时：** 即使会话存在，会话区域也显示为空状态。
+
+**Identifier：** `workspace:conv_list`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 阅读会话
+
+允许您打开会话并阅读其消息，包括批量获取多条消息。
+
+**缺少时：** 会话行显示为淡化状态；点击无反应。
+
+**Identifier：** `workspace:conv_read`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+<Note>仅有此权限只能让您阅读已有消息，但不能添加新消息。发送消息需要下一项权限。</Note>
+
+---
+
+### 向会话发送消息
+
+允许您向现有会话追加新消息。
+
+**缺少时：** 消息输入区域被禁用并提示需要会话追加权限。
+
+**Identifier：** `workspace:conv_append`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 删除会话
+
+允许您永久从工作空间中移除一个会话。
+
+**缺少时：** 会话上的"删除"操作变灰。
+
+**Identifier：** `workspace:conv_delete`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## 管理工作空间中的 Actor 绑定
+
+Actor 是全局创建的，然后**绑定**到工作空间中运行。这些权限控制哪些 Actor 可以参与工作空间。
+
+### 列出工作空间的 Actor
+
+允许您查看哪些 Actor 绑定到了工作空间。
+
+**缺少时：** 已绑定 Actor 列表显示为空。
+
+**Identifier：** `workspace:actor_list`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 将 Actor 绑定到工作空间
+
+允许您将现有的 Actor 添加到工作空间，使其可以参与会话并积累事实。
+
+**缺少时：** "添加 Actor"操作变灰。
+
+**Identifier：** `workspace:actor_bind`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 从工作空间移除 Actor
+
+允许您将 Actor 从工作空间解绑 -- 他们将停止参与，但其全局存储的身份和事实仍然保留。
+
+**缺少时：** 每个 Actor 的"移除"操作变灰。
+
+**Identifier：** `workspace:actor_unbind`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## 管理工作空间中的 Actor 事实
+
+Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目积累。这些权限控制对该 Actor 专属知识的访问。
+
+### 列出 Actor 的事实
+
+允许您查看工作空间中某个 Actor 积累的事实列表。
+
+**缺少时：** Actor 的事实区域显示为空。
+
+**Identifier：** `workspace:actor_fact_list`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 阅读 Actor 事实
+
+允许您查看特定 Actor 事实的完整内容。
+
+**缺少时：** 事实行显示为淡化状态；点击无反应。
+
+**Identifier：** `workspace:actor_fact_read`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 更新 Actor 事实
+
+允许您编辑 Actor 事实的内容。
+
+**缺少时：** Actor 事实上的"编辑"操作变灰。
+
+**Identifier：** `workspace:actor_fact_modify`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 遗忘 Actor 事实
+
+允许您永久移除一条 Actor 事实。
+
+**缺少时：** Actor 事实上的"遗忘"操作变灰。
+
+**Identifier：** `workspace:actor_fact_delete`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## 管理工作空间中的 Agent 绑定
+
+Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这些权限控制哪些 Agent 可以在工作空间中运行。
+
+### 列出工作空间的 Agent
+
+允许您查看哪些 Agent 绑定到了工作空间。
+
+**缺少时：** 已绑定 Agent 列表显示为空。
+
+**Identifier：** `workspace:agent_list`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 将 Agent 绑定到工作空间
+
+允许您将现有的 Agent 添加到工作空间，使其可以服务会话。
+
+**缺少时：** "添加 Agent"操作变灰。
+
+**Identifier：** `workspace:agent_bind`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+### 从工作空间移除 Agent
+
+允许您将 Agent 从工作空间解绑 -- 它将停止服务会话，但其全局定义和版本历史仍然保留。
+
+**缺少时：** 每个 Agent 的"移除"操作变灰。
+
+**Identifier：** `workspace:agent_unbind`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## A2A 协议操作
+
+### 使用 A2A 协议
+
+允许您在工作空间内发起和参与 Agent-to-Agent (A2A) 协议操作。
+
+**缺少时：** 对此工作空间的 A2A 请求返回 403。
+
+**Identifier：** `workspace:a2a`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## Actor 操作
+
+### 浏览 Actor
+
+允许您查看团队中可用的 Actor 列表。
+
+**缺少时：** 即使 Actor 存在，Actor 列表也显示为空。
+
+**Identifier：** `actor:list`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+<Note>仅有此权限不能让您查看 Actor 的详情。查看 Actor 需要创建之后的下一项权限。</Note>
+
+---
+
+### 创建 Actor
+
+允许您创建新的 Actor -- 可以跨工作空间和项目积累事实的人或助手。
+
+**缺少时：** "新建 Actor"按钮被隐藏或变灰。
+
+**Identifier：** `actor:create`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+---
+
+### 查看 Actor
+
+允许您打开 Actor 并查看其配置和详情。
+
+**缺少时：** Actor 行显示为淡化状态；点击无反应。直接输入 Actor URL 会显示"无权限"消息。
+
+**Identifier：** `actor:read`
+
+**Level：** `instance` -- 授予到特定 Actor。
+
+---
+
+### 编辑 Actor
+
+允许您更新 Actor 的名称、描述和其他设置。
+
+**缺少时：** Actor 上所有"编辑"选项变灰。
+
+**Identifier：** `actor:modify`
+
+**Level：** `instance` -- 授予到特定 Actor。
+
+---
+
+### 删除 Actor
+
+允许您永久移除一个 Actor。
+
+<Warning>删除 Actor 会移除其身份和事实关联。此操作不可撤销。</Warning>
+
+**缺少时：** Actor 上的"删除"选项变灰。
+
+**Identifier：** `actor:delete`
+
+**Level：** `instance` -- 授予到特定 Actor。
+
+---
+
+## Agent 操作
+
+### 浏览 Agent
+
+允许您查看团队中可用的 Agent 列表。
+
+**缺少时：** 即使 Agent 存在，Agent 列表也显示为空。
+
+**Identifier：** `agent:list`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+---
+
+### 创建 Agent
+
+允许您定义新的 Agent，包括其模型、系统提示词和能力。创建 Agent 会自动创建对应的 Actor。
+
+**缺少时：** "新建 Agent"按钮被隐藏或变灰。
+
+**Identifier：** `agent:create`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+---
+
+### 查看 Agent
+
+允许您打开 Agent 并查看其配置 -- 模型、系统提示词、能力和策略。
+
+**缺少时：** Agent 行显示为淡化状态；点击无反应。
+
+**Identifier：** `agent:read`
+
+**Level：** `instance` -- 授予到特定 Agent。
+
+---
+
+### 编辑 Agent 身份信息
+
+允许您更新 Agent 的身份字段 -- 名称、描述以及其他跨所有版本生效的顶层设置。
+
+**缺少时：** Agent 身份信息上的"编辑"选项变灰。
+
+**Identifier：** `agent:modify`
+
+**Level：** `instance` -- 授予到特定 Agent。
+
+<Note>更改 Agent 的配置（模型、提示词、能力）会创建新**版本** -- 这需要下方的版本创建权限。此权限仅涵盖就地更新的身份字段。</Note>
+
+---
+
+### 删除 Agent
+
+允许您永久移除一个 Agent 及其所有版本。
+
+<Warning>删除 Agent 也会移除其自动创建的 Actor。此操作不可撤销。</Warning>
+
+**缺少时：** Agent 上的"删除"选项变灰。
+
+**Identifier：** `agent:delete`
+
+**Level：** `instance` -- 授予到特定 Agent。
+
+---
+
+### 列出 Agent 版本
+
+允许您查看 Agent 的版本历史 -- 每个过去的配置快照。
+
+**缺少时：** 版本区域显示为空。
+
+**Identifier：** `agent:version_list`
+
+**Level：** `instance` -- 授予到特定 Agent。
+
+---
+
+### 创建 Agent 版本
+
+允许您发布 Agent 的新版本 -- 更新后的模型、提示词或能力设置的快照。
+
+**缺少时：** "发布版本"操作变灰。
+
+**Identifier：** `agent:version_create`
+
+**Level：** `instance` -- 授予到特定 Agent。
+
+---
+
+### 查看 Agent 版本
+
+允许您查看特定 Agent 版本的详情 -- 该时间点的模型、提示词和能力配置。
+
+**缺少时：** 版本行显示为淡化状态；点击无反应。
+
+**Identifier：** `agent:version_read`
+
+**Level：** `instance` -- 授予到特定 Agent。
+
+---
+
+## 项目操作
+
+### 浏览项目列表
+
+允许您查看团队的项目 -- 在列表页面、项目切换器下拉菜单和主页卡片中。
+
+**缺少时：** 即使您有权访问特定项目，项目列表也会显示为空。项目切换器同样为空。
+
+**Identifier：** `project:list`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+<Note>仅有此权限不能让您打开任何项目。打开项目需要下一项权限。</Note>
+
+---
+
+### 打开项目
+
+允许您点击项目卡片并查看其内容 -- 项目主页和内部的所有标签页。
+
+**缺少时：** 项目卡片显示为淡化状态，点击无反应。直接输入项目 URL 会显示整页的"无权限"消息。
+
+**Identifier：** `project:read`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 创建新项目
+
+允许您从零开始创建全新的项目。
+
+**缺少时：** "新建项目"按钮在列表页面、首个项目引导卡片、快速入门向导和集成页面中被隐藏或变灰。
+
+**Identifier：** `project:create`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+---
+
+### 编辑项目设置
+
+允许您重命名项目、编辑其描述、更改所属行业以及与他人分享。聊天编辑器中的"绑定行业"按钮也依赖此权限。
+
+**缺少时：** 所有"重命名"、"编辑"和"分享"选项在出现的地方均变灰。
+
+**Identifier：** `project:modify`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 删除项目
+
+允许您永久删除一个项目。
+
+<Warning>删除项目是破坏性操作 -- 其文档和事实将一并被移除。</Warning>
+
+**缺少时：** 所有项目卡片和对话框中的"删除"选项均变灰。
+
+**Identifier：** `project:delete`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 跨项目搜索（仅 API）
+
+允许您调用 [Search Memories](/features/memorylake/api-reference/search/search-memories) API 同时查询项目内的文档和事实。
+
+**适用场景：** 仅限 API 集成。在控制台中，项目内的搜索通过下方的文档搜索和事实搜索权限进行。
+
+**Identifier：** `project:search`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+## 项目内的文档操作
+
+### 查看"文件"标签页
+
+允许您打开项目的**文件**标签页并浏览其关联的文档。
+
+**缺少时：** 整个"文件"标签页从项目侧边菜单中消失。直接输入文件页面的 URL 只会将您重定向到默认标签页。
+
+**Identifier：** `project:doc_list`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 读取单个文档
+
+允许您通过 API 获取完整的文档详情。
+
+**适用场景：** 主要用于 API 集成，以及控制台后台刷新文档处理状态的轮询。控制台文件下载通过文件库部分的**读取文件**权限进行。
+
+**Identifier：** `project:doc_read`
+
+**Level：** `instance` -- 授予到特定项目。
+
+**涵盖的 API：** [Get Document](/features/memorylake/api-reference/v3-documents/get-document)。
+
+---
+
+### 向项目添加文档
+
+允许您将文件添加到项目中 -- 通过"添加文档"按钮、空状态上传卡片以及聊天编辑器中的上传图标。
+
+**缺少时：** 所有"添加文档"/上传入口均变灰。
+
+**Identifier：** `project:doc_add`
+
+**Level：** `instance` -- 授予到特定项目。
+
+<Note>
+[Import Documents](/features/memorylake/api-reference/v3-documents/import-documents) API 端点实际上同时检查**两项**权限：`project:doc_add`（本权限）**和** [`drive:item_read`](#读取文件) -- 服务器在导入前需要读取每个引用的文件库文件。没有 `drive:item_read`，即使授予了 `project:doc_add`，调用也会返回 403。
+
+如果您还需要在导入前**上传全新的文件**，则文件库上传步骤还需要 [`drive:item_add`](#上传和创建文件)。
+</Note>
+
+---
+
+### 从项目移除文档
+
+允许您从项目中移除文档，可以逐个或批量操作。
+
+<Note>从项目移除文档只是取消了该项目与文档的关联，**不会**删除文件库中的底层文件。删除文件本身需要下方文件库部分的**删除文件**权限。</Note>
+
+**缺少时：** "文件"标签页中每行的"移除"操作和批量移除操作均变灰。
+
+**Identifier：** `project:doc_delete`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 搜索项目内的文档（仅 API）
+
+允许您对项目中的文档运行语义搜索查询。
+
+**适用场景：** 仅限 API 集成。控制台内的文档搜索通过其自身的控件实现。
+
+**Identifier：** `project:doc_search`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+## 项目内的事实操作
+
+### 查看"事实"标签页
+
+允许您打开**事实**标签页并查看事实列表以及顶部的关键词云。
+
+**缺少时：** 整个"事实"标签页从项目侧边菜单中消失。关键词云、冲突列表和原始变更历史都无法访问。
+
+**Identifier：** `project:mem_list`
+
+**Level：** `instance` -- 授予到特定项目。
+
+<Note>仅有此权限只能让您看到事实的存在，但看不到其内容。您还需要下一项权限才能阅读每条事实的完整内容。</Note>
+
+---
+
+### 阅读事实内容
+
+允许您点击事实行打开其详情面板 -- 包含完整内容、时间戳和来源信息。
+
+**缺少时：** 事实行显示为淡化状态；点击无反应；从关键词云深入查看也会失败。
+
+**Identifier：** `project:mem_read`
+
+**Level：** `instance` -- 授予到特定项目。
+
+**涵盖的 API：** [Get Fact](/features/memorylake/api-reference/facts/get-fact)。
+
+---
+
+### 搜索事实
+
+允许您通过关键词查找事实。"事实"标签页顶部的搜索框依赖此权限。
+
+**缺少时：** 搜索框本身被隐藏 -- 您可以滚动列表但无法过滤。
+
+**Identifier：** `project:mem_search`
+
+**Level：** `instance` -- 授予到特定项目。
+
+**涵盖的 API：** [Search Memories](/features/memorylake/api-reference/search/search-memories)。
+
+---
+
+### 通过 API 添加事实（仅 API）
+
+允许您通过 API 直接推送事实。
+
+**适用场景：** 仅限 API 集成。在控制台中，事实通过会话和文档摄取自动产生 -- 没有手动的"添加事实"按钮。
+
+**Identifier：** `project:mem_add`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 更新事实
+
+允许您编辑现有事实的内容。
+
+**缺少时：** 事实上的"编辑"操作变灰。
+
+**Identifier：** `project:mem_modify`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 遗忘（删除）事实
+
+允许您让 MemoryLake 遗忘一条事实，可以逐条或批量操作。
+
+**缺少时：** 每行的"遗忘"操作和批量遗忘操作均变灰。
+
+**Identifier：** `project:mem_delete`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 解决事实冲突
+
+允许您查看项目内的**冲突**标签页、审查每个冲突并选择如何解决。
+
+**缺少时：** "冲突"标签页完全消失 -- 您无法看到是否存在冲突或冲突的内容。
+
+**Identifier：** `project:mem_conflict_resolve`
+
+**Level：** `instance` -- 授予到特定项目。
+
+<Note>目前这是一个单一权限 -- 没有只读的冲突查看选项。如果您需要在不能解决冲突的情况下查看冲突，请联系管理员。</Note>
+
+---
+
+## 项目的 MCP 管理
+
+**MCP 服务器**是连接点，允许第三方工具（Claude 桌面端、MCP 兼容客户端或您自己的应用）代表您与特定项目通信。每个 MCP 服务器都有其自己的凭证。以下四项权限将生命周期分为查看/列表/创建/撤销。
+
+### 查看"集成"标签页
+
+允许您打开项目的**集成**标签页 -- MCP 服务器在此列出和管理。
+
+**缺少时：** "集成"标签页从项目侧边菜单中隐藏。
+
+**Identifier：** `project:mcp_read`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 查看已有的 MCP 服务器
+
+允许您查看为项目签发的 MCP 服务器列表，包括每个服务器的创建时间和名称。
+
+**缺少时：** 集成页面显示空的"无权限"状态，即使 MCP 服务器确实存在。
+
+**Identifier：** `project:mcp_list`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 创建新的 MCP 服务器
+
+允许您设置新的 MCP 服务器，将第三方工具连接到项目。
+
+**缺少时：** "添加集成"/"创建 MCP 服务器"按钮变灰。
+
+**Identifier：** `project:mcp_add`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+### 撤销 MCP 服务器
+
+允许您删除现有的 MCP 服务器 -- 立即断开使用它的所有连接。
+
+**缺少时：** 每行的"删除"/"撤销"操作变灰。
+
+**Identifier：** `project:mcp_delete`
+
+**Level：** `instance` -- 授予到特定项目。
+
+---
+
+## 文件库操作
+
+文件库是位于每个项目底层的共享文件空间。当您"向项目添加文档"时，文件首先进入文件库，项目只是链接到它。以下四项权限同时适用于您的所有项目 -- 它们不是按项目单独授予的。
+
+### 读取文件
+
+允许您浏览文件树、查看缩略图、在查看器中预览文件、下载文件以及阅读他人留下的评论。
+
+**缺少时：** 缩略图回退为纯文件类型图标，"下载"菜单项变灰，文件预览被跳过，评论面板静默降级。
+
+**Identifier：** `drive:item_read`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+**涵盖的 API：** [Get Item](/features/memorylake/api-reference/library/get-item)、[List Items](/features/memorylake/api-reference/library/list-items)。
+
+---
+
+### 上传和创建文件
+
+允许您上传文件、创建文件夹以及附加外部存储。当您点击"添加文档"或将文件拖入应用时，此权限在后台运行。
+
+**缺少时：** "新建文件夹"和"上传文件"入口在所有位置均变灰，包括"添加文档"对话框内。
+
+**Identifier：** `drive:item_add`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+**涵盖的 API：** [Create Upload](/features/memorylake/api-reference/library/create-upload)、[Create Item](/features/memorylake/api-reference/library/create-item)。
+
+---
+
+### 编辑文件
+
+允许您重命名文件、在文件夹间移动、编辑元数据和标签以及保存评论。这还涵盖通过 API 管理文件的自定义属性（xattrs）。
+
+**缺少时：** 重命名、移动和编辑元数据选项变灰。评论面板的"保存"按钮被禁用并提示需要文件编辑权限。
+
+**Identifier：** `drive:item_modify`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+**涵盖的 API：** [Set Item Xattrs](/features/memorylake/api-reference/library/set-item-xattrs)、[Delete Item Xattrs](/features/memorylake/api-reference/library/delete-item-xattrs)。
+
+<Note>从文件中删除标签（移除 xattr）算作**编辑**而非**删除** -- 您是在更改文件的元数据，而不是移除文件本身。</Note>
+
+---
+
+### 删除文件
+
+允许您永久删除文件和文件夹，可以逐个或批量操作。
+
+<Warning>删除的文件将从链接到它的每个项目中消失。如果您只想从一个项目中移除链接，请使用上方的**从项目移除文档**。</Warning>
+
+**缺少时：** 文件和文件夹上的所有"删除"操作均变灰。
+
+**Identifier：** `drive:item_delete`
+
+**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
+
+**涵盖的 API：** [Delete Item](/features/memorylake/api-reference/library/delete-item)。
+
+---
+
+## 快速排查
+
+<AccordionGroup>
+  <Accordion title="我能看到工作空间列表，但无法打开任何工作空间">
+    您有**浏览工作空间**权限但没有**打开工作空间**权限。请联系管理员在特定工作空间上授予 `workspace:read`。
+  </Accordion>
+
+  <Accordion title="我能看到项目列表，但无法打开任何项目">
+    您有**浏览项目列表**权限但没有**打开项目**权限。请联系管理员在特定项目上授予 `project:read`。同时检查您是否拥有项目所在工作空间的 `workspace:read` 权限。
+  </Accordion>
+
+  <Accordion title="我能打开的项目在侧边菜单中缺少某些标签页">
+    每个标签页依赖其对应的权限：
+    - **文件**标签页需要 `project:doc_list`
+    - **事实**标签页需要 `project:mem_list`
+    - **集成**标签页需要 `project:mcp_read`
+    - **冲突**标签页需要 `project:mem_conflict_resolve`
+  </Accordion>
+
+  <Accordion title="按钮变灰了，我不知道为什么">
+    将鼠标悬停在按钮上 -- 工具提示会准确告诉您需要哪项权限。截图工具提示并转发给管理员。
+  </Accordion>
+
+  <Accordion title="我能看到事实列表，但点击行没有反应">
+    您可以**看到**事实存在（`mem_list`）但不能**阅读**它们（`mem_read`）。请联系管理员授予 `project:mem_read`。
+  </Accordion>
+
+  <Accordion title="我能看到会话列表，但无法阅读它们">
+    您有 `workspace:conv_list` 但没有 `workspace:conv_read`。请联系管理员在此工作空间上授予 `workspace:conv_read`。
+  </Accordion>
+
+  <Accordion title="我能阅读会话但消息输入框被禁用">
+    您有 `workspace:conv_read` 但没有 `workspace:conv_append`。请联系管理员在此工作空间上授予 `workspace:conv_append`。
+  </Accordion>
+
+  <Accordion title="我无法将 Agent 绑定到工作空间">
+    您需要同时拥有 Agent 上的 `agent:read` **和**工作空间上的 `workspace:agent_bind`。请检查您是否同时拥有这两项权限。
+  </Accordion>
+
+  <Accordion title="我的 API 调用返回了 403 INSUFFICIENT_PERMISSION">
+    错误响应会指出您的凭证缺少哪项权限。在上方相关部分中找到它，然后请管理员将该权限授予绑定到您 API Key 的角色。
+  </Accordion>
+
+  <Accordion title="我已向管理员申请了权限 -- 他们具体如何授予？">
+    管理员根据需要操作以下三个位置之一：
+
+    - **权限策略**（位于 **Team > Permission Settings**）-- 启用您的角色默认不包含的能力。管理员添加一条包含您发送的标识符的 Allow 规则。
+    - **资源范围**（位于 **Members > [您] > Set resource scope...**）-- 将 `instance` 级别的能力扩展到特定工作空间、项目、Actor 或 Agent，或进行缩小。
+    - **角色变更**（位于 **Members > [您] > Assign role...**）-- 如果该能力已包含在更大的角色中，管理员可以直接授予您整个角色。
+
+    所有者可以执行以上全部三项操作。管理员可以执行前两项，但**无法将您提升**为 Admin 或自定义角色 -- 这是仅限所有者的操作。
+  </Accordion>
+
+  <Accordion title="直接输入无权访问的 URL 会怎样？">
+    - **工作空间或项目主页**会显示整页的"无权限"消息，附带联系管理员的链接。
+    - **资源内您无法查看的标签页**会将您重定向到默认标签页。
+  </Accordion>
+</AccordionGroup>
+
+---
+
+想要查看按区域分组的所有权限一览表？请参阅团队协作概览中的[权限目录](/features/team-collaboration/overview#权限目录)。
+
+如果您需要的能力未出现在您的角色中，请联系团队的所有者或管理员。他们可以在 **Teams > My Teams > Members** 中调整角色。

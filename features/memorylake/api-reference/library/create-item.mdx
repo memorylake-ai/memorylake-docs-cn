@@ -1,0 +1,175 @@
+---
+title: "创建条目"
+description: "创建文件夹，或在上传完分块后注册文件"
+---
+
+```
+POST /openapi/memorylake/api/v1/drives/items
+```
+
+一个接口，两种模式 — 由 `item_type` 字段决定：
+
+- **文件夹**（`item_type: "folder"`） — 在文件库中创建一个空文件夹。
+- **文件**（`item_type: "file"`） — 注册一个字节已通过分块上传存入存储的文件。您必须先调用[创建上传会话](/features/memorylake/api-reference/library/create-upload)并收集每个分块的 `ETag`。
+
+请选择下方与您要创建的条目类型相匹配的标签页。不同模式的必填字段不同。
+
+<Note>
+`parent_item_id` 接受别名 `MY_SPACE`（您的工作空间根目录）。直接传入即可，无需查询根目录 ID。您也可以传入任意文件夹的 `item_id` 以嵌套到更深层级。
+</Note>
+
+<Note>
+**所需权限：** [`drive:item_add`](/features/team-collaboration/permission-reference#上传和创建文件) · `service`
+
+**流程说明（文件模式）：** 以 `item_type: "file"` 模式调用此接口是文件库上传流程的第 2 步；第 1 步是[创建上传会话](/features/memorylake/api-reference/library/create-upload)（相同权限）。如需让文件出现在项目中，请调用[导入文档](/features/memorylake/api-reference/v3-documents/import-documents) — 该操作还额外需要 [`project:doc_add`](/features/team-collaboration/permission-reference#向项目添加文档) 权限。
+</Note>
+
+### 请求体
+
+<Tabs>
+<Tab title="创建文件夹">
+
+<ParamField body="item_type" type="string" required>
+必须为 `"folder"`。
+</ParamField>
+
+<ParamField body="parent_item_id" type="string" required>
+父文件夹 — `MY_SPACE` 或任意文件夹的 `item_id`。
+</ParamField>
+
+<ParamField body="name" type="string" required>
+文件夹名称，例如 `Q2 Reports`。
+</ParamField>
+
+<ParamField body="name_conflict_strategy" type="string" default="rename">
+当 `parent_item_id` 中已存在同名条目时的行为：
+
+- `rename`（默认） — 追加数字后缀（`Q2 Reports_1`）。
+- `deny` — 以 `409 DRIVE_ITEM_CONFLICT` 失败。
+</ParamField>
+
+<ParamField body="x_attrs" type="object">
+扩展属性 — 用于存放调用方自定义元数据的 `字符串 → 字符串` 映射。
+</ParamField>
+
+</Tab>
+<Tab title="创建文件">
+
+此调用用于为您先前发起的上传收尾 — 不会传输字节。在执行到这一步之前，您应该已经：
+
+1. 调用[创建上传会话](/features/memorylake/api-reference/library/create-upload)并传入 `file_size`，收到 `upload_id` 以及每个分块的预签名 URL。
+2. 将每个分块 PUT 到其 URL，并保存每次响应的 `ETag` 头。
+
+<ParamField body="item_type" type="string" required>
+必须为 `"file"`。
+</ParamField>
+
+<ParamField body="parent_item_id" type="string" required>
+父文件夹 — `MY_SPACE` 或任意文件夹的 `item_id`。
+</ParamField>
+
+<ParamField body="name" type="string" required>
+文件名，例如 `report.pdf`。
+</ParamField>
+
+<ParamField body="from" type="object" required>
+指向已完成的分块上传。
+
+<Expandable title="from">
+  <ParamField body="upload_id" type="string" required>
+  [创建上传会话](/features/memorylake/api-reference/library/create-upload)返回的 `upload_id`。
+  </ParamField>
+  <ParamField body="part_etags" type="array" required>
+  每个已上传分块对应一项。必须按顺序包含全部分块。
+
+  <Expandable title="part_etags 数组项">
+    <ParamField body="number" type="integer" required>
+    分块编号（从 1 开始）。必须与上传会话中的 `number` 一致。
+    </ParamField>
+    <ParamField body="etag" type="string" required>
+    PUT 该分块时返回的 `ETag` 头值。
+    </ParamField>
+  </Expandable>
+  </ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="name_conflict_strategy" type="string" default="rename">
+当 `parent_item_id` 中已存在同名条目时的行为：
+
+- `rename`（默认） — 追加数字后缀（`report_1.pdf`）。
+- `deny` — 以 `409 DRIVE_ITEM_CONFLICT` 失败。
+- `overwrite` — 覆盖文件库中现有文件的内容。现有的 `item_id` **保持不变**。
+- `replace` — 删除现有文件并创建新文件。会签发**新的 `item_id`**；此前对旧 ID 的引用将失效。
+</ParamField>
+
+<Warning>
+`overwrite` 仅替换文件库中存储的文件字节 — **不会**重新处理或重新索引此前从该文件导入的任何项目文档。要将新内容同步到项目中，请在覆盖后再次调用[导入文档](/features/memorylake/api-reference/v3-documents/import-documents)（或改用一个新文件）。
+</Warning>
+
+<ParamField body="x_attrs" type="object">
+扩展属性 — 用于存放调用方自定义元数据的 `字符串 → 字符串` 映射。
+</ParamField>
+
+</Tab>
+</Tabs>
+
+<RequestExample>
+```bash Create folder
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "item_type": "folder",
+    "parent_item_id": "MY_SPACE",
+    "name": "Q2 Reports"
+  }'
+```
+
+```bash Create file
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "item_type": "file",
+    "parent_item_id": "MY_SPACE",
+    "name": "report.pdf",
+    "from": {
+      "upload_id": "upl-abc123def456",
+      "part_etags": [
+        { "number": 1, "etag": "d41d8cd98f00b204e9800998ecf8427e" },
+        { "number": 2, "etag": "f6e5d4c3b2a10987f6e5d4c3b2a10987" }
+      ]
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+文件夹和文件的响应结构相同。
+
+<ResponseField name="data" type="object">
+<Expandable title="已创建的条目">
+  <ResponseField name="uri" type="string">所创建条目的 Drive 资源 URI</ResponseField>
+  <ResponseField name="item_id" type="string">结果条目的 ID。使用 `overwrite` 时，等于现有文件的 `item_id`（保持不变）。使用 `replace`、`rename` 或全新创建时，会签发新的 `item_id`。</ResponseField>
+  <ResponseField name="name" type="string">实际生效的名称。当 `rename` 产生了自动后缀时，会与请求中的 `name` 不同。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "uri": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+    "item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+    "name": "report.pdf"
+  }
+}
+```
+</ResponseExample>
+
+<Tip>
+请始终从响应中读取 `name`。使用默认的 `rename` 策略时，服务器可能已追加后缀 — 返回的 `name` 才是您应该展示和存储的名称。
+</Tip>

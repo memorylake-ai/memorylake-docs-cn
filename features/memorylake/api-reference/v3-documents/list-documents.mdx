@@ -1,0 +1,110 @@
+---
+title: "列出文档"
+description: "使用游标分页列出项目中的文档"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/documents
+```
+
+返回已导入项目的文档。使用游标分页：如果响应中返回了 `continuation_token`，将其传入下一次请求以获取下一页。当响应中不包含该 token 时，表示已到达最后一页。
+
+<Note>
+**所需权限：** `project:doc_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+拥有该项目的工作空间 ID。
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+要列出文档的项目。
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的文档数量。省略时默认为 20。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次调用返回的 token。首次请求时省略。
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按文档名称模糊匹配。
+</ParamField>
+
+<RequestExample>
+```bash First page
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a1b2c3d4e5f6/projects/proj-7g8h9i0j1k2l/memories/documents?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash Next page
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a1b2c3d4e5f6/projects/proj-7g8h9i0j1k2l/memories/documents?page_size=20&continuation_token=eyJsYXN0SWQiOiJkb2MtOW4wbTFsMms' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页文档列表">
+  <ResponseField name="items" type="array">
+  项目文档数组。
+  <Expandable title="ProjectDocumentItem">
+    <ResponseField name="id" type="string">文档 ID。</ResponseField>
+    <ResponseField name="name" type="string">文档的文件名。</ResponseField>
+    <ResponseField name="status" type="string">处理状态：`pending`、`running`、`okay` 或 `error`。</ResponseField>
+    <ResponseField name="error" type="object|null">当 `status` 为 `error` 时的错误详情。否则为 `null`。</ResponseField>
+    <ResponseField name="usage" type="object">
+    处理的 token 用量。
+    <Expandable title="Usage">
+      <ResponseField name="files_process_tokens" type="integer">处理此文档消耗的 token 数量。</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="document_type" type="string">文档类型：`drive_file`。</ResponseField>
+    <ResponseField name="created_at" type="string">文档导入时的 ISO 8601 时间戳。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">下一页的 token。当为最后一页时不返回或为 `null`。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "doc-3m4n5o6p7q8r",
+        "name": "quarterly-report.pdf",
+        "status": "okay",
+        "error": null,
+        "usage": {
+          "files_process_tokens": 15230
+        },
+        "document_type": "drive_file",
+        "created_at": "2025-03-10T14:22:00Z"
+      },
+      {
+        "id": "doc-8s9t0u1v2w3x",
+        "name": "product-spec.docx",
+        "status": "running",
+        "error": null,
+        "usage": {
+          "files_process_tokens": 0
+        },
+        "document_type": "drive_file",
+        "created_at": "2025-03-11T09:15:00Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0SWQiOiJkb2MtOW4wbTFsMms"
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,113 @@
+---
+title: "添加文档"
+description: "将一个或多个文件库文件导入项目作为文档"
+---
+
+```
+POST /openapi/memorylake/api/v1/projects/{id}/documents
+```
+
+将用户文件库中的文件导入项目。每个导入的文件会成为一个项目文档，并立即加入处理队列。该操作支持批量处理，且支持**部分成功** —— 响应会告知导入成功和失败的数量。
+
+你可以在 `drive_item_ids` 中传入**文件**或**目录** ID。目录会递归展开为所有后代文件后再导入，因此导入一个文件夹相当于一次调用导入整个子树。目录中不支持的项类型会被静默跳过。
+
+为方便起见，`drive_item_ids` 还接受两个别名：
+
+- `MY_SPACE` —— 一次调用导入用户工作区根目录下的所有文件。
+- `ROOT` —— 一次调用导入用户在整个文件库中有权访问的所有文件。
+
+如果要添加的文件尚未在文件库中，请先使用[文件库上传流程](/features/memorylake/api-reference/library/overview#上传文件（端到端）)上传文件。
+
+<Note>
+**所需权限（全部需要）：**
+
+- [`project:doc_add`](/features/team-collaboration/permission-reference#向项目添加文档) · `instance`
+- [`drive:item_read`](/features/team-collaboration/permission-reference#读取文件) · `service`
+
+**工作流说明：** 调用此端点时，以上两个权限会同时检查 —— 需要 `drive:item_read` 是因为服务器会解析并读取每个引用的云盘项。如果你需要先**上传新文件**，文件库上传调用（[创建上传](/features/memorylake/api-reference/library/create-upload) 和 [创建项](/features/memorylake/api-reference/library/create-item)）还额外需要 [`drive:item_add`](/features/team-collaboration/permission-reference#上传和创建文件) 权限。
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID。
+</ParamField>
+
+### 请求体
+
+<ParamField body="drive_item_ids" type="array" required>
+要导入的文件库项 ID。接受文件和目录 ID 的任意组合 —— 目录会递归展开为所有后代文件，不支持的项类型会被静默跳过。也接受别名 `MY_SPACE`（你的工作区根目录）和 `ROOT`（整个文件库）。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v1/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/documents' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "drive_item_ids": [
+      "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+      "sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7"
+    ]
+  }'
+```
+
+```python Python
+import requests
+
+BASE = "https://app.memorylake.cn/openapi/memorylake/api/v1"
+HEADERS = {"Authorization": "Bearer sk_xxxxxx", "Content-Type": "application/json"}
+
+resp = requests.post(
+    f"{BASE}/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/documents",
+    headers=HEADERS,
+    json={
+        "drive_item_ids": [
+            "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+            "sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7",
+        ]
+    },
+).json()
+
+print(f"imported {resp['data']['success_count']}, failed {resp['data']['failure_count']}")
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="批量创建结果">
+  <ResponseField name="success_count" type="integer">成功导入为文档的文件数量</ResponseField>
+  <ResponseField name="failure_count" type="integer">导入失败的文件数量</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "success_count": 2,
+    "failure_count": 0
+  }
+}
+```
+</ResponseExample>
+
+<Note>
+导入后，文档初始状态为 `pending`，然后依次转为 `running` → `okay`（或 `error`）。轮询 [列出文档](/features/memorylake/api-reference/memories/list-documents) 或 [获取文档](/features/memorylake/api-reference/memories/get-document) 来观察处理进度。
+</Note>
+
+## 典型流程
+
+<Steps>
+<Step title="将文件放入文件库">
+通过[分块上传流程](/features/memorylake/api-reference/library/overview#上传文件（端到端）)上传文件，或使用[列出条目](/features/memorylake/api-reference/library/list-items)查找已有文件。
+</Step>
+<Step title="调用添加文档">
+在 `drive_item_ids` 中传入一个或多个 `item_id`。你可以混合传入文件和目录 —— 传入目录会一次调用导入所有后代文件。尽可能在单次请求中批量处理，这比循环调用更快。
+</Step>
+<Step title="跟踪处理状态">
+轮询 [列出文档](/features/memorylake/api-reference/memories/list-documents)，直到新文档达到 `okay` 状态。
+</Step>
+</Steps>

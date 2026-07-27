@@ -1,0 +1,395 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "mint",
+  "name": "MemoryLake 中国站",
+  "colors": {
+    "primary": "#E75C2A",
+    "light": "#F2A361",
+    "dark": "#EF8640"
+  },
+  "favicon": "/favicon.svg",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "指南",
+        "groups": [
+          {
+            "group": "开始使用",
+            "pages": [
+              "overview",
+              "concepts",
+              "quickstart",
+              "authentication",
+              "deployment"
+            ]
+          },
+          {
+            "group": "使用场景",
+            "pages": [
+              "scenarios/personal-ai-memory",
+              "scenarios/team-knowledge-base",
+              "scenarios/coding-agents",
+              "scenarios/ai-apps-with-memory"
+            ]
+          },
+          {
+            "group": "Memory Router",
+            "pages": [
+              "features/memory-router/overview",
+              "features/memory-router/how-it-works",
+              "features/memory-router/quickstart",
+              "features/memory-router/deployment-modes",
+              "features/memory-router/observability",
+              "features/memory-router/faq"
+            ]
+          },
+          {
+            "group": "Model Router",
+            "pages": [
+              "features/model-router/overview",
+              {
+                "group": "快速上手",
+                "pages": [
+                  "features/model-router/getting-started/create-api-key",
+                  {
+                    "group": "使用 API Key",
+                    "pages": [
+                      "features/model-router/getting-started/use-api-key/overview",
+                      "features/model-router/getting-started/use-api-key/direct-api-requests",
+                      "features/model-router/getting-started/use-api-key/minimal-mvp-examples",
+                      "features/model-router/getting-started/use-api-key/ai-app-integrations"
+                    ]
+                  }
+                ]
+              },
+              "features/model-router/list-available-models",
+              "features/model-router/view-usage-and-billing",
+              {
+                "group": "其他",
+                "pages": [
+                  "features/model-router/others/limits-and-prerequisites",
+                  "features/model-router/others/error-handling",
+                  "features/model-router/others/reliability-and-failover",
+                  "features/model-router/others/multimodal-and-tasks"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "MemoryLake",
+            "pages": [
+              "features/memorylake/overview",
+              "features/memorylake/quickstart",
+              {
+                "group": "核心概念",
+                "pages": [
+                  "features/memorylake/core-concepts/workspaces-and-projects",
+                  "features/memorylake/core-concepts/actors-and-memory",
+                  "features/memorylake/core-concepts/memory-pipeline"
+                ]
+              },
+              {
+                "group": "文档管理",
+                "pages": [
+                  "features/memorylake/document-management/overview",
+                  "features/memorylake/document-management/file-folder-operations",
+                  "features/memorylake/document-management/metadata-comments"
+                ]
+              },
+              {
+                "group": "连接器",
+                "pages": [
+                  "features/memorylake/connectors/overview",
+                  "features/memorylake/connectors/wps-integration"
+                ]
+              },
+              {
+                "group": "项目管理",
+                "pages": [
+                  "features/memorylake/project-management/overview",
+                  "features/memorylake/project-management/project-dashboard",
+                  "features/memorylake/project-management/document-association"
+                ]
+              },
+              {
+                "group": "记忆",
+                "pages": [
+                  "features/memorylake/memories/overview",
+                  "features/memorylake/memories/best-practices"
+                ]
+              },
+              {
+                "group": "集成",
+                "pages": [
+                  "features/memorylake/mcp-servers/overview",
+                  "features/memorylake/mcp-servers/creating-api-keys",
+                  "features/memorylake/mcp-servers/openclaw-plugin"
+                ]
+              }
+            ]
+          },
+          {
+            "group": "团队协作",
+            "pages": [
+              "features/team-collaboration/overview",
+              "features/team-collaboration/roles-permissions",
+              "features/team-collaboration/permission-reference",
+              "features/team-collaboration/invitation-and-access",
+              "features/team-collaboration/quota-and-usage",
+              "features/team-collaboration/analytics-and-lifecycle"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "API 参考",
+        "groups": [
+          {
+            "group": "API 文档",
+            "pages": []
+          },
+          {
+            "group": "MemoryLake API",
+            "pages": [
+              "features/memorylake/api-reference/overview",
+              "features/memorylake/api-reference/authentication",
+              {
+                "group": "核心记忆操作",
+                "pages": [
+                  "features/memorylake/api-reference/core-memory/overview",
+                  "features/memorylake/api-reference/v3-documents/import-documents",
+                  "features/memorylake/api-reference/conversations/create-message",
+                  "features/memorylake/api-reference/search/search-memories"
+                ]
+              },
+              {
+                "group": "文件库",
+                "pages": [
+                  "features/memorylake/api-reference/library/overview",
+                  "features/memorylake/api-reference/library/get-item",
+                  "features/memorylake/api-reference/library/list-items",
+                  "features/memorylake/api-reference/library/create-upload",
+                  "features/memorylake/api-reference/library/create-item",
+                  "features/memorylake/api-reference/library/delete-item",
+                  "features/memorylake/api-reference/library/set-item-xattrs",
+                  "features/memorylake/api-reference/library/delete-item-xattrs"
+                ]
+              },
+              {
+                "group": "工作空间",
+                "pages": [
+                  "features/memorylake/api-reference/workspaces/overview",
+                  "features/memorylake/api-reference/workspaces/list-workspaces",
+                  "features/memorylake/api-reference/workspaces/create-workspace",
+                  "features/memorylake/api-reference/workspaces/get-workspace",
+                  "features/memorylake/api-reference/workspaces/update-workspace",
+                  "features/memorylake/api-reference/workspaces/delete-workspace",
+                  "features/memorylake/api-reference/facts/list-workspace-facts",
+                  {
+                    "group": "会话",
+                    "pages": [
+                      "features/memorylake/api-reference/conversations/list-conversations",
+                      "features/memorylake/api-reference/conversations/create-conversation",
+                      "features/memorylake/api-reference/conversations/get-conversation",
+                      "features/memorylake/api-reference/conversations/delete-conversation",
+                      "features/memorylake/api-reference/conversations/list-messages",
+                      "features/memorylake/api-reference/conversations/batch-get-messages"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Actor",
+                "pages": [
+                  "features/memorylake/api-reference/actors/overview",
+                  "features/memorylake/api-reference/actors/list-actors",
+                  "features/memorylake/api-reference/actors/create-actor",
+                  "features/memorylake/api-reference/actors/get-actor",
+                  "features/memorylake/api-reference/actors/update-actor",
+                  "features/memorylake/api-reference/actors/delete-actor",
+                  "features/memorylake/api-reference/actors/list-workspace-actors",
+                  "features/memorylake/api-reference/actors/bind-actor",
+                  "features/memorylake/api-reference/actors/unbind-actor",
+                  {
+                    "group": "Actor 事实",
+                    "pages": [
+                      "features/memorylake/api-reference/facts/list-actor-facts",
+                      "features/memorylake/api-reference/facts/get-actor-fact",
+                      "features/memorylake/api-reference/facts/update-actor-fact",
+                      "features/memorylake/api-reference/facts/forget-actor-fact",
+                      "features/memorylake/api-reference/facts/batch-forget-actor-facts"
+                    ]
+                  },
+                  {
+                    "group": "记忆冲突",
+                    "pages": [
+                      "features/memorylake/api-reference/v3-conflicts/list-actor-conflicts",
+                      "features/memorylake/api-reference/v3-conflicts/get-actor-conflict",
+                      "features/memorylake/api-reference/v3-conflicts/resolve-actor-conflict"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Agent",
+                "pages": [
+                  "features/memorylake/api-reference/agents/overview",
+                  "features/memorylake/api-reference/a2a/overview",
+                  "features/memorylake/api-reference/agents/list-agents",
+                  "features/memorylake/api-reference/agents/create-agent",
+                  "features/memorylake/api-reference/agents/get-agent",
+                  "features/memorylake/api-reference/agents/update-agent",
+                  "features/memorylake/api-reference/agents/delete-agent",
+                  {
+                    "group": "版本",
+                    "pages": [
+                      "features/memorylake/api-reference/agents/list-agent-versions",
+                      "features/memorylake/api-reference/agents/create-agent-version",
+                      "features/memorylake/api-reference/agents/get-agent-version"
+                    ]
+                  },
+                  "features/memorylake/api-reference/agents/list-workspace-agents",
+                  "features/memorylake/api-reference/agents/bind-agent",
+                  "features/memorylake/api-reference/agents/unbind-agent"
+                ]
+              },
+              {
+                "group": "项目",
+                "pages": [
+                  "features/memorylake/api-reference/v3-projects/overview",
+                  "features/memorylake/api-reference/v3-projects/list-projects",
+                  "features/memorylake/api-reference/v3-projects/create-project",
+                  "features/memorylake/api-reference/v3-projects/get-project",
+                  "features/memorylake/api-reference/v3-projects/update-project",
+                  "features/memorylake/api-reference/v3-projects/delete-project",
+                  {
+                    "group": "文档",
+                    "pages": [
+                      "features/memorylake/api-reference/v3-documents/list-documents",
+                      "features/memorylake/api-reference/v3-documents/get-document",
+                      "features/memorylake/api-reference/v3-documents/delete-documents"
+                    ]
+                  },
+                  {
+                    "group": "项目事实",
+                    "pages": [
+                      "features/memorylake/api-reference/facts/list-facts",
+                      "features/memorylake/api-reference/facts/get-fact",
+                      "features/memorylake/api-reference/facts/update-fact",
+                      "features/memorylake/api-reference/facts/forget-fact",
+                      "features/memorylake/api-reference/facts/batch-forget-facts"
+                    ]
+                  },
+                  {
+                    "group": "记忆冲突",
+                    "pages": [
+                      "features/memorylake/api-reference/v3-conflicts/list-conflicts",
+                      "features/memorylake/api-reference/v3-conflicts/get-conflict",
+                      "features/memorylake/api-reference/v3-conflicts/resolve-conflict"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "已弃用",
+                "pages": [
+                  {
+                    "group": "项目",
+                    "pages": [
+                      "features/memorylake/api-reference/projects/list-projects",
+                      "features/memorylake/api-reference/projects/create-project",
+                      "features/memorylake/api-reference/projects/get-project",
+                      "features/memorylake/api-reference/projects/update-project",
+                      "features/memorylake/api-reference/projects/delete-project",
+                      "features/memorylake/api-reference/projects/search-project"
+                    ]
+                  },
+                  {
+                    "group": "文档",
+                    "pages": [
+                      "features/memorylake/api-reference/memories/list-documents",
+                      "features/memorylake/api-reference/memories/get-document",
+                      "features/memorylake/api-reference/memories/add-document",
+                      "features/memorylake/api-reference/memories/remove-documents",
+                      "features/memorylake/api-reference/memories/search-documents",
+                      "features/memorylake/api-reference/memories/download-document"
+                    ]
+                  },
+                  {
+                    "group": "记忆",
+                    "pages": [
+                      "features/memorylake/api-reference/memories/add-memory",
+                      "features/memorylake/api-reference/memories/list-memories",
+                      "features/memorylake/api-reference/memories/get-memory",
+                      "features/memorylake/api-reference/memories/get-memory-trace",
+                      "features/memorylake/api-reference/memories/search-memories",
+                      "features/memorylake/api-reference/memories/forget-memory",
+                      "features/memorylake/api-reference/memories/list-memory-conflicts",
+                      "features/memorylake/api-reference/memories/get-memory-conflict",
+                      "features/memorylake/api-reference/memories/resolve-memory-conflict"
+                    ]
+                  }
+                ]
+              },
+              "features/memorylake/api-reference/errors",
+              "features/memorylake/api-reference/rate-limits"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "logo": {
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
+  },
+  "navbar": {
+    "primary": {
+      "type": "button",
+      "label": "控制台",
+      "href": "https://app.memorylake.cn"
+    }
+  },
+  "contextual": {
+    "options": [
+      "copy",
+      "view",
+      "chatgpt",
+      "claude",
+      "perplexity",
+      "mcp",
+      "cursor",
+      "vscode"
+    ]
+  },
+  "footer": {
+    "links": [
+      {
+        "header": "MemoryLake",
+        "items": [
+          {
+            "label": "官网",
+            "href": "https://memorylake.cn"
+          },
+          {
+            "label": "控制台",
+            "href": "https://app.memorylake.cn"
+          },
+          {
+            "label": "MemoryLake Compute",
+            "href": "https://compute.memorylake.cn"
+          }
+        ]
+      },
+      {
+        "header": "合规",
+        "items": [
+          {
+            "label": "浙ICP备2023036353号",
+            "href": "https://beian.miit.gov.cn/"
+          }
+        ]
+      }
+    ]
+  }
+}

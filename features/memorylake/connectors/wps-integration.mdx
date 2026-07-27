@@ -1,0 +1,111 @@
+---
+title: "WPS 集成"
+description: "连接您的 WPS 账户，在 MemoryLake 中浏览文档库"
+---
+
+## 概述
+
+WPS（金山办公）集成让您直接在 MemoryLake 中浏览 WPS 文档。本指南介绍完整配置流程——Lark（飞书）的[流程完全相同](#lark-feishu-works-the-same-way)。
+
+## 前提条件
+
+- 一个有效的 WPS 账户
+- 您正在**个人空间**中操作——连接器在团队和组织工作空间中处于禁用状态
+
+## 分步配置
+
+<Steps>
+
+<Step title="打开 WPS 连接器">
+进入 MemoryLake 的连接器板块，点击 WPS 连接器卡片。
+
+{/* SCREENSHOT: WPS connector card in connectors section */}
+</Step>
+
+<Step title="在弹窗中授权">
+弹出窗口会打开 WPS 的授权页面。使用您的 WPS 凭据登录并批准访问请求。
+
+<Tip>
+请确保已允许 MemoryLake 弹出窗口。OAuth 流程使用弹窗完成；您完成授权后，结果会自动回传到控制台。
+</Tip>
+
+<Note>
+MemoryLake 只申请只读访问权限。我们无法修改或删除您的 WPS 文档，您的 WPS 密码也不会离开 WPS。
+</Note>
+</Step>
+
+<Step title="浏览 WPS Space">
+连接完成后，文件库树中会出现 **WPS Space** 节点。展开即可浏览您的 WPS 文档——文件夹内容会在展开时按需从 WPS 拉取。
+
+{/* SCREENSHOT: WPS Space folder in the library tree */}
+
+<Check>
+"WPS Space" 文件夹出现在您的文件库中，展开后可看到 WPS 内容。
+</Check>
+</Step>
+
+</Steps>
+
+## 使用 WPS 文档
+
+- **浏览**：像操作普通 MemoryLake 文件夹一样浏览 WPS 文件夹。
+- **下载**：下载 WPS 文件副本供本地使用（对本地副本的修改不会同步回去）。
+- **关联到项目**：打开项目 → 文件 → 添加文档 → 进入 WPS Space 并选择文件或文件夹。接入该项目的 AI 助手随后即可读取这些内容。
+
+WPS 挂载内容是**只读**的——您可以浏览、下载并关联到项目，但无法通过 MemoryLake 上传、编辑、重命名、移动或删除。
+
+<Tip>
+要修改 WPS 文档，请直接使用 WPS 应用。重新展开或刷新文件夹后，变更会在 MemoryLake 中显示。
+</Tip>
+
+## 重新连接
+
+如果 WPS 授权过期，展开 WPS Space 时会提示您重新授权——一次 OAuth 往返即可恢复。若要完全断开连接，请使用连接器卡片上的断开操作；这会卸载 WPS Space 并撤销 MemoryLake 的访问权限。
+
+<Warning>
+断开连接会移除 WPS 挂载。已关联到项目的 WPS 文件在您重新连接之前，将无法被这些项目访问。
+</Warning>
+
+## Lark（飞书）流程完全相同
+
+Lark 连接器的流程与 WPS 完全一致：点击 **Lark** 连接器卡片，在弹窗中登录，文件库树中即会出现 **Lark Space** 节点，同样支持只读浏览、下载和关联到项目。
+
+## 故障排查
+
+<AccordionGroup>
+
+<Accordion title="OAuth 窗口无法打开">
+**解决方法**：
+- 允许 MemoryLake 域名的弹出窗口
+- 检查浏览器的弹窗拦截设置
+- 换一个浏览器，或临时禁用扩展程序
+</Accordion>
+
+<Accordion title="连接器卡片是灰色的">
+连接器仅在个人空间中可用。如果您当前处于团队或组织工作空间，请切换回个人空间。如果仍然不可用，说明该连接器可能未在您的部署环境中启用。
+</Accordion>
+
+<Accordion title="空间显示的内容不是最新的">
+内容在展开文件夹时拉取。请收起并重新展开文件夹，或刷新页面，以获取外部服务中的最新变更。
+</Accordion>
+
+</AccordionGroup>
+
+## 安全与隐私
+
+- **OAuth 2.0**：业界标准的安全授权方式
+- **只读**：MemoryLake 无法修改您的 WPS 内容
+- **可撤销**：随时在连接器卡片上断开连接
+- **不存储密码**：您的 WPS 密码不会离开 WPS
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="连接器概览" icon="plug" href="/features/memorylake/connectors/overview">
+了解其他可用连接器
+</Card>
+
+<Card title="项目关联" icon="diagram-project" href="/features/memorylake/project-management/document-association">
+将外部文档关联到项目
+</Card>
+</CardGroup>

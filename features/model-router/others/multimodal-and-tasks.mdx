@@ -1,0 +1,192 @@
+---
+title: "多模态与任务接口"
+description: "图片生成、音乐创作和视频生成等多模态任务的高级指南"
+---
+
+## 什么是多模态与任务接口？
+
+多模态与任务接口允许您通过 Model Router 生成图片、创作音乐、制作视频以及执行其他复杂任务。这些任务与常规的聊天补全不同——它们是异步的，即您提交一个任务，然后稍后查询结果。
+
+<Info>
+这是一个高级功能。请确保您先了解基本的 API 用法。基础知识请参阅[直接 API 请求](/features/model-router/getting-started/use-api-key/direct-api-requests)。
+</Info>
+
+## 任务接口的工作原理
+
+任务接口遵循三步模式：
+
+1. **提交任务**：发送请求创建一个任务（例如生成一张图片）
+2. **轮询查询**：使用 task ID 查询任务状态
+3. **获取结果**：取回最终产物（图片、音频、视频等）
+
+<Info>
+任务是异步的——不会立即返回结果。您需要轮询状态，并在任务完成后取回结果。
+</Info>
+
+## 支持的任务类型
+
+### Midjourney：图片生成
+
+根据文本提示词生成高质量图片。
+
+**能力**：
+- Imagine：根据文本生成图片
+- Describe：描述已有图片
+- Blend：融合多张图片
+- Change：修改已有图片
+- Shorten：优化提示词
+- Notify：任务完成时获取通知
+
+**示例：提交 Imagine 任务**
+
+<CodeGroup>
+```ts TypeScript
+await fetch("https://app.memorylake.cn/midjourney/imagine", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-demo123",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    prompt: "a cyberpunk city at night, neon lights, 4k",
+    notify: true
+  })
+});
+```
+```py Python
+import requests
+
+resp = requests.post(
+    "https://app.memorylake.cn/midjourney/imagine",
+    headers={
+        "Authorization": "Bearer sk-demo123",
+        "Content-Type": "application/json",
+    },
+    json={
+        "prompt": "a cyberpunk city at night, neon lights, 4k",
+        "notify": True,
+    },
+)
+```
+```bash cURL
+curl https://app.memorylake.cn/midjourney/imagine \
+  -H "Authorization: Bearer sk-demo123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "a cyberpunk city at night, neon lights, 4k",
+    "notify": true
+  }'
+```
+</CodeGroup>
+
+**查询任务状态**
+
+提交后您会得到一个 task ID。用它来查询状态：
+
+```bash
+curl https://app.memorylake.cn/tasks/tsk_12345 \
+  -H "Authorization: Bearer sk-demo123"
+```
+
+### Suno：音乐与人声生成
+
+根据文本提示词生成音乐或配音。
+
+**示例：提交音乐任务**
+
+<CodeGroup>
+```ts TypeScript
+await fetch("https://app.memorylake.cn/suno/jobs", {
+  method: "POST",
+  headers: {
+    "Authorization": "Bearer sk-demo123",
+    "Content-Type": "application/json"
+  },
+  body: JSON.stringify({
+    prompt: "soft lo-fi background music for coding",
+    mode: "music"
+  })
+});
+```
+```py Python
+import requests
+
+resp = requests.post(
+    "https://app.memorylake.cn/suno/jobs",
+    headers={
+        "Authorization": "Bearer sk-demo123",
+        "Content-Type": "application/json",
+    },
+    json={
+        "prompt": "soft lo-fi background music for coding",
+        "mode": "music",
+    },
+)
+```
+```bash cURL
+curl https://app.memorylake.cn/suno/jobs \
+  -H "Authorization: Bearer sk-demo123" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "prompt": "soft lo-fi background music for coding",
+    "mode": "music"
+  }'
+```
+</CodeGroup>
+
+提交成功后，通过 task ID 查询进度和音频结果（播放链接、下载链接等）。
+
+### RecraftAI：图片处理
+
+使用多种工具处理和增强图片。
+
+**能力**：
+- 矢量化：将位图转换为矢量图
+- 背景移除：去除图片背景
+- 清晰度增强：无损放大图片
+- 风格管理：为图片应用风格
+
+使用相同的模式：提交任务 → 轮询查询 → 获取处理后的图片链接。
+
+### Kling：视频生成
+
+根据文本或图片生成视频。
+
+**能力**：
+- 文生视频：根据文本提示词生成视频
+- 图生视频：结合图片和文本提示词生成视频
+
+提交任务并通过 task ID 查询。完成后从结果中取回视频链接。
+
+## 重要说明
+
+1. **通道要求**：任务接口需要启用对应通道。如果遇到错误，请联系管理员确认。
+
+2. **异步特性**：任务不会立即返回结果。请务必实现轮询逻辑来查询状态。
+
+3. **配额消耗**：所有任务接口都会像常规 API 调用一样消耗配额。详情请参阅[查看用量与计费](/features/model-router/view-usage-and-billing)。
+
+4. **数据量较大**：多模态任务的数据量可能很大。请确保配额充足，并考虑做限流。
+
+5. **任务可见性**：提交任务和查询任务必须使用同一个 API Key，以保证任务可见。
+
+## 最佳实践
+
+1. **实现轮询**：不要假设任务会立即完成。请定期轮询，直到状态变为 "completed" 或 "failed"
+
+2. **处理错误**：任务可能失败。请始终检查状态并优雅地处理错误情况
+
+3. **监控配额**：大型任务消耗更多配额。请定期监控用量
+
+4. **限流**：不要一次提交过多任务。请错峰提交以避免触发速率限制
+
+5. **查看日志**：在[控制台日志](https://app.memorylake.cn/panel/billing/usage)中查看任务详情和计费
+
+## 相关文档
+
+- [直接 API 请求](/features/model-router/getting-started/use-api-key/direct-api-requests)
+- [查看用量与计费](/features/model-router/view-usage-and-billing)
+- [错误处理](/features/model-router/others/error-handling)
+- [限制与前提条件](/features/model-router/others/limits-and-prerequisites)
+- [可靠性与故障转移](/features/model-router/others/reliability-and-failover)
+

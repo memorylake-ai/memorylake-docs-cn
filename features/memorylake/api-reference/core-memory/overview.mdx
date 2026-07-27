@@ -1,0 +1,47 @@
+---
+title: "概述"
+description: "向 MemoryLake 写入和查询记忆的核心 API"
+---
+
+MemoryLake 将你的文档和对话转化为可搜索的结构化记忆。以下四个 API 是这一能力的核心。
+
+## 工作流程
+
+<Steps>
+<Step title="搭建环境">
+在使用核心 API 之前，需要先创建必要的资源：
+
+1. [创建工作空间](/features/memorylake/api-reference/workspaces/create-workspace) — 用于隔离数据的命名空间
+2. [创建 Actor](/features/memorylake/api-reference/actors/create-actor) — 代表终端用户的身份
+3. [创建项目](/features/memorylake/api-reference/v3-projects/create-project) — 文档、会话和事实的容器
+</Step>
+<Step title="写入记忆">
+通过两个渠道向项目导入知识：
+
+- **文档** — 将文件上传到[文件库](/features/memorylake/api-reference/library/overview)，然后[导入](/features/memorylake/api-reference/v3-documents/import-documents)到项目中。MemoryLake 会索引文档内容以支持语义搜索。
+- **对话** — [创建会话](/features/memorylake/api-reference/conversations/create-conversation)，然后[追加消息](/features/memorylake/api-reference/conversations/create-message)。MemoryLake 会自动从对话中提取结构化事实。
+</Step>
+<Step title="查询记忆">
+使用自然语言[搜索](/features/memorylake/api-reference/search/search-memories)工作空间中的所有记忆来源。结果包括匹配的文档段落和提取的事实。
+</Step>
+</Steps>
+
+## 核心 API
+
+<CardGroup cols={2}>
+<Card title="导入文档" icon="file-import" href="/features/memorylake/api-reference/v3-documents/import-documents">
+将文件库中的文件导入项目进行索引。
+</Card>
+
+<Card title="创建会话" icon="comments" href="/features/memorylake/api-reference/conversations/create-conversation">
+在项目中创建新的会话以记录交互。
+</Card>
+
+<Card title="追加消息" icon="message" href="/features/memorylake/api-reference/conversations/create-message">
+向会话中添加消息。事实会被自动提取。
+</Card>
+
+<Card title="搜索记忆" icon="magnifying-glass" href="/features/memorylake/api-reference/search/search-memories">
+使用自然语言查询工作空间中的文档和事实。
+</Card>
+</CardGroup>

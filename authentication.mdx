@@ -1,0 +1,98 @@
+---
+title: "认证与 API Key"
+description: "一个 API Key 即可认证 REST API、Model Router 和 Agent 插件——如何创建、使用和管理 Key"
+---
+
+## 一个 Key，覆盖所有入口
+
+MemoryLake 使用 API Key（`sk-…`）作为所有编程访问的凭证。同一个 Key 可认证：
+
+| 入口 | Base URL | 认证请求头 |
+|---|---|---|
+| MemoryLake REST API | `https://app.memorylake.cn/openapi/memorylake` | `Authorization: Bearer sk-…` |
+| Model Router（兼容 OpenAI） | `https://app.memorylake.cn/v1` | `Authorization: Bearer sk-…` |
+| Model Router（Claude 原生） | `https://app.memorylake.cn/claude/v1` | `x-api-key: sk-…` |
+| Model Router（Gemini 原生） | `https://app.memorylake.cn/gemini/:version` | `x-goog-api-key: sk-…` |
+| Memory Router（中国站暂未开放） | `https://app.memorylake.cn/openai/v1` · `…/anthropic/v1` | 原生请求头，参见 [Memory Router](/features/memory-router/quickstart) |
+| Agent 插件（OpenClaw / QClaw / Hermes） | 安装时配置一次 | 插件配置项 `apiKey` |
+| MCP 客户端 | `https://app.memorylake.cn/memorylake/mcp/v2` | OAuth2 —— 无需 Key |
+
+<Note>
+MCP 客户端完全不使用 API Key——它们通过 OAuth2 授权，并在授权页面选择自己的作用域。参见[通过 MCP 连接](/features/memorylake/mcp-servers/creating-api-keys)。
+</Note>
+
+## 创建 API Key
+
+1. 在[控制台](https://app.memorylake.cn)侧边栏打开 **API Keys**
+2. 点击创建并填写：
+   - **名称** —— 供您自己识别，之后可修改
+   - **有效期** —— 永不过期 / 7 天 / 30 天（默认）/ 90 天 / 1 年 / 自定义日期
+   - **高级 → 分组** —— 可选的模型访问分组，当您的账户拥有多个分组时可用
+3. 立即复制揭示出的 `sk-…` Key——完整内容**只显示一次**
+
+<Warning>
+请将 Key 保存在密码管理器或环境变量中。切勿提交到版本控制或在聊天中分享。如果 Key 泄露，请在该 Key 的详情面板中**轮换**它——轮换会签发新的密钥，而无需重建您的配置。
+</Warning>
+
+## 一个 Key 能做什么
+
+API Key 继承创建它的成员的权限。在您的个人空间中，这意味着对您自有资源的完全访问；在团队空间中，Key 能做的事恰好等于其创建者的角色和[资源作用域](/features/team-collaboration/permission-reference)所允许的范围——不会更多。
+
+在 Key 详情面板中可用的单 Key 控制项：
+
+- **启用 / 禁用** —— 在不删除的情况下暂停一个 Key
+- **轮换** —— 替换密钥，保留 Key 的身份
+- **模型限制** —— 限定该 Key 可调用哪些模型
+- **IP 白名单** —— 限制只能从已知地址使用
+- **心跳** —— 可选地要求长时间运行的自动化任务定期发送存活信号
+
+Key 状态：**已启用**、**已禁用**、**已过期**和**已耗尽**（配额用尽）。使用任何非启用状态 Key 的请求都会被拒绝。
+
+## 使用您的 Key
+
+<CodeGroup>
+```bash MemoryLake REST API
+curl https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces \
+  -H "Authorization: Bearer sk-your-key"
+```
+
+```bash Model Router（兼容 OpenAI）
+curl https://app.memorylake.cn/v1/chat/completions \
+  -H "Authorization: Bearer sk-your-key" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "hi"}]
+  }'
+```
+
+```bash Model Router（Claude 原生）
+curl https://app.memorylake.cn/claude/v1/messages \
+  -H "x-api-key: sk-your-key" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "hi"}]
+  }'
+```
+</CodeGroup>
+
+控制台的 API Keys 页面始终显示您当前的 **API Base 地址**并带有复制按钮，另附常见集成的配置指南。
+
+## 个人上下文与团队上下文
+
+Key 是在某个空间内创建的——个人空间或团队空间。在团队空间中创建的 Key 会在该团队的上下文中运行：其调用消耗团队配额，并能看到团队资源（受创建者权限约束）。为自动化任务创建 Key 之前，请确认您当前所处的空间（侧边栏的空间切换器）。
+
+## 问题排查
+
+- **`401 Unauthorized`** —— Key 缺失、拼写错误、已禁用或已过期。请核对您所调用入口的准确请求头格式（见上表）。
+- **配额错误** —— 账户或团队余额不足；请在控制台查看**账单**。
+- **模型不可用** —— 该 Key 的分组或模型限制排除了该模型；请先列出可用模型（参见 [Model Router](/features/model-router/list-available-models)）。
+
+## 限制与注意事项
+
+- API Key 是唯一的编程凭证——控制台登录会话无法调用 API。
+- 中国站控制台使用**邮箱 + 密码**登录，未启用第三方账号登录；注册后无需邮箱验证即可使用。
+- Key 的权限跟随其创建者：如果创建者的角色被降级或其离开团队，该 Key 的访问权限会相应变化。

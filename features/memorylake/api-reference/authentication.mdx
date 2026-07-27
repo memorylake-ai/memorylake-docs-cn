@@ -1,0 +1,164 @@
+---
+title: "API 认证"
+description: "认证您对 MemoryLake 服务的 API 请求"
+---
+
+## 认证
+
+所有 API 请求都需要通过 `Authorization` 头传递 API 密钥。
+
+### 获取 API 密钥
+
+1. 在 MemoryLake 控制台中导航到一个项目
+2. 进入 **API Keys** 选项卡
+3. 点击 **"Create API Key"**
+4. 复制生成的密钥（格式：`sk_xxxxxx`）
+
+<Warning>
+API 密钥仅在创建时显示一次。请安全存储——之后无法再次查看。
+</Warning>
+
+### 使用 API 密钥
+
+在 `Authorization` 头中包含 API 密钥：
+
+```bash
+Authorization: Bearer YOUR_API_KEY
+```
+
+### 请求示例
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json'
+```
+
+```javascript Node.js
+const response = await fetch(
+  'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123',
+  {
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json'
+    }
+  }
+);
+
+const data = await response.json();
+```
+
+```python Python
+import requests
+
+headers = {
+    'Authorization': f'Bearer {api_key}',
+    'Content-Type': 'application/json'
+}
+
+response = requests.get(
+    'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123',
+    headers=headers
+)
+
+data = response.json()
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6",
+    "name": "Research Project",
+    "description": "Q1 2024 research"
+  }
+}
+```
+
+```json Error (401)
+{
+  "success": false,
+  "message": "Invalid or missing API key",
+  "error_code": "UNAUTHORIZED"
+}
+```
+</ResponseExample>
+
+## 错误响应
+
+### 401 Unauthorized
+
+当 API 密钥缺失或无效时返回：
+```json
+{
+  "success": false,
+  "message": "Unauthorized access",
+  "error_code": "UNAUTHORIZED"
+}
+```
+
+**解决方案**：
+- 确认 API 密钥已包含在 Authorization 头中
+- 检查头格式：`Bearer YOUR_KEY`
+- 确保密钥未被删除
+- 如果密钥丢失，请生成新密钥
+
+### 403 Forbidden
+
+当认证有效但 API 密钥权限不足时返回：
+```json
+{
+  "success": false,
+  "message": "Access denied to this resource",
+  "error_code": "FORBIDDEN"
+}
+```
+
+**解决方案**：
+- 确认项目 ID 正确
+- 检查 API 密钥是否属于正确的项目
+- 确保资源存在
+
+## 安全最佳实践
+
+<AccordionGroup>
+
+<Accordion title="安全存储">
+- 将 API 密钥存储在环境变量中
+- 切勿将密钥提交到版本控制系统
+- 使用密钥管理服务
+- 定期轮换密钥
+</Accordion>
+
+<Accordion title="密钥管理">
+- 为每个环境创建单独的密钥
+- 为密钥使用描述性名称
+- 及时删除未使用的密钥
+- 监控密钥使用情况
+</Accordion>
+
+<Accordion title="请求安全">
+- 始终使用 HTTPS
+- 不要记录 API 密钥
+- 实施请求超时
+- 优雅地处理错误
+</Accordion>
+
+</AccordionGroup>
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="Core Memory Operations" icon="brain" href="/features/memorylake/api-reference/core-memory/overview">
+从核心 API 开始
+</Card>
+
+<Card title="错误处理" icon="triangle-exclamation" href="/features/memorylake/api-reference/errors">
+处理 API 错误
+</Card>
+</CardGroup>

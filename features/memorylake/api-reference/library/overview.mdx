@@ -1,0 +1,137 @@
+---
+title: "文件库概述"
+description: "管理文件库中的文件和文件夹 — MemoryLake 项目背后的存储层"
+---
+
+## 什么是文件库？
+
+**文件库**是一套统一的文件系统，保存 MemoryLake 能够访问的全部文件。项目文档始终通过引用文件库中已有的文件来创建。
+
+您的顶层可写文件夹是 **`MY_SPACE`** — 可将其视为工作空间的根目录。您创建的每个文件或文件夹都放在 `MY_SPACE` 之下（直接放置，或嵌套在子文件夹中）。
+
+典型的集成流程如下：
+
+<Steps>
+<Step title="选择目标文件夹">
+使用别名 `MY_SPACE` 直接指向工作空间根目录，或传入您在其下创建的任意子文件夹的 `item_id`。
+</Step>
+<Step title="将文件上传到文件库">
+分块上传：[创建上传会话](/features/memorylake/api-reference/library/create-upload)，逐块 PUT，然后[创建文件条目](/features/memorylake/api-reference/library/create-item)。
+</Step>
+<Step title="将文件导入项目">
+使用上一步返回的 `item_id` 调用[导入文档](/features/memorylake/api-reference/v3-documents/import-documents)。
+</Step>
+</Steps>
+
+## Base URL
+
+```
+https://app.memorylake.cn/openapi/memorylake
+```
+
+## 条目 ID 别名
+
+任何接受 `item_id` 的位置，都可以传入别名 `MY_SPACE` 来替代具体 ID。
+
+`MY_SPACE` 始终解析为您的工作空间根目录。凡是原本需要先查询根文件夹的场景，都可以直接传入它 — 例如创建顶层文件或文件夹时的 `parent_item_id`。
+
+<Tip>
+您无需先调用[获取条目](/features/memorylake/api-reference/library/get-item)来查找根文件夹 — 直接使用 `MY_SPACE` 即可。
+</Tip>
+
+## 上传文件（端到端）
+
+文件上传采用分块方式。每个分块对应一个预签名 PUT URL，逐块上传后，再创建一个引用该上传会话的 `file` 条目完成收尾。
+
+<Steps>
+<Step title="创建上传会话">
+`POST /api/v1/drives/items/upload`，携带以字节为单位的 `file_size`。返回一个 `upload_id` 和 `part_items` 列表 — 每个分块一个预签名 URL。
+</Step>
+<Step title="上传每个分块">
+将每个分块的字节 `PUT` 到对应的 `upload_url`。保存每次响应的 `ETag` 头 — 全部都需要用到。
+</Step>
+<Step title="创建文件条目">
+`POST /api/v1/drives/items`，携带 `item_type: "file"` 和 `from: { upload_id, part_etags }`。返回新的 `item_id`。
+</Step>
+</Steps>
+
+### Python 示例
+
+```python
+import os, requests
+
+BASE = "https://app.memorylake.cn/openapi/memorylake/api/v1"
+HEADERS = {"Authorization": "Bearer sk_xxxxxx"}
+
+def upload_file_to_library(path: str, parent_item_id: str = "MY_SPACE") -> str:
+    """Upload a local file into the Library and return its item_id."""
+    size = os.path.getsize(path)
+
+    # 1. Create upload session — get pre-signed URLs
+    init = requests.post(
+        f"{BASE}/drives/items/upload",
+        headers={**HEADERS, "Content-Type": "application/json"},
+        json={"file_size": size},
+    ).json()["data"]
+
+    # 2. PUT each chunk; collect ETags
+    part_etags = []
+    with open(path, "rb") as f:
+        for part in init["part_items"]:
+            chunk = f.read(part["size"])
+            resp = requests.put(part["upload_url"], data=chunk)
+            part_etags.append({"number": part["number"], "etag": resp.headers["ETag"]})
+
+    # 3. Create the file item
+    created = requests.post(
+        f"{BASE}/drives/items",
+        headers={**HEADERS, "Content-Type": "application/json"},
+        json={
+            "item_type": "file",
+            "parent_item_id": parent_item_id,
+            "name": os.path.basename(path),
+            "from": {"upload_id": init["upload_id"], "part_etags": part_etags},
+        },
+    ).json()["data"]
+
+    return created["item_id"]
+```
+
+## 名称冲突
+
+创建文件或文件夹时，在请求中指定冲突处理策略：
+
+| 策略 | 行为 | `item_id` |
+|---|---|---|
+| `rename` *（默认）* | 追加 `_N` 后缀（`report_1.pdf`）。始终成功。 | 新建 |
+| `deny` | 名称已被占用时返回 `409 DRIVE_ITEM_CONFLICT`。 | — |
+| `overwrite` | 仅适用于文件。原地覆盖已有文件的内容。 | **保留** |
+| `replace` | 仅适用于文件。删除已有文件并创建新文件。 | 新建 |
+
+<Warning>
+`overwrite` 和 `replace` 并非同义。`overwrite` 保留原有的 `item_id`；`replace` 会签发一个新的。两者都不会重新处理此前已从该文件导入的项目文档 — 如需索引新内容，请重新调用[导入文档](/features/memorylake/api-reference/v3-documents/import-documents)。
+</Warning>
+
+## 接口列表
+
+<CardGroup cols={2}>
+<Card title="获取条目" icon="file-magnifying-glass" href="/features/memorylake/api-reference/library/get-item">
+按 `item_id` 查询文件或文件夹。
+</Card>
+
+<Card title="列出条目" icon="folder-tree" href="/features/memorylake/api-reference/library/list-items">
+分页浏览文件夹内容。
+</Card>
+
+<Card title="创建上传会话" icon="cloud-arrow-up" href="/features/memorylake/api-reference/library/create-upload">
+开启分块上传会话并获取预签名 URL。
+</Card>
+
+<Card title="创建条目" icon="plus" href="/features/memorylake/api-reference/library/create-item">
+创建文件夹，或将上传收尾为文件条目。
+</Card>
+
+<Card title="删除条目" icon="trash" href="/features/memorylake/api-reference/library/delete-item">
+删除文件或文件夹（文件夹为递归删除）。
+</Card>
+</CardGroup>

@@ -1,0 +1,49 @@
+---
+title: "删除条目"
+description: "从文件库中删除文件或文件夹（文件夹为递归删除）"
+---
+
+```
+DELETE /openapi/memorylake/api/v1/drives/items/{item_id}
+```
+
+永久删除文件或文件夹。删除文件夹时会递归删除**其中的全部内容**。
+
+<Warning>
+此操作具有破坏性且不可逆。如果目标是文件夹，其下的所有文件和子文件夹都会被移除。调用此接口前请先向用户确认。
+</Warning>
+
+<Note>
+删除被一个或多个项目文档引用的文件时，不会自动移除这些文档。如果您希望文档也从项目中消失，请先调用[删除文档](/features/memorylake/api-reference/v3-documents/delete-documents)。
+</Note>
+
+<Note>
+**所需权限：** [`drive:item_delete`](/features/team-collaboration/permission-reference#删除文件) · `service`
+</Note>
+
+### 路径参数
+
+<ParamField path="item_id" type="string" required>
+要删除的具体条目 ID。工作空间根目录（`MY_SPACE`）无法删除。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

@@ -1,0 +1,90 @@
+---
+title: "创建 Actor"
+description: "创建一个新的 Actor 来代表会话参与者"
+---
+
+```
+POST /openapi/memorylake/api/v3/actors
+```
+
+创建一个新的 Actor。Actor 代表会话中的参与者——通常是终端用户或系统身份，其交互会生成记忆。创建 Actor 后，您可以将其[绑定到工作空间](/features/memorylake/api-reference/actors/bind-actor)，使其能够参与该工作空间项目中的会话。
+
+<Note>
+**所需权限：** `actor:create`
+</Note>
+
+### 请求体
+
+<ParamField body="custom_id" type="string" required>
+调用方定义的外部标识符。在您的账户中必须唯一。使用此字段将 Actor 映射到您自己系统中的身份。
+</ParamField>
+
+<ParamField body="actor_type" type="string">
+Actor 类型。可选值：`HUMAN`（默认，终端用户）或 `ASSISTANT`（AI Agent — 通常在创建 Agent 时自动生成）。
+</ParamField>
+
+<ParamField body="display_name" type="string" required>
+人类可读的名称，显示在控制台中并在 API 响应中返回。
+</ParamField>
+
+<ParamField body="description" type="string">
+Actor 角色或用途的自由文本描述。
+</ParamField>
+
+<ParamField body="metadata" type="object">
+任意键值对，用于调用方定义的元数据。适用于为 Actor 添加层级、地区或部门等属性标签。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "custom_id": "user-ext-001",
+    "actor_type": "HUMAN",
+    "display_name": "Alice Chen",
+    "description": "Primary end user for the mobile app",
+    "metadata": {
+      "tier": "premium",
+      "region": "us-west"
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Actor">
+  <ResponseField name="id" type="string">Actor ID</ResponseField>
+  <ResponseField name="custom_id" type="string">调用方定义的外部标识符</ResponseField>
+  <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
+  <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
+  <ResponseField name="description" type="string">Actor 描述</ResponseField>
+  <ResponseField name="metadata" type="object">调用方定义的元数据</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "act-a1b2c3d4e5f6",
+    "custom_id": "user-ext-001",
+    "actor_type": "HUMAN",
+    "display_name": "Alice Chen",
+    "description": "Primary end user for the mobile app",
+    "metadata": {
+      "tier": "premium",
+      "region": "us-west"
+    },
+    "created_at": "2025-03-10T08:00:00Z",
+    "updated_at": "2025-03-10T08:00:00Z"
+  }
+}
+```
+</ResponseExample>

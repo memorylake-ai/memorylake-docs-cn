@@ -1,0 +1,42 @@
+---
+title: "常见问题"
+description: "关于 Memory Router 的常见问题——代码改动、Boundary、模型厂商、安全性和中国站可用性"
+---
+
+<AccordionGroup>
+<Accordion title="我需要改代码吗？">
+只需改 base URL、加一个 `boundary_id` 查询参数，以及——在 BYOK 模式下——一个请求头。您的提示词、流式输出、工具调用和响应处理逻辑完全不变，因为 Memory Router 使用与您的模型厂商相同的 API。
+</Accordion>
+
+<Accordion title="什么是 Boundary，是否每次都必须用？">
+Boundary（记忆范围）是一段会话的记忆范围——它把请求绑定到指定的工作空间、项目和 Actor，使 Router 知道该读写谁的记忆。您在控制台创建一次，然后在每次调用时以 `?boundary_id=` 传入它的 id。不带 `boundary_id` 的请求仍然可用，但会以关闭记忆的方式透传。
+</Accordion>
+
+<Accordion title="支持哪些模型厂商和模型？">
+支持 OpenAI（Chat Completions、Responses、Embeddings）和 Anthropic（Messages）协议。在托管模式下，GPT、Claude 和 Qwen 系列模型均已内置，可按原生名称调用。当前支持矩阵见[部署模式](/features/memory-router/deployment-modes#支持的模型厂商)。
+</Accordion>
+
+<Accordion title="BYOK 和 MemoryLake 托管有什么区别？">
+BYOK（自带密钥）表示您提供自己的模型厂商密钥外加一个 MemoryLake 密钥——账单和速率限制留在您的模型厂商账号下。MemoryLake 托管只需一个 MemoryLake 密钥：我们替您运行主流模型，您完全不必注册模型厂商账号。两种模式使用相同的端点，区别只在于您发送哪些密钥。
+</Accordion>
+
+<Accordion title="在 BYOK 模式下，我的模型厂商密钥安全吗？">
+安全。您的模型厂商密钥在传输中加密，并在每次调用时转发给模型厂商。MemoryLake 绝不存储、记录或复用它——整体设计是无状态、按请求透传、服务端零密钥存储。
+</Accordion>
+
+<Accordion title="如果记忆服务不可用会怎样？">
+该次调用会由网关返回 `502 Bad Gateway`——请带退避重试；如果您的应用对可用性要求严格，建议保留一条直连模型厂商的兜底路径。记忆*写入*是异步的，因此记忆存储变慢绝不会拖慢一次成功的响应。完整错误约定见[可观测性](/features/memory-router/observability#错误约定)。
+</Accordion>
+
+<Accordion title="记忆会给我的调用增加延迟吗？">
+记忆召回发生在模型调用之前，并已针对低开销做过优化；记忆的提取与存储在响应返回之后异步进行，因此写入记忆不会增加任何延迟。
+</Accordion>
+
+<Accordion title="记忆是和 MemoryLake API 共享的吗？">
+是的。Router 与 [MemoryLake API](/features/memorylake/overview) 操作同一个记忆池，因此一边存入的内容另一边即可检索——并且都能在控制台中查看。
+</Accordion>
+
+<Accordion title="中国站可以用 Memory Router 吗？">
+暂时不行。MemoryLake 中国站尚未启用该记忆网关，控制台 **Integrations** 下不会出现 Memory Router 卡片，`/openai/v1` 与 `/anthropic/v1` 端点也无法调用。如需在中国站使用，请联系商务了解开放计划。中国站当前可用的记忆接入方式是 [REST API](/features/memorylake/api-reference/overview)、[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)与 [Agent 插件](/features/memorylake/mcp-servers/openclaw-plugin)。
+</Accordion>
+</AccordionGroup>

@@ -1,0 +1,48 @@
+---
+title: "遗忘 Actor 事实"
+description: "将 Actor 级别的事实标记为已遗忘而不删除它"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts/{factId}/forget
+```
+
+将 Actor 级别的事实标记为已遗忘（已过期），而不永久删除它。该事实仍可用于审计目的，但会从未来的检索和搜索中排除。要一次遗忘多个 Actor 事实，请使用[批量遗忘 Actor 事实](/features/memorylake/api-reference/facts/batch-forget-actor-facts)。
+
+<Note>
+**所需权限：** `workspace:actor_fact_delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+<ParamField path="factId" type="string" required>
+要遗忘的事实 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/actors/actor_5e4d3c2b1a0f/facts/fact_4c5d6e7f8a9b/forget' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 对象。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>

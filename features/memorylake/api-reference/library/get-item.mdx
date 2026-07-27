@@ -1,0 +1,70 @@
+---
+title: "获取条目"
+description: "通过 ID 查询文件库中的文件或文件夹"
+---
+
+```
+GET /openapi/memorylake/api/v1/drives/items/{item_id}
+```
+
+返回单个文件库条目的元数据。可用于在将文件导入项目前查看其信息、把 `MY_SPACE` 解析为具体 ID，或检查某个条目是否存在。
+
+<Note>
+**所需权限：** [`drive:item_read`](/features/team-collaboration/permission-reference#读取文件) · `service`
+</Note>
+
+### 路径参数
+
+<ParamField path="item_id" type="string" required>
+条目 ID。传入 `MY_SPACE` 可直接查询工作空间根目录，无需知道其具体 ID。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/MY_SPACE' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="文件库条目响应">
+  <ResponseField name="item" type="object">
+  <Expandable title="文件库条目">
+    <ResponseField name="uri" type="string">Drive 资源 URI</ResponseField>
+    <ResponseField name="item_id" type="string">条目 ID</ResponseField>
+    <ResponseField name="name" type="string">条目名称</ResponseField>
+    <ResponseField name="type" type="string">条目类型：`file` 或 `directory`</ResponseField>
+    <ResponseField name="size" type="integer">文件大小（字节，仅文件类型）</ResponseField>
+    <ResponseField name="etag" type="string">条目的 ETag</ResponseField>
+    <ResponseField name="parent_item_id" type="string">父条目 ID</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+    <ResponseField name="x_attrs" type="object">扩展属性（字符串到字符串的映射）</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "item": {
+      "uri": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+      "item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+      "name": "report.pdf",
+      "type": "file",
+      "size": 10485760,
+      "etag": "d41d8cd98f00b204e9800998ecf8427e",
+      "parent_item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:root",
+      "created_at": "2024-01-15T10:30:00Z",
+      "updated_at": "2024-01-15T10:30:00Z",
+      "x_attrs": {}
+    }
+  }
+}
+```
+</ResponseExample>

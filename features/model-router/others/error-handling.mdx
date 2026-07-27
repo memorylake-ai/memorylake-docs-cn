@@ -1,0 +1,208 @@
+---
+title: "错误处理"
+description: "了解常见错误及其排查方法"
+---
+
+## 什么是错误处理？
+
+本指南帮助您理解使用 Model Router 时可能遇到的常见错误以及如何解决它们。
+
+## 常见错误与解决方案
+
+### 身份验证错误
+
+#### 错误："Invalid API Key" 或 401 Unauthorized
+
+**含义**：您的 API Key 不正确、缺失或无效。
+
+**解决方法**：
+1. 检查您的 API Key 是否以 `sk-` 开头
+2. 确认您完整、正确地复制了整个 API Key
+3. 确保在 `Authorization` 请求头中包含了它：`Bearer sk-your-key`
+4. 如果 Key 丢失，请在[控制台](https://app.memorylake.cn/panel/token)中创建一个新的
+
+#### 错误："API key not found"
+
+**含义**：该 API Key 不存在或已被删除。
+
+**解决方法**：
+1. 在[控制台](https://app.memorylake.cn/panel/token)中确认该 API Key 存在
+2. 如有需要，创建一个新的 API Key
+3. 确保您使用的是正确的 API Key
+
+### 模型错误
+
+#### 错误："Model not found" 或 "Model does not exist"
+
+**含义**：您尝试使用的模型对您的 API Key 不可用。
+
+**解决方法**：
+1. 查看[查看可用模型](/features/model-router/list-available-models)了解您可以使用哪些模型
+2. 确认模型名称拼写正确（模型名称区分大小写）
+3. 使用模型列表中的精确 `id`
+4. 如果您需要访问某个特定模型，请联系管理员
+
+#### 错误："Model is not available"
+
+**含义**：该模型存在，但未为您的 API Key 分组启用。
+
+**解决方法**：
+1. 检查哪些模型对您的 API Key 可用
+2. 联系管理员为您的分组启用该模型
+3. 更多信息请参阅[限制与前提条件](/features/model-router/others/limits-and-prerequisites)
+
+### 配额错误
+
+#### 错误："Insufficient quota" 或 "Quota exceeded"
+
+**含义**：您的配额不足，无法发起该请求。
+
+**解决方法**：
+1. 在控制台的 **Billing → Overview** 中检查您的余额
+2. [查看您的用量](/features/model-router/view-usage-and-billing)了解已消耗了多少
+3. 充值额度，或请团队管理员提高您的成员配额
+4. 确认您处于预期的空间——个人上下文和团队上下文使用不同的配额池
+
+<Info>
+每次请求前都会检查配额。如果配额不足，请求会被立即拒绝。详情请参阅[查看用量与计费](/features/model-router/view-usage-and-billing)。
+</Info>
+
+### 限流错误
+
+#### 错误：429 "Too Many Requests" 或 "Rate limit exceeded"
+
+**含义**：您的请求发送过于频繁。
+
+**解决方法**：
+1. 稍等一会儿再重试
+2. 降低请求频率
+3. 在代码中实现指数退避
+4. 尽可能合并批量请求
+5. 重试策略请参阅[可靠性与故障转移](/features/model-router/others/reliability-and-failover)
+
+### 请求格式错误
+
+#### 错误："Invalid request format" 或 400 Bad Request
+
+**含义**：请求体或参数不正确。
+
+**解决方法**：
+1. 检查请求体是否为合法 JSON
+2. 确认所有必填字段都已提供
+3. 确保字段名称和类型符合 API 规范
+4. 查看[直接 API 请求](/features/model-router/getting-started/use-api-key/direct-api-requests)指南了解正确格式
+
+#### 错误："Missing required field"
+
+**含义**：您的请求中缺少某个必填参数。
+
+**解决方法**：
+1. 查阅 API 文档确认必填字段
+2. 确认所有必填参数都已包含
+3. 检查字段名称拼写是否正确
+
+### 网络错误
+
+#### 错误："Connection timeout" 或 "Network error"
+
+**含义**：请求无法到达服务器，或耗时过长。
+
+**解决方法**：
+1. 检查您的网络连接
+2. 确认 API 端点 URL 正确：`https://app.memorylake.cn`
+3. 稍后重试
+4. 检查是否存在网络故障
+5. 自动重试机制请参阅[可靠性与故障转移](/features/model-router/others/reliability-and-failover)
+
+### 流式传输错误
+
+#### 错误："Stream connection closed unexpectedly"
+
+**含义**：流式连接被中断。
+
+**解决方法**：
+1. 长时间的流式传输中这属于正常现象——请实现重连逻辑
+2. 检查您的网络稳定性
+3. 在代码中优雅地处理流中断
+4. 流式最佳实践请参阅[可靠性与故障转移](/features/model-router/others/reliability-and-failover)
+
+## 错误响应格式
+
+发生错误时，API 会返回包含错误详情的 JSON 响应：
+
+```json
+{
+  "error": {
+    "message": "Model not found",
+    "type": "invalid_request_error",
+    "code": "model_not_found"
+  }
+}
+```
+
+## 错误处理最佳实践
+
+1. **始终检查响应状态**：同时处理成功和失败两种情况
+2. **阅读错误信息**：错误信息通常会告诉您问题所在
+3. **实现重试逻辑**：用于限流或网络故障等临时性错误
+4. **记录错误日志**：便于排查问题
+5. **优雅处理**：不要因为 API 错误导致应用崩溃
+
+## 示例：代码中的错误处理
+
+### Python 示例
+
+```python
+import requests
+
+def make_request(api_key, model, messages):
+    try:
+        response = requests.post(
+            "https://app.memorylake.cn/v1/chat/completions",
+            headers={
+                "Authorization": f"Bearer {api_key}",
+                "Content-Type": "application/json"
+            },
+            json={
+                "model": model,
+                "messages": messages
+            }
+        )
+        response.raise_for_status()
+        return response.json()
+    except requests.exceptions.HTTPError as e:
+        if response.status_code == 401:
+            print("Error: Invalid API key")
+        elif response.status_code == 404:
+            print("Error: Model not found")
+        elif response.status_code == 429:
+            print("Error: Rate limit exceeded. Please wait and try again.")
+        else:
+            print(f"Error: {response.status_code} - {response.text}")
+        raise
+    except requests.exceptions.RequestException as e:
+        print(f"Network error: {e}")
+        raise
+```
+
+## 获取帮助
+
+如果问题仍未解决：
+
+1. 查看[限制与前提条件](/features/model-router/others/limits-and-prerequisites)指南
+2. 阅读[可靠性与故障转移](/features/model-router/others/reliability-and-failover)文档
+3. 检查您的 API Key 和模型可用性
+4. 联系中国站的支持团队或您的商务对接人，并提供：
+   - 完整的错误信息
+   - 您的 API Key（请脱敏）
+   - 您发起的请求内容
+   - 相关日志
+
+## 相关文档
+
+- [限制与前提条件](/features/model-router/others/limits-and-prerequisites)
+- [可靠性与故障转移](/features/model-router/others/reliability-and-failover)
+- [查看可用模型](/features/model-router/list-available-models)
+- [查看用量与计费](/features/model-router/view-usage-and-billing)
+- [直接 API 请求](/features/model-router/getting-started/use-api-key/direct-api-requests)
+

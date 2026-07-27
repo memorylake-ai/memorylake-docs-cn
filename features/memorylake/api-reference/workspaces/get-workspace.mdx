@@ -1,0 +1,67 @@
+---
+title: "获取工作空间"
+description: "通过 ID 或自定义 ID 检索工作空间详情"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{id}
+```
+
+通过内部 ID 或 `custom_id` 检索工作空间。要使用调用方定义的 `custom_id` 查找工作空间，请将 `by_custom_id` 查询参数设置为 `true`，并将自定义 ID 作为路径参数传入。
+
+<Note>
+**所需权限：** `workspace:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+工作空间标识符。传入内部工作空间 ID，或在 `by_custom_id` 设置为 `true` 时传入 `custom_id` 值。
+</ParamField>
+
+### 查询参数
+
+<ParamField query="by_custom_id" type="boolean" default="false">
+设置为 `true` 时，通过 `custom_id` 而非内部 ID 查找工作空间
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="工作空间对象">
+  <ResponseField name="id" type="string">工作空间唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">工作空间名称</ResponseField>
+  <ResponseField name="description" type="string">工作空间描述</ResponseField>
+  <ResponseField name="metadata" type="object">附加到工作空间的任意键值元数据</ResponseField>
+  <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "ws_abc123def456",
+    "name": "My Research Workspace",
+    "description": "Central workspace for research documents and notes",
+    "metadata": {
+      "team": "research",
+      "priority": "high"
+    },
+    "custom_id": "research-ws-001",
+    "created_at": "2025-03-10T08:30:00Z",
+    "updated_at": "2025-03-15T12:00:00Z"
+  }
+}
+```
+</ResponseExample>

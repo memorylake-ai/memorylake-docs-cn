@@ -1,0 +1,95 @@
+---
+title: "列出工作空间 Actor"
+description: "列出绑定到工作空间的 Actor"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors
+```
+
+返回绑定到指定工作空间的 Actor 分页列表。只有已绑定的 Actor 才能参与该工作空间项目中的会话。
+
+<Note>
+**所需权限：** `workspace:actor_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的绑定数量。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次调用返回的分页令牌。首次请求时省略此参数。
+</ParamField>
+
+<ParamField query="actor_type" type="string">
+按 Actor 类型筛选。取值为 `HUMAN` 或 `ASSISTANT`。
+</ParamField>
+
+<ParamField query="display_name_fuzzy" type="string">
+按显示名称模糊搜索。
+</ParamField>
+
+<RequestExample>
+```bash First page
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-7k8m9n0p1q2r/actors?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash Next page
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-7k8m9n0p1q2r/actors?page_size=20&continuation_token=eyJsYXN0X2lkIjoiYWN0LWY2ZTVkNCJ9' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页工作空间 Actor 绑定列表">
+  <ResponseField name="items" type="array">
+  Actor 绑定对象数组
+  <Expandable title="Actor 绑定">
+    <ResponseField name="actor_id" type="string">Actor ID</ResponseField>
+    <ResponseField name="custom_id" type="string">调用方定义的外部标识符</ResponseField>
+    <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
+    <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
+    <ResponseField name="bound_at" type="string">Actor 绑定到此工作空间的时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">下一页的分页令牌。当为最后一页时，该值不存在或为 `null`。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "actor_id": "act-a1b2c3d4e5f6",
+        "custom_id": "user-ext-001",
+        "actor_type": "HUMAN",
+        "display_name": "Alice Chen",
+        "bound_at": "2025-03-15T09:00:00Z"
+      },
+      {
+        "actor_id": "act-f6e5d4c3b2a1",
+        "custom_id": "system-intake",
+        "actor_type": "ASSISTANT",
+        "display_name": "Intake Bot",
+        "bound_at": "2025-03-15T09:05:00Z"
+      }
+    ],
+    "continuation_token": null
+  }
+}
+```
+</ResponseExample>

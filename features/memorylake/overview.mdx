@@ -1,0 +1,133 @@
+---
+title: "概览"
+description: "将文档和会话转化为可搜索的结构化记忆，服务于 AI 应用"
+---
+
+## 什么是 MemoryLake？
+
+MemoryLake 是面向 AI 应用的记忆平台。您将文档和会话输入其中，它会自动提取结构化事实，供您的 Agent 和应用搜索与检索。可以将它理解为 AI 的长期记忆——持久化、可查询，并按"谁说了什么"进行组织。
+
+MemoryLake 围绕三大支柱构建：
+
+<CardGroup cols={3}>
+<Card title="文档记忆" icon="file-lines">
+将文件导入项目。MemoryLake 为其建立语义搜索索引，让您的 AI 能在整个知识库中找到相关内容。
+</Card>
+
+<Card title="会话记忆" icon="comments">
+提交用户与助手的会话。MemoryLake 自动提取结构化事实——偏好、决策、上下文——并将其关联到正确的 Actor。
+</Card>
+
+<Card title="统一搜索" icon="magnifying-glass">
+通过一次自然语言搜索，同时查询文档和事实。无论信息以何种方式进入系统，都能获取最相关的结果。
+</Card>
+</CardGroup>
+
+## 资源模型
+
+MemoryLake 按清晰的层级结构组织数据：
+
+```
+工作空间（数据隔离边界）
+  |
+  +-- Actor（参与者身份——HUMAN 或 ASSISTANT）
+  |     +-- Actor 事实（每用户记忆，跨项目跟随 Actor）
+  |
+  +-- 项目（知识容器）
+        +-- 文档（导入的文件，已建立搜索索引）
+        +-- 会话
+        |     +-- 消息（用户与助手的交互）
+        +-- 项目事实（提取的知识，作用域限定在本项目）
+```
+
+**工作空间**提供数据隔离——类似于租户。每个工作空间拥有独立的 Actor、项目和搜索索引。
+
+**Actor**代表参与者。每个人类用户或 AI 助手都会获得一个 Actor 身份。关于某个 Actor 的事实会跨工作空间内所有项目跟随该 Actor。
+
+**项目**是知识容器。项目中包含文档、会话以及从中提取的事实。通常为每个用例、领域或应用创建一个项目。
+
+## 工作原理
+
+<Steps>
+<Step title="摄入">
+您通过两个通道将数据引入项目：从文件库导入文档，或通过 API 提交会话。两个通道的数据汇入同一个项目。
+</Step>
+
+<Step title="提取">
+MemoryLake 自动处理您的内容。文档会被建立语义搜索索引。会话会被分析以提取结构化事实——例如用户偏好、既定目标、决策和上下文。
+</Step>
+
+<Step title="搜索">
+使用自然语言查询工作空间。MemoryLake 同时搜索文档内容和提取的事实，在一次响应中返回最相关的结果。
+</Step>
+</Steps>
+
+## 在控制台中操作
+
+API 是一条入口，控制台是另一条。上述所有能力同样以产品界面的形式提供：
+
+<CardGroup cols={2}>
+<Card title="控制台上手指引" icon="play" href="/quickstart">
+在 Playground 中带记忆对话、上传文件、查看提取结果——无需写代码。
+</Card>
+
+<Card title="文档管理" icon="folder-tree" href="/features/memorylake/document-management/overview">
+文件库：文件夹层级、上传、评论以及受支持的格式。
+</Card>
+
+<Card title="记忆" icon="brain" href="/features/memorylake/memories/overview">
+浏览、搜索、溯源，并消解提取记忆中的冲突。
+</Card>
+
+<Card title="工作空间与项目（控制台）" icon="diagram-project" href="/features/memorylake/project-management/overview">
+创建项目、关联文档，并在项目仪表盘中导航。
+</Card>
+
+<Card title="外部连接器" icon="plug" href="/features/memorylake/connectors/overview">
+将 WPS、Lark、OneDrive、SharePoint 和 Dropbox 文档库挂载到您的个人文件库。
+</Card>
+
+<Card title="集成" icon="puzzle-piece" href="/features/memorylake/mcp-servers/overview">
+基于 OAuth2 的 MCP、OpenClaw Agent 插件，以及 REST API 访问。
+</Card>
+</CardGroup>
+
+## 场景
+
+<CardGroup cols={2}>
+<Card title="个人 AI 记忆" icon="user" href="/scenarios/personal-ai-memory">
+一份私有记忆，供您使用的每个 AI 工具共享。
+</Card>
+
+<Card title="团队知识库" icon="building" href="/scenarios/team-knowledge-base">
+有治理的组织记忆，不因人员变动而流失。
+</Card>
+
+<Card title="面向编码 Agent 的记忆" icon="terminal" href="/scenarios/coding-agents">
+为 OpenClaw Agent 提供自动召回、自动捕获与自动上传。
+</Card>
+
+<Card title="构建带记忆的应用" icon="code" href="/scenarios/ai-apps-with-memory">
+在您自己的产品中实现每用户长期记忆。
+</Card>
+</CardGroup>
+
+## 开始使用
+
+<CardGroup cols={2}>
+<Card title="快速入门" icon="rocket" href="/features/memorylake/quickstart">
+创建工作空间、提交会话并搜索记忆，仅需 5 分钟。
+</Card>
+
+<Card title="工作空间与项目" icon="layer-group" href="/features/memorylake/core-concepts/workspaces-and-projects">
+了解资源层级结构，以及何时使用多个工作空间与多个项目。
+</Card>
+
+<Card title="Actor 与记忆" icon="user" href="/features/memorylake/core-concepts/actors-and-memory">
+了解 Actor 如何提供跨项目的每用户记忆。
+</Card>
+
+<Card title="记忆管道" icon="diagram-project" href="/features/memorylake/core-concepts/memory-pipeline">
+了解会话如何转化为结构化事实，以及搜索如何统一一切。
+</Card>
+</CardGroup>

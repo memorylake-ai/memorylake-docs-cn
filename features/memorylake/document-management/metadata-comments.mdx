@@ -1,0 +1,288 @@
+---
+title: "评论"
+description: "为文档添加富文本 Markdown 评论，支持实时预览"
+---
+
+## 概述
+
+使用 Markdown 格式的评论为文档补充上下文信息，让人类和 AI 都能更好地理解您的内容。
+
+## Markdown 评论
+
+### 评论系统概述
+
+MemoryLake 的评论系统基于 Markdown，您可以为任意文件或文件夹撰写带格式的富文本笔记。
+
+**特性**：
+- **Markdown 格式**：标题、列表、粗体、斜体、代码块、链接
+- **实时预览**：边输入边查看渲染结果
+- **自动保存**：草稿保护，避免内容丢失
+
+{/* SCREENSHOT: Markdown comment editor with split preview */}
+
+### 创建评论
+
+<Steps>
+<Step title="打开评论编辑器">
+选中一个文件或文件夹，打开评论面板（通常位于右侧）。
+</Step>
+
+<Step title="撰写评论">
+在 Markdown 编辑器中撰写评论。可用语法包括：
+- `# Headers` 组织结构
+- `**bold**` 和 `*italic*` 用于强调
+- `- Lists` 用于罗列
+- `` `code` `` 标注技术术语
+- `[links](url)` 添加引用
+</Step>
+
+<Step title="预览内容">
+实时预览面板会显示 Markdown 的渲染效果。
+
+{/* SCREENSHOT: Side-by-side editor and preview */}
+
+<Tip>
+保存前用预览确认格式，尤其是包含表格或代码块的复杂 Markdown。
+</Tip>
+</Step>
+
+<Step title="保存评论">
+点击「保存」，评论即随文件一起存储。
+</Step>
+</Steps>
+
+### Markdown 语法参考
+
+以下是常用 Markdown 格式的快速参考：
+
+#### 标题
+
+```markdown
+# H1 Header
+## H2 Header
+### H3 Header
+```
+
+#### 文本格式
+
+```markdown
+**Bold text**
+*Italic text*
+~~Strikethrough~~
+`Inline code`
+```
+
+#### 列表
+
+```markdown
+Unordered list:
+- Item 1
+- Item 2
+  - Nested item
+
+Ordered list:
+1. First item
+2. Second item
+3. Third item
+```
+
+#### 链接与图片
+
+```markdown
+[Link text](https://example.com)
+![Image alt text](https://example.com/image.png)
+```
+
+#### 代码块
+
+````markdown
+```javascript
+function example() {
+  return "Code with syntax highlighting";
+}
+```
+````
+
+#### 引用块
+
+```markdown
+> This is a quoted text
+> It can span multiple lines
+```
+
+#### 表格
+
+```markdown
+| Column 1 | Column 2 | Column 3 |
+|----------|----------|----------|
+| Data 1   | Data 2   | Data 3   |
+| Data 4   | Data 5   | Data 6   |
+```
+
+### 评论示例
+
+<AccordionGroup>
+<Accordion title="研究文档评论">
+```markdown
+# Research Paper: Q1 2024 Analysis
+
+## Summary
+This paper analyzes market trends for Q1 2024 with focus on:
+- Consumer behavior shifts
+- Competitive landscape changes
+- Budget allocation recommendations
+
+## Key Findings
+1. **Consumer Spending**: Up 15% YoY
+2. **Market Share**: Gained 3 percentage points
+3. **ROI**: Exceeded targets by 12%
+
+## Related Documents
+- [Budget Planning](/path/to/budget.xlsx)
+- [Previous Quarter Analysis](/path/to/q4-analysis.pdf)
+
+## Next Steps
+- Review with leadership team
+- Incorporate feedback
+- Finalize recommendations
+```
+</Accordion>
+
+<Accordion title="项目文件夹评论">
+```markdown
+# Project: Website Redesign
+
+## Project Overview
+Complete redesign of the company website with modern UX and improved conversion rates.
+
+**Timeline**: Q1-Q2 2024
+**Budget**: $150,000
+**Team**: 8 members
+
+## Folder Contents
+- `/design` - Mockups and design files
+- `/requirements` - Requirements documents
+- `/research` - User research and competitive analysis
+
+## Important Notes
+⚠️ All designs must be approved by marketing before development
+💡 Prioritize mobile-first approach
+✅ Accessibility compliance required (WCAG 2.1 AA)
+```
+</Accordion>
+
+<Accordion title="数据文件评论">
+```markdown
+# Dataset: Customer Survey Results 2024
+
+## Data Description
+Survey responses from 1,500 customers collected in January 2024.
+
+**Format**: CSV
+**Columns**: 45
+**Rows**: 1,500
+
+## Key Columns
+- `customer_id` - Unique identifier
+- `satisfaction_score` - 1-10 scale
+- `nps_score` - Net Promoter Score
+- `comments` - Free-text feedback
+
+## Data Quality
+- ✅ All required fields populated
+- ✅ Validated against schema
+- ⚠️ 23 rows have missing optional fields
+
+## Usage Notes
+Use this data for:
+1. Satisfaction trend analysis
+2. NPS calculation and tracking
+3. Identifying improvement areas
+
+**Do not** share externally without anonymization.
+```
+</Accordion>
+</AccordionGroup>
+
+## 评论管理
+
+### 编辑评论
+
+修改已有评论：
+1. 选中文件或文件夹
+2. 打开评论面板
+3. 编辑 Markdown 文本
+4. 保存更改
+
+### 删除评论
+
+彻底删除评论：
+1. 打开评论编辑器
+2. 清空全部文本
+3. 点击「保存」
+
+<Warning>
+删除评论不可撤销。如果日后可能还需要这些信息，建议改为加上「已废弃」标题保留。
+</Warning>
+
+## 最佳实践
+
+<AccordionGroup>
+<Accordion title="撰写高质量评论">
+**建议**：
+- 简洁而完整
+- 用标题组织较长的评论
+- 补充他人未必知晓的背景
+- 链接到相关文档
+- 内容变更时同步更新评论
+
+**避免**：
+- 写成长篇大论（保持可快速浏览）
+- 在共享文件的评论中写入敏感信息
+- 重复文件本身已有的信息
+- 留下过时的评论
+</Accordion>
+
+
+<Accordion title="Markdown 格式技巧">
+- 用 `#` 标题构建结构
+- 列表让内容易于浏览
+- 用**加粗**突出关键术语
+- 代码块承载技术内容
+- 表格承载结构化数据
+- 用链接串联相关文档
+</Accordion>
+
+<Accordion title="无障碍">
+- 标题按层级递进使用（先 H1 再 H2，不要从 H1 直接跳到 H3）
+- 提供描述性链接文本（而非「点击这里」）
+- 为图片添加替代文本
+- 语言保持清晰简单
+- 用列表提升屏幕阅读器的可读性
+</Accordion>
+</AccordionGroup>
+
+## 与项目的集成
+
+评论可以增强项目工作流：
+
+- **项目上下文**：文档关联到项目后，评论会一并作为上下文提供
+- **AI 理解**：通过 MCP 服务器接入的 AI 模型可以读取评论，理解文档用途
+- **团队协作**：评论帮助团队成员理解文档之间的关系与来龙去脉
+- **搜索**：评论可被搜索，让文档更容易被找到
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="文件操作" icon="folder" href="/features/memorylake/document-management/file-folder-operations">
+了解文件与文件夹的基础操作
+</Card>
+
+<Card title="项目关联" icon="diagram-project" href="/features/memorylake/project-management/document-association">
+将文档关联到项目
+</Card>
+
+<Card title="文件库 API" icon="code" href="/features/memorylake/api-reference/library/overview">
+通过 API 以编程方式管理文件
+</Card>
+</CardGroup>

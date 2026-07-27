@@ -1,0 +1,100 @@
+---
+title: "MemoryLake API 参考"
+description: "MemoryLake 完整 API 文档 — 将文档和对话转化为可搜索的结构化记忆"
+---
+
+## API 概览
+
+MemoryLake API 让你将文档和对话导入项目，自动提取结构化事实，并使用自然语言搜索所有记忆来源。用它来构建具有长期记忆的 AI 应用。
+
+## 基础 URL
+
+```
+https://app.memorylake.cn/openapi/memorylake
+```
+
+## 认证
+
+所有 API 请求都需要在 `Authorization` 头中提供 Bearer 令牌。详情请参阅[认证](/features/memorylake/api-reference/authentication)。
+
+## API 章节
+
+<CardGroup cols={2}>
+<Card title="Core Memory Operations" icon="brain" href="/features/memorylake/api-reference/core-memory/overview">
+3 个核心 API：导入文档、追加会话消息、搜索记忆。
+</Card>
+
+<Card title="文件库" icon="folder-tree" href="/features/memorylake/api-reference/library/overview">
+文件存储 — 上传和管理文件，然后导入到项目中。
+</Card>
+
+<Card title="工作空间" icon="layer-group" href="/features/memorylake/api-reference/workspaces/list-workspaces">
+创建和管理工作空间 — 用于数据隔离的顶层命名空间。
+</Card>
+
+<Card title="Actors" icon="user" href="/features/memorylake/api-reference/actors/list-actors">
+管理参与者身份及其关联的事实。
+</Card>
+
+<Card title="Agents" icon="robot" href="/features/memorylake/api-reference/agents/list-agents">
+定义 AI Agent，支持版本管理和 A2A 协议。
+</Card>
+
+<Card title="项目" icon="diagram-project" href="/features/memorylake/api-reference/v3-projects/list-projects">
+管理项目及其文档、会话和事实。
+</Card>
+</CardGroup>
+
+## 通用模式
+
+### 响应格式
+
+所有响应遵循以下结构：
+
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    // 响应数据
+  }
+}
+```
+
+错误响应：
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error_code": "ERROR_CODE"
+}
+```
+
+### 分页
+
+列表接口使用 continuation-token 分页：
+
+**查询参数**：
+- `page_size`：每页条数
+- `continuation_token`：上一次响应返回的令牌，用于获取下一页
+
+当响应中的 `continuation_token` 为 `null` 时，表示没有更多页。
+
+### 时间戳
+
+所有时间戳使用 ISO 8601 格式：
+```
+2024-01-15T10:30:00Z
+```
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="Core Memory Operations" icon="rocket" href="/features/memorylake/api-reference/core-memory/overview">
+从核心 API 开始 — 了解工作流程和前置依赖
+</Card>
+
+<Card title="认证" icon="key" href="/features/memorylake/api-reference/authentication">
+配置 API 凭证
+</Card>
+</CardGroup>

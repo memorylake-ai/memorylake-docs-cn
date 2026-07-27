@@ -1,0 +1,34 @@
+---
+title: "概述"
+description: "Agent 是可配置的 AI Agent 定义，支持版本管理、工作空间绑定和 A2A 协议"
+---
+
+**Agent** 是 MemoryLake 中可配置的 AI Agent 定义。每个 agent 包含模型、系统提示词、能力和执行策略。创建 agent 时，MemoryLake 会自动为其生成一个 [Actor](/features/memorylake/api-reference/actors/overview) 身份 — 因为 actor 是记忆的主体，agent 也需要像人类用户一样积累知识。
+
+## 核心概念
+
+### 版本管理
+
+Agent 的配置是版本化的。当你修改模型、系统提示词或策略时，你[创建一个新版本](/features/memorylake/api-reference/agents/create-agent-version)而非修改现有配置。这让你拥有配置历史和回滚能力。
+
+身份字段（名称、描述、元数据）通过[更新 Agent](/features/memorylake/api-reference/agents/update-agent) 直接修改 — 不会创建新版本。
+
+### 工作空间绑定
+
+Agent 全局创建后，[绑定](/features/memorylake/api-reference/agents/bind-agent)到特定工作空间。Agent 只能在其绑定的工作空间内运作。
+
+### A2A 协议
+
+MemoryLake agent 可通过标准的 [A2A（Agent 对 Agent）协议](/features/memorylake/api-reference/a2a/overview)访问。使用任何 A2A 兼容客户端向 agent 发送消息，通过 MemoryLake 的 `metadata.memorylake` 扩展提供记忆上下文（actor 身份、项目绑定、模型覆盖）。
+
+## 端点
+
+| 操作 | 方法 | 路径 |
+|------|------|------|
+| [列出 Agent](/features/memorylake/api-reference/agents/list-agents) | `GET` | `/api/v3/agents` |
+| [创建 Agent](/features/memorylake/api-reference/agents/create-agent) | `POST` | `/api/v3/agents` |
+| [获取 Agent](/features/memorylake/api-reference/agents/get-agent) | `GET` | `/api/v3/agents/{id}` |
+| [更新 Agent](/features/memorylake/api-reference/agents/update-agent) | `PATCH` | `/api/v3/agents/{id}` |
+| [删除 Agent](/features/memorylake/api-reference/agents/delete-agent) | `DELETE` | `/api/v3/agents/{id}` |
+| [创建版本](/features/memorylake/api-reference/agents/create-agent-version) | `POST` | `/api/v3/agents/{id}/versions` |
+| [绑定到工作空间](/features/memorylake/api-reference/agents/bind-agent) | `POST` | `/api/v3/workspaces/{id}/agents` |

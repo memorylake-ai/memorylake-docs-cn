@@ -1,0 +1,94 @@
+---
+title: "更新项目"
+description: "更新现有项目的名称、描述或行业分类"
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}
+```
+
+更新现有项目。仅修改请求体中包含的字段；未提供的字段保持不变。
+
+<Note>
+**所需权限：** `project:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string">
+更新后的项目名称
+</ParamField>
+
+<ParamField body="description" type="string">
+更新后的项目描述
+</ParamField>
+
+<ParamField body="industry_ids" type="array">
+更新后的行业标识符数组。将替换当前的行业分类集合。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects/proj_def456' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Customer Research (Updated)",
+    "description": "Expanded to include focus-group recordings"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="项目对象">
+  <ResponseField name="id" type="string">项目唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">更新后的项目名称</ResponseField>
+  <ResponseField name="description" type="string">更新后的项目描述</ResponseField>
+  <ResponseField name="industries" type="array">
+  分配给项目的行业分类
+  <Expandable title="行业对象">
+    <ResponseField name="id" type="string">行业标识符</ResponseField>
+    <ResponseField name="name" type="string">行业名称</ResponseField>
+    <ResponseField name="description" type="string">行业描述</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="custom_id" type="string">用于外部系统集成的自定义标识符</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "proj_def456",
+    "name": "Customer Research (Updated)",
+    "description": "Expanded to include focus-group recordings",
+    "industries": [
+      {
+        "id": "ind_tech01",
+        "name": "Technology",
+        "description": "Software and technology sector"
+      }
+    ],
+    "custom_id": "research-2024-q1",
+    "created_at": "2024-01-15T10:30:00Z",
+    "updated_at": "2024-03-05T16:20:00Z"
+  }
+}
+```
+</ResponseExample>

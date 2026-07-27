@@ -1,0 +1,84 @@
+---
+title: "创建工作空间"
+description: "使用名称和可选元数据创建新的工作空间"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces
+```
+
+创建一个新的工作空间。每个工作空间需要您定义一个 `custom_id`，作为稳定的外部标识符，方便您在自己的系统中引用该工作空间。
+
+<Note>
+**所需权限：** `workspace:create`
+</Note>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+工作空间名称
+</ParamField>
+
+<ParamField body="custom_id" type="string" required>
+调用方定义的唯一标识符，用于外部引用。在您的所有工作空间中必须唯一。
+</ParamField>
+
+<ParamField body="description" type="string">
+工作空间描述
+</ParamField>
+
+<ParamField body="metadata" type="object">
+附加到工作空间的任意键值元数据
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "My Research Workspace",
+    "custom_id": "research-ws-001",
+    "description": "Central workspace for research documents and notes",
+    "metadata": {
+      "team": "research",
+      "priority": "high"
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="工作空间对象">
+  <ResponseField name="id" type="string">工作空间唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">工作空间名称</ResponseField>
+  <ResponseField name="description" type="string">工作空间描述</ResponseField>
+  <ResponseField name="metadata" type="object">附加到工作空间的任意键值元数据</ResponseField>
+  <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "ws_abc123def456",
+    "name": "My Research Workspace",
+    "description": "Central workspace for research documents and notes",
+    "metadata": {
+      "team": "research",
+      "priority": "high"
+    },
+    "custom_id": "research-ws-001",
+    "created_at": "2025-03-10T08:30:00Z",
+    "updated_at": "2025-03-10T08:30:00Z"
+  }
+}
+```
+</ResponseExample>

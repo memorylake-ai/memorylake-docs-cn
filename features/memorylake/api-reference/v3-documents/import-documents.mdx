@@ -1,0 +1,93 @@
+---
+title: "导入文档"
+description: "将文件库中的文件作为文档导入到项目中"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/documents
+```
+
+将一个或多个文件库文件作为文档导入到项目中。MemoryLake 会异步处理每个文件——对其内容进行索引以用于语义搜索和记忆提取。你可以通过[获取文档](/features/memorylake/api-reference/v3-documents/get-document)来查看处理进度。
+
+<Note>
+**所需权限：** `project:doc_add`
+</Note>
+
+<Note>
+文件必须先存在于文件库中才能导入。请先使用[文件库 API](/features/memorylake/api-reference/library/overview) 上传文件。
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+拥有该项目的工作空间 ID。
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+要导入文档的项目。
+</ParamField>
+
+### 请求体
+
+<ParamField body="drive_item_ids" type="string[]" required>
+要导入的文件库项目 ID 数组。每个 ID 必须引用文件库中已存在的文件。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a1b2c3d4e5f6/projects/proj-7g8h9i0j1k2l/memories/documents' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "drive_item_ids": [
+      "sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7",
+      "sc-5c6bf0f82d624a20a6fa4696997bdd46:9f3de2a71c844a52c1"
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="导入结果">
+  <ResponseField name="success_count" type="integer">成功导入的文件数量。</ResponseField>
+  <ResponseField name="failure_count" type="integer">导入失败的文件数量。</ResponseField>
+  <ResponseField name="duplicate_count" type="integer">因已导入到该项目中而被跳过的文件数量。</ResponseField>
+  <ResponseField name="details" type="array">
+  每个文件的导入结果。
+  <Expandable title="导入详情">
+    <ResponseField name="result" type="string">该文件的结果：`success`、`failed` 或 `duplicate`。</ResponseField>
+    <ResponseField name="drive_item_id" type="string">已处理的文件库项目 ID。</ResponseField>
+    <ResponseField name="document_id" type="string">分配给已导入文件的文档 ID。当 `result` 为 `success` 时存在。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="details_truncated" type="boolean">当为 `true` 时，`details` 数组已被截断。这可能在导入大量文件时发生。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "success_count": 1,
+    "failure_count": 0,
+    "duplicate_count": 1,
+    "details": [
+      {
+        "result": "success",
+        "drive_item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7",
+        "document_id": "doc-3m4n5o6p7q8r"
+      },
+      {
+        "result": "duplicate",
+        "drive_item_id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:9f3de2a71c844a52c1",
+        "document_id": "doc-4x5y6z7a8b9c"
+      }
+    ],
+    "details_truncated": false
+  }
+}
+```
+</ResponseExample>

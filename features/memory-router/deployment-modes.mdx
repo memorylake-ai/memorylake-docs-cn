@@ -1,0 +1,109 @@
+---
+title: "部署模式"
+description: "使用自己的模型厂商密钥（BYOK）接入，或使用 MemoryLake 托管模型——两种方式共享同一记忆层"
+---
+
+<Note>
+Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关，下面列出的端点当前无法调用；本页描述的是该能力的完整形态，供您提前评估接入方案。如需在中国站使用，请联系商务了解开放计划。
+</Note>
+
+Memory Router 支持两种接入方式。与那些强制您自带密钥的代理不同，您既可以保留自己的模型厂商账号，**也可以**让 MemoryLake 替您运行模型。两种模式共享相同的端点——区别只在于您发送哪些密钥。其他一切——提示词、流式输出、工具调用——都保持不变。
+
+## 端点
+
+| 协议 | 端点 |
+| --- | --- |
+| OpenAI · Chat Completions | `POST https://app.memorylake.cn/openai/v1/chat/completions` |
+| OpenAI · Responses | `POST https://app.memorylake.cn/openai/v1/responses` |
+| OpenAI · Embeddings | `POST https://app.memorylake.cn/openai/v1/embeddings` |
+| Anthropic · Messages | `POST https://app.memorylake.cn/anthropic/v1/messages` |
+
+在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。
+
+<Note>
+使用 Anthropic SDK 时，请将 `base_url` 设为 `https://app.memorylake.cn/anthropic`（不带 `/v1`）——SDK 会自行追加 `/v1/messages`。
+</Note>
+
+## MemoryLake 托管
+
+无需模型厂商账号。MemoryLake 替您运行主流模型，因此只需一个 MemoryLake API Key 即可开始。
+
+- 一个密钥搞定一切——不用再注册任何其他服务。
+- 内置 GPT、Claude 和 Qwen 系列模型，可直接按原生名称调用。
+- 带记忆上线的最简路径。
+
+**密钥：**仅需 MemoryLake 密钥，放在原生鉴权头中（OpenAI 风格调用用 `Authorization: Bearer`，Anthropic 用 `x-api-key`）
+
+```ts TypeScript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://app.memorylake.cn/openai/v1",
+  apiKey: process.env.MEMORYLAKE_API_KEY,
+});
+
+// 按原生名称调用任意内置模型，例如 "gpt-4o-mini" 或 "qwen-plus"。
+```
+
+## BYOK——自带密钥
+
+使用您自己的模型厂商账号。您的模型厂商密钥在传输中加密，按次转发给模型厂商，且绝不存储在我们的服务器上。
+
+- 保留现有的 OpenAI / Anthropic 账号。
+- 您的密钥、您的账单、您的速率限制。
+- 密钥仅加密透传——绝不持久化，也不写入日志。
+
+**密钥：**您的模型厂商密钥放在该厂商的**原生**鉴权头中 + MemoryLake 密钥放在 `x-memorylake-api-key` 头中
+
+```ts TypeScript
+import OpenAI from "openai";
+
+const client = new OpenAI({
+  baseURL: "https://app.memorylake.cn/openai/v1",
+  apiKey: process.env.OPENAI_API_KEY,        // 您的模型厂商密钥
+  defaultHeaders: {
+    "x-memorylake-api-key": process.env.MEMORYLAKE_API_KEY,
+  },
+});
+```
+
+<Info>
+原生鉴权头因协议而异：OpenAI 风格调用使用 `Authorization: Bearer <key>`；Anthropic 调用使用 `x-api-key: <key>`。在 BYOK 模式下，您的模型厂商密钥放在这里，MemoryLake 密钥则始终放在 `x-memorylake-api-key` 中。
+</Info>
+
+## 如何选择模式
+
+| | MemoryLake 托管 | BYOK |
+| --- | --- | --- |
+| 模型厂商账号 | 不需要 | 需要（您自己的） |
+| 密钥 | 仅 MemoryLake 密钥 | 模型厂商密钥 + MemoryLake 密钥 |
+| 账单与速率限制 | 由 MemoryLake 承担 | 留在您的模型厂商账号下 |
+| 适合 | 最快带记忆上线 | 已有模型厂商合同和配额的团队 |
+
+## 密钥安全，源于设计
+
+<Warning>
+在 BYOK 模式下，您的模型厂商密钥在传输中加密，并在每次调用时直接透传给模型厂商。MemoryLake 绝不存储、记录或复用它——整体设计是无状态、按请求透传、服务端零密钥存储。
+</Warning>
+
+## 支持的模型厂商
+
+| 模型厂商 | BYOK | 托管 |
+| --- | --- | --- |
+| OpenAI / GPT（Chat Completions 与 Responses） | ✅ | ✅ |
+| Anthropic / Claude（Messages） | ✅ | ✅ |
+| 阿里 Qwen（OpenAI 兼容，经 `/openai/v1`） | — | ✅ |
+
+我们会持续接入更多模型厂商和协议；控制台的 **Integrations → Memory Router API** 页面始终反映当前的支持清单。
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="快速入门" icon="rocket" href="/features/memory-router/quickstart">
+两种模式的可直接复制配置。
+</Card>
+
+<Card title="可观测性" icon="activity" href="/features/memory-router/observability">
+追踪请求并理解错误约定。
+</Card>
+</CardGroup>

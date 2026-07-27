@@ -1,0 +1,129 @@
+---
+title: "记忆"
+description: "MemoryLake 如何提取、存储、检索和维护长期记忆——溯源、冲突与管理"
+---
+
+## 概览
+
+记忆是 MemoryLake 的核心：从您的会话和文档中提炼出的结构化、持久事实。与聊天记录（嘈杂、无边界）或文档分块（原始文本）不同，记忆是值得保留的*提取*陈述——经过去重、可搜索、可溯源到出处，并做过一致性校验。
+
+## 记忆从何而来
+
+<CardGroup cols={2}>
+<Card title="会话" icon="message">
+Playground 对话和 Agent 会话会被自动分析——提取持久事实，与已知内容合并后存储。逐字记录仍是记录，事实才成为记忆。
+</Card>
+
+<Card title="文档" icon="file">
+上传的文件会被解析并建立索引；关键内容与会话事实一起成为可检索的记忆。
+</Card>
+
+<Card title="显式捕获" icon="pen">
+主动存储一条记忆——通过 API（`add memory`）、Agent 工具（`memory_store`），或直接告诉助手"记住这个"。
+</Card>
+
+<Card title="Agent 自动捕获" icon="robot">
+已连接的 Agent（OpenClaw 及同类）在后台上报会话轮次；由服务端决定存储、更新还是合并。
+</Card>
+</CardGroup>
+
+## 记忆凭什么可信
+
+### 来源溯源
+
+每条记忆都保留指向其出处的溯源——它是从哪一轮会话或哪份文档中提取的。在控制台中打开任意记忆并查看其**来源溯源**标签页，或通过[溯源 API](/features/memorylake/api-reference/memories/get-memory-trace) 获取。当助手断言某件事时，您随时可以追问*"你怎么知道的？"*
+
+### 冲突检测
+
+当一条新记忆与已有记忆矛盾时——截止日期变更、政策调整、事实被更正——MemoryLake 不会默默同时保留两者，也不会盲目覆盖。它会提出一个**冲突**：
+
+1. 矛盾的记忆对出现在项目的**冲突**标签页中
+2. 由审核者（任何拥有消解权限的人）判定哪一条为真
+3. 记忆保持最新，且消解是有意为之，而非偶然发生
+
+冲突同样通过 [API](/features/memorylake/api-reference/memories/list-memory-conflicts) 暴露，Agent 工具会在检索结果旁呈现未消解的冲突，让助手可以标示不确定性，而不是断言过时事实。
+
+### 去重与合并
+
+重复说同一件事不会产生十份相同事实的副本——提取过程会在信息重叠处将新内容合并进已有记忆，并在细节变化时更新它们。
+
+## 检索记忆
+
+- **控制台**：在**记忆**页面（工作空间范围）或某个项目的记忆标签页中浏览和搜索——其中包含词频可视化，可快速了解一个项目掌握了什么
+- **语义搜索**：关键词 + 向量嵌入的混合检索，作用域可限定在项目或工作空间——与 Playground、Agent 工具和[搜索 API](/features/memorylake/api-reference/memories/search-memories) 背后是同一套引擎
+- **自动召回**：已连接的助手在回答前自动检索相关记忆——您无需手工查询
+
+## 管理记忆
+
+### 浏览与查看
+
+记忆视图支持搜索、筛选、分页和批量选择。点击任意记忆查看详情：完整内容、元数据和来源溯源。
+
+### 编辑
+
+当某条事实需要修正时，打开该记忆并编辑其内容。编辑会立即在后续检索中生效。
+
+### 遗忘（删除）
+
+<Warning>
+遗忘一条记忆是永久操作——它会从所有已连接助手和 API 客户端的后续检索中被移除。
+</Warning>
+
+从记忆的操作菜单中删除（或使用[遗忘 API](/features/memorylake/api-reference/memories/forget-memory)）。在构建面向用户的产品时，这也是您实现"被遗忘权"的机制。
+
+## 个人记忆与组织记忆
+
+同一套机制服务于两类不同的知识：
+
+| | 个人记忆 | 组织记忆 |
+|---|---|---|
+| 归属 | 某个人（跨其所有工具） | 某个团队工作空间 |
+| 示例 | 偏好、个人事实、工作风格 | 政策、决策、领域事实、客户历史 |
+| 治理 | 仅您私有 | 角色 + 按操作细分的权限 |
+| 典型顾虑 | "我的工具会记住我吗？" | "人离开后知识还留得下吗？" |
+
+两者都经过提取 → 溯源 → 冲突校验 → 检索的流程；区别在于作用域和治理方式。参见[个人 AI 记忆](/scenarios/personal-ai-memory)和[团队知识库](/scenarios/team-knowledge-base)场景。
+
+## 通过程序使用记忆
+
+```bash
+# 输入一段会话——事实会从您追加的消息中提取
+POST /api/v3/workspaces/{workspaceId}/memories/conversations
+POST /api/v3/conversations/{conversationId}/messages
+
+# 将文档导入项目
+POST /api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/documents
+
+# 一次调用同时搜索文档和事实
+POST /api/v3/workspaces/{workspaceId}/memories/search
+
+# 浏览和管理提取的事实
+GET  /api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/facts
+POST /api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/facts/{factId}/forget
+
+# 列出 / 消解冲突
+GET  /api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/conflicts
+POST /api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/conflicts/{conflictId}/resolve
+```
+
+所有路径均相对于 `https://app.memorylake.cn/openapi/memorylake`。建议从[核心记忆操作](/features/memorylake/api-reference/core-memory/overview)开始了解端到端流程。
+
+<Note>
+早期的项目级 `api/v1` 和 `api/v2` 记忆接口仍对已有集成保持可用，文档位于 API 参考的**已弃用**部分。新集成应使用上述 v3 路径。
+</Note>
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="最佳实践" icon="star" href="/features/memorylake/memories/best-practices">
+从会话、文档和 Agent 中获得更好的记忆
+</Card>
+
+<Card title="集成" icon="plug" href="/features/memorylake/mcp-servers/overview">
+将记忆召回引入您的 Agent 和应用
+</Card>
+
+<Card title="记忆 API" icon="code" href="/features/memorylake/api-reference/memories/add-memory">
+通过程序管理记忆
+</Card>
+</CardGroup>

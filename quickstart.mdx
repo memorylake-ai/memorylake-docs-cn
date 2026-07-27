@@ -1,0 +1,80 @@
+---
+title: "快速开始"
+description: "五分钟体验 AI 记忆——对话、上传、检索，并连接您的工具"
+---
+
+本指南带您在约五分钟内从注册走到一份可用的记忆，然后为您指出最契合您工作方式的集成路径。
+
+## 第 1 步：注册
+
+在 [app.memorylake.cn](https://app.memorylake.cn) 用**邮箱 + 密码**注册账号——这是中国站当前唯一的登录方式，注册后**无需邮箱验证**即可直接使用。MemoryLake 会自动为您开通个人工作空间和助手——首次会话之前无需任何配置。
+
+## 第 2 步：在 Playground 中体验记忆
+
+从侧边栏打开 **Playground**（新账号会直接进入这里，并有一个简短的引导）：
+
+<Steps>
+<Step title="告诉它一件值得记住的事">
+试试：*"记住我叫小明，我偏好用要点形式回答。"*
+
+在背后，MemoryLake 会从会话中提取一条可长期沉淀的记忆——不是对话记录，而是一条事实。
+</Step>
+
+<Step title="添加 Open Data（可选）">
+为您的项目订阅一个精选行业数据集——论文、金融数据、临床试验等——这样助手在检索您自有内容的同时，还能检索权威的外部来源。
+</Step>
+
+<Step title="上传文件">
+直接在对话中附加 PDF、Word、Excel 或 Markdown 文件。其内容会被解析、建立索引，并成为可检索的上下文。
+</Step>
+
+<Step title="感受差异">
+开启一个**新**会话并提问：*"我叫什么，我喜欢什么样的回答？"* 助手能回忆起来——这就是跨会话持续存在的记忆。首页的记忆开/关对比会并排展示同样的效果。
+</Step>
+</Steps>
+
+<Tip>
+在侧边栏访问**记忆**，查看提取出了什么——每条记忆都会显示其内容，以及回到它来源会话或文档的**来源溯源**。
+</Tip>
+
+## 第 3 步：创建 API Key
+
+任何编程访问——REST API、Model Router 或 Agent 插件——都需要创建一个 API Key：
+
+1. 在控制台侧边栏打开 **API Keys**
+2. 点击创建，为 Key 命名，并选择有效期（默认 30 天；也可选择"永不过期"）
+3. Key 揭示时立即复制 `sk-…`——它只显示一次
+
+请参见[认证](/authentication)了解请求头格式和 Key 管理。
+
+## 第 4 步：把记忆放到您工作的地方
+
+选择匹配您工作流的路径：
+
+<CardGroup cols={2}>
+<Card title="编程 Agent（OpenClaw）" icon="terminal" href="/features/memorylake/mcp-servers/overview">
+安装 MemoryLake 插件——您的 Agent 会自动召回上下文、捕获新记忆，并上传您分享给它的文件。
+</Card>
+
+<Card title="REST API" icon="code" href="/features/memorylake/api-reference/overview">
+完整的编程控制：项目、文档、记忆的添加/搜索/溯源，以及冲突消解，入口为 `https://app.memorylake.cn/openapi/memorylake`。
+</Card>
+
+<Card title="Memory Router" icon="route" href="/features/memory-router/overview">
+只需更改 Base URL，即可为现有的 OpenAI/Anthropic 调用加上记忆。中国站暂未开放。
+</Card>
+
+<Card title="Model Router" icon="globe" href="/features/model-router/overview">
+用同一个 API Key，通过一个兼容 OpenAI 的端点调用主流 LLM。
+</Card>
+</CardGroup>
+
+## 刚刚发生了什么？
+
+您的会话和文件被提炼成了**记忆**，存放在您**工作空间**中的一个**项目**里——任何您连接的助手或 API 客户端都可检索，且范围始终限定为您私有。当您准备好与团队共享记忆时，参见[团队协作](/features/team-collaboration/overview)；要理解完整模型，请阅读[核心概念](/concepts)。
+
+## 下一步
+
+- [核心概念](/concepts) —— 工作空间、项目、记忆、Actor、Agent
+- [场景](/scenarios/personal-ai-memory) —— 个人记忆、团队知识库、编程 Agent 和产品集成实操指南
+- [MemoryLake 功能指南](/features/memorylake/overview) —— 文档、记忆、冲突、连接器等

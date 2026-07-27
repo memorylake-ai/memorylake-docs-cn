@@ -1,0 +1,58 @@
+---
+title: "批量遗忘 Actor 事实"
+description: "在单个请求中将多个 Actor 级别的事实标记为已遗忘"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts/forget
+```
+
+在单个请求中将多个 Actor 级别的事实标记为已遗忘（已过期）。与[遗忘 Actor 事实](/features/memorylake/api-reference/facts/forget-actor-fact)类似，这是一种软删除——事实仍可用于审计目的，但会从未来的检索和搜索中排除。
+
+<Note>
+**所需权限：** `workspace:actor_fact_delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="ids" type="array" required>
+要遗忘的事实 ID 数组
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/actors/actor_5e4d3c2b1a0f/facts/forget' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "ids": [
+      "fact_4c5d6e7f8a9b",
+      "fact_1a2b3c4d5e6f",
+      "fact_9h8g7f6e5d4c"
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 对象。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>

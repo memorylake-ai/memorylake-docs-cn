@@ -1,0 +1,115 @@
+---
+title: "查看用量与计费"
+description: "了解如何检查您的 API 用量并理解计费详情"
+---
+
+## 什么是用量与计费？
+
+每次 API 调用都会消耗配额并生成一条计费记录。本指南将向您展示在哪里查看用量以及费用是如何计算的。
+
+<Info>
+每次请求前都会检查配额。如果余额不足，请求将被拒绝。详情请参阅[限制与前提条件](/features/model-router/others/limits-and-prerequisites)。
+</Info>
+
+## 配额工作原理
+
+Model Router 使用两阶段配额系统：
+
+1. **预扣费**：在处理您的请求之前，系统会检查并预留配额
+2. **结算**：请求完成后，根据实际用量计费；失败的请求会回滚预留的配额
+
+<Frame>
+  <img
+    className="rounded-xl"
+    src="/images/model-router/quota-flow.png"
+    alt="配额检查与结算机制"
+    style={{ width: "100%", height: "auto" }}
+  />
+</Frame>
+
+<Info>
+您只需为成功的请求按实际 token 用量付费。
+</Info>
+
+<Note>
+中国站控制台的余额、用量与费用均**按人民币（CNY）计价显示**。具体的充值与支付方式请在控制台 **Billing** 页查看，或联系商务确认。
+</Note>
+
+## 在控制台的哪里查看
+
+所有用量与计费视图都位于[控制台](https://app.memorylake.cn/panel/billing)侧边栏的 **Billing** 下：
+
+| 标签页 | 您可以看到 |
+|---|---|
+| **Overview** | 一览当前余额、额度和近期消耗 |
+| **Credits** | 余额管理与充值 |
+| **Usage** | 按产品汇总的用量——MemoryLake Memory 与 MemoryLake Router 分别展示 |
+| **Logs** | 逐次请求记录：模型、token、延迟和费用明细 |
+| **Payments** | 支付历史与发票；可用的支付方式以该页实际显示为准 |
+
+在团队空间中，团队级统计（成员排名、消耗趋势、模型用量）位于团队的 **Stats** 标签页——参阅[团队协作](/features/team-collaboration/quota-and-usage)。
+
+## 查看单次调用计费
+
+1. 打开 **Billing → Logs**
+2. 点击任意调用查看其详情：
+   - **输入/输出定价**：每个 token 的费用
+   - **转换过程**：费用的计算方式
+   - **实际扣除配额**：消耗了多少配额
+   - **配额来源**：个人、团队还是混合
+
+<Frame>
+  <img
+    className="rounded-xl"
+    src="/images/model-router/billing-list.png"
+    alt="调用日志中的计费列表"
+    style={{ width: "100%", height: "auto" }}
+  />
+</Frame>
+
+<Frame>
+  <img
+    className="rounded-xl"
+    src="/images/model-router/billing-detail.png"
+    alt="调用日志详情中的计费明细"
+    style={{ width: "100%", height: "auto" }}
+  />
+</Frame>
+
+## 理解计费详情
+
+- **输入 token**：您发送给模型的 token 费用
+- **输出 token**：模型生成的 token 费用
+- **总费用**：输入 + 输出
+- **配额来源**：个人配额、共享的团队配额，或两者混合——根据您当前的空间上下文进行校验
+
+## 模型定价
+
+在控制台的[可用模型页面](https://app.memorylake.cn/panel/models/available)查看各模型的定价。此处显示的定价属于参考元数据；实际费用在结算时根据真实用量计算。中国站的定价同样按人民币显示。
+
+## 重要说明
+
+1. **配额限制**：余额不足时请求将被拒绝——在持续负载前请先在 **Billing → Credits** 充值。
+2. **上下文很重要**：个人上下文和团队上下文使用不同的配额池；在自动化之前请确认当前所处的空间。
+3. **实时更新**：用量统计会随您的调用同步更新。
+
+## 故障排除
+
+### "配额不足"错误
+
+1. 在 **Billing → Overview** 检查您的余额
+2. 充值额度，或请团队管理员提高您的成员配额
+3. 确认您处于预期的空间（个人还是团队）
+
+### 意外扣费
+
+1. 在 **Billing → Logs** 中打开该次调用
+2. 检查输入/输出 token 数量和转换明细
+3. 与可用模型页面上该模型的定价进行对比
+
+## 相关文档
+
+- [查看可用模型](/features/model-router/list-available-models)
+- [限制与前提条件](/features/model-router/others/limits-and-prerequisites)
+- [错误处理](/features/model-router/others/error-handling)
+- [团队协作——配额与用量](/features/team-collaboration/quota-and-usage)

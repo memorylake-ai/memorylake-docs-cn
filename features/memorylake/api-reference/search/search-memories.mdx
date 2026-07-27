@@ -1,0 +1,124 @@
+---
+title: "搜索记忆"
+description: "使用自然语言在工作空间中跨所有记忆源进行搜索"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/search
+```
+
+使用自然语言查询在工作空间中跨所有记忆源（文档和事实）进行搜索。结果按来源类型分组，便于你在 UI 中分别展示各类别或将其合并。使用可选筛选条件可将结果限定到特定项目、Actor 或记忆类型。
+
+<Note>
+**所需权限：** `workspace:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="query" type="string" required>
+自然语言搜索查询
+</ParamField>
+
+<ParamField body="project_ids" type="array of strings">
+将搜索限定到特定项目。省略时将搜索工作空间中的所有项目。
+</ParamField>
+
+<ParamField body="actor_ids" type="array of strings">
+将搜索限定到与特定 Actor 关联的记忆
+</ParamField>
+
+<ParamField body="memory_types" type="array of strings">
+按记忆类型筛选结果。可接受的值：`document`、`fact`。省略时将搜索所有类型。
+</ParamField>
+
+<ParamField body="top_k" type="integer">
+每个来源类型返回的最大结果数量
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/search' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "What were the quarterly revenue figures?",
+    "project_ids": ["proj_def456"],
+    "memory_types": ["document", "fact"],
+    "top_k": 10
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="按来源类型分组的搜索结果">
+  <ResponseField name="documents" type="array">
+  文档搜索结果，按源文档分组
+  <Expandable title="DocumentSearchResult">
+    <ResponseField name="document_id" type="string">文档标识符</ResponseField>
+    <ResponseField name="document_name" type="string">文档的显示名称</ResponseField>
+    <ResponseField name="file_name" type="string">原始文件名</ResponseField>
+    <ResponseField name="document_summary" type="string">文档摘要</ResponseField>
+    <ResponseField name="source_type" type="string">文档的来源类型（例如 `upload`、`connector`）</ResponseField>
+    <ResponseField name="sheet_name" type="string">工作表名称（当文档为工作簿时）</ResponseField>
+    <ResponseField name="items" type="array">
+    文档中匹配的内容项
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="facts" type="array">
+  事实搜索结果
+  <Expandable title="FactSearchResult">
+    <ResponseField name="id" type="string">事实标识符</ResponseField>
+    <ResponseField name="fact" type="string">事实文本</ResponseField>
+    <ResponseField name="score" type="number">相关性分数</ResponseField>
+    <ResponseField name="metadata" type="object">与事实关联的附加元数据</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "documents": [
+      {
+        "document_id": "doc-abc123",
+        "document_name": "Q1 2024 Financial Report",
+        "file_name": "q1_2024_report.pdf",
+        "document_summary": "Quarterly financial report covering revenue, expenses, and projections for Q1 2024.",
+        "source_type": "upload",
+        "sheet_name": null,
+        "items": [
+          {
+            "text": "Q1 2024 revenue reached $12.5M, a 15% increase over Q4 2023.",
+            "range": "p8"
+          }
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "id": "fact-xyz789",
+        "fact": "Company quarterly revenue for Q1 2024 was $12.5M",
+        "score": 0.92,
+        "metadata": {},
+        "created_at": "2024-04-01T09:00:00Z",
+        "updated_at": "2024-04-01T09:00:00Z"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

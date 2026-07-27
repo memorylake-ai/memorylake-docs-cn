@@ -1,0 +1,49 @@
+---
+title: "删除会话"
+description: "永久删除会话及其所有消息"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations/{conversationId}
+```
+
+<Warning>
+这是一个破坏性操作。会话及其所有消息将被永久删除。
+</Warning>
+
+永久删除一个会话及其包含的所有消息。之前从会话消息中提取的事实不受影响。
+
+<Note>
+**所需权限：** `workspace:conv_delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="conversationId" type="string" required>
+会话标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations/conv_7d2e3f4a5b6c7d8e' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Conversation deleted successfully"
+}
+```
+</ResponseExample>

@@ -1,0 +1,62 @@
+---
+title: "创建 API Key"
+description: "了解如何创建 API Key 以开始使用 Model Router"
+---
+
+## 什么是 API Key？
+
+API Key 是您访问 Model Router 的身份验证凭据——与 MemoryLake 所有编程接口使用的是同一个 `sk-…` Key。一个 Key 能调用哪些模型，由您账号的模型访问分组以及该 Key 上的模型限制共同决定。
+
+## 如何创建 API Key
+
+### 步骤 1：进入 API Keys 页面
+
+1. 登录 [MemoryLake 控制台](https://app.memorylake.cn)
+2. 点击侧边栏中的 **API Keys**（或直接前往 [API Keys 页面](https://app.memorylake.cn/panel/token)）
+
+### 步骤 2：创建新的 API Key
+
+1. 点击创建按钮
+2. 配置该 Key：
+   - **名称**：仅供您自己参考（例如"我的项目 API Key"），之后可以修改
+   - **有效期**：永不过期 / 7 天 / 30 天（默认）/ 90 天 / 1 年 / 自定义日期
+   - **高级 → 分组**：模型访问分组，当您的账号拥有多个分组时才会显示
+
+<Info>
+API Keys 页面始终会展示您的 **API 基础地址** 并带有复制按钮——请在客户端中将它用作 base URL。
+</Info>
+
+<Frame>
+  <img
+    className="rounded-xl"
+    src="/images/ai-applications/get-api-key.png"
+    alt="在 MemoryLake 控制台创建 API Key"
+    style={{ width: "100%", height: "auto" }}
+  />
+</Frame>
+
+### 步骤 3：保存您的 API Key
+
+创建完成后，以 `sk-` 开头的密钥**只会显示一次**。请立即复制并妥善保存。
+
+<Warning>
+请将 API Key 保存在安全的地方（密码管理器或环境变量）。切勿公开分享或提交到版本控制系统。如果 Key 泄露，请在该 Key 的详情面板中使用 **Rotate** 替换密钥，或禁用/删除该 Key。
+</Warning>
+
+### 可选的安全加固
+
+在该 Key 的详情面板中，您还可以设置：
+- **模型限制** — 限定该 Key 可以调用哪些模型
+- **IP 白名单** — 仅允许已知地址使用
+- **心跳** — 为长时间运行的自动化任务要求周期性的存活信号
+
+## 下一步
+
+- **[如何使用 API Key](/features/model-router/getting-started/use-api-key/overview)**：使用 Key 的不同方式
+- **[查看可用模型](/features/model-router/list-available-models)**：查看您的 Key 可以访问哪些模型
+
+## 相关文档
+
+- [使用 API Key 概览](/features/model-router/getting-started/use-api-key/overview)
+- [查看可用模型](/features/model-router/list-available-models)
+- [限制与前提条件](/features/model-router/others/limits-and-prerequisites)

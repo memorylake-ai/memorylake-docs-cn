@@ -1,0 +1,104 @@
+---
+title: "错误代码与处理"
+description: "理解和处理 API 错误"
+---
+
+## HTTP 状态码
+
+| 状态码 | 含义 | 常见原因 |
+|--------|------|----------|
+| 200 | 成功 | 请求成功完成 |
+| 400 | 错误请求 | 参数无效或请求格式错误 |
+| 401 | 未授权 | API 密钥缺失或无效 |
+| 402 | 需要付款 | 此操作的配额不足 |
+| 403 | 禁止访问 | 认证有效但权限不足 |
+| 404 | 未找到 | 资源不存在 |
+| 429 | 请求过多 | 超出速率限制 |
+| 500 | 服务器内部错误 | 服务端错误 |
+
+## 错误响应
+
+当请求失败时，API 会返回结构化的错误体以及 HTTP 状态码。`error_code` 字段标识具体错误，便于程序化处理：
+
+```json
+{
+  "success": false,
+  "message": "Human-readable error description",
+  "error_code": "ERROR_CODE"
+}
+```
+
+## 错误代码
+
+| 错误代码 | 描述 |
+|----------|------|
+| `NOT_FOUND` | 资源未找到 |
+| `DRIVE_ITEM_CONFLICT` | 文件库项名称冲突，例如已存在同名的文件或文件夹 |
+| `INVALID_ARGUMENT` | 无效输入：参数校验失败、类型不匹配或请求体格式错误 |
+| `CONNECTOR_NOT_LINKED` | 第三方连接器（WPS、飞书等）尚未授权 |
+| `STATE_NOT_READY` | 资源存在但当前状态不允许执行此操作 |
+| `ACCESS_DENIED` | 调用方无权访问该资源 |
+| `QUOTA_EXCEEDED` | 配额或使用限制已超出 |
+| `DOWNLOAD_NOT_SUPPORTED` | 请求的资源不支持下载 |
+| `INTERNAL_ERROR` | 服务端意外错误 |
+
+## 错误处理最佳实践
+
+### 重试逻辑
+
+```javascript
+async function apiRequest(url, options, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    try {
+      const response = await fetch(url, options);
+      
+      if (response.ok) {
+        return await response.json();
+      }
+      
+      // Don't retry 4xx errors (except 429)
+      if (response.status >= 400 && response.status < 500 && response.status !== 429) {
+        throw new Error(`Client error: ${response.status}`);
+      }
+      
+      // Exponential backoff for 5xx and 429
+      if (i < maxRetries - 1) {
+        await sleep(Math.pow(2, i) * 1000);
+        continue;
+      }
+    } catch (error) {
+      if (i === maxRetries - 1) throw error;
+      await sleep(Math.pow(2, i) * 1000);
+    }
+  }
+}
+```
+
+### 错误日志
+
+```javascript
+try {
+  const data = await apiRequest(url, options);
+  return data;
+} catch (error) {
+  console.error('API Error:', {
+    url,
+    status: error.status,
+    message: error.message,
+    timestamp: new Date().toISOString()
+  });
+  throw error;
+}
+```
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="认证" icon="key" href="/features/memorylake/api-reference/authentication">
+了解认证
+</Card>
+
+<Card title="速率限制" icon="gauge" href="/features/memorylake/api-reference/rate-limits">
+了解速率限制
+</Card>
+</CardGroup>

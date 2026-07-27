@@ -1,0 +1,105 @@
+---
+title: "创建会话"
+description: "在工作空间中创建新会话"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations
+```
+
+在工作空间中创建新会话。会话将相关消息组织在一起，以便 MemoryLake 从交互中提取结构化事实。您必须通过 `rw_project_ids` 指定一个读写项目 -- 这是存储提取的事实和记忆的项目。
+
+<Note>
+**所需权限：** `workspace:conv_create`（以及指定项目上的 `project:mem_add` 和 `project:doc_add`）
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="custom_id" type="string" required>
+调用方定义的唯一标识符。使用此字段将会话与您自己系统中的记录关联。
+</ParamField>
+
+<ParamField body="kind" type="string" required>
+会话类型：`DIRECT`（一对一）或 `GROUP`（多参与者）。
+</ParamField>
+
+<ParamField body="rw_project_ids" type="array" required>
+会话读取上下文和写入事实的读写项目。需要恰好一个项目 ID。
+</ParamField>
+
+<ParamField body="name" type="string">
+会话的显示名称
+</ParamField>
+
+<ParamField body="metadata" type="object">
+附加到会话的任意键值元数据
+</ParamField>
+
+<ParamField body="actor_ids" type="array">
+参与会话的 Actor ID 列表。每个 ID 应引用您之前创建的 Actor。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "custom_id": "session-20250601-042",
+    "name": "Product Feedback Call",
+    "kind": "DIRECT",
+    "rw_project_ids": ["proj_def456"],
+    "metadata": {
+      "channel": "zoom",
+      "language": "en"
+    },
+    "actor_ids": ["actor_user_jane", "actor_assistant_v2"]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="会话对象">
+  <ResponseField name="id" type="string">会话唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">会话的显示名称</ResponseField>
+  <ResponseField name="kind" type="string">会话类型：`DIRECT` 或 `GROUP`</ResponseField>
+  <ResponseField name="metadata" type="object">附加到会话的任意键值元数据</ResponseField>
+  <ResponseField name="custom_id" type="string">调用方定义的唯一标识符</ResponseField>
+  <ResponseField name="rw_project_ids" type="array">此会话读写记忆的项目 ID 列表</ResponseField>
+  <ResponseField name="actor_ids" type="array">参与会话的 Actor ID 列表</ResponseField>
+  <ResponseField name="current_message_id" type="string">会话中最新消息的 ID</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "conv_7d2e3f4a5b6c7d8e",
+    "name": "Product Feedback Call",
+    "kind": "DIRECT",
+    "metadata": {
+      "channel": "zoom",
+      "language": "en"
+    },
+    "custom_id": "session-20250601-042",
+    "rw_project_ids": ["proj_def456"],
+    "actor_ids": ["actor_user_jane", "actor_assistant_v2"],
+    "current_message_id": null,
+    "created_at": "2025-06-01T14:00:00Z",
+    "updated_at": "2025-06-01T14:00:00Z"
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,106 @@
+---
+title: "列出 Actor 事实"
+description: "返回特定 Actor 的事实分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts
+```
+
+返回特定 Actor 范围内的事实分页列表。Actor 事实代表关于用户的知识，可在工作空间内的所有项目中访问。
+
+<Note>
+**所需权限：** `workspace:actor_fact_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="50">
+每页返回的事实数量。取值范围：1–200。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页结果
+</ParamField>
+
+<ParamField query="fact_fuzzy" type="string">
+按内容子串筛选事实
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/actors/actor_5e4d3c2b1a0f/facts?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="事实分页列表">
+  <ResponseField name="items" type="array">
+  事实对象数组
+  <Expandable title="事实对象">
+    <ResponseField name="id" type="string">事实唯一标识符</ResponseField>
+    <ResponseField name="fact" type="string">事实文本</ResponseField>
+    <ResponseField name="metadata" type="object">附加到事实的任意键值元数据</ResponseField>
+    <ResponseField name="expired" type="boolean">事实是否已被遗忘</ResponseField>
+    <ResponseField name="score" type="number">相关性评分</ResponseField>
+    <ResponseField name="expiration_date" type="string|null">计划的过期日期，如果事实不会过期则为 `null`</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string|null">
+  用于获取下一页的令牌。当没有更多结果时为 `null`。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "fact_4c5d6e7f8a9b",
+        "fact": "User's primary programming language is Python",
+        "metadata": {
+          "category": "skills",
+          "confidence": "high"
+        },
+        "expired": false,
+        "score": 0.92,
+        "expiration_date": null,
+        "created_at": "2025-05-20T10:00:00Z",
+        "updated_at": "2025-05-20T10:00:00Z"
+      },
+      {
+        "id": "fact_1a2b3c4d5e6f",
+        "fact": "User works at a fintech startup with 50 employees",
+        "metadata": {
+          "category": "work"
+        },
+        "expired": false,
+        "score": 0.85,
+        "expiration_date": "2026-05-20T10:00:00Z",
+        "created_at": "2025-06-01T16:45:00Z",
+        "updated_at": "2025-06-01T16:45:00Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0X2lkIjoiZmFjdF8xYTJiM2M0ZDVlNmYifQ"
+  }
+}
+```
+</ResponseExample>

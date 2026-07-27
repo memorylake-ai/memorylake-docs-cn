@@ -1,0 +1,95 @@
+---
+title: "解决 Actor 记忆冲突"
+description: "对某个 Actor 事实之间的记忆冲突应用解决策略"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memories/conflicts/{conflictId}/resolve
+```
+
+对冲突应用解决策略。您可以保留指定的事实、在事实与文档冲突中信任其中一方，或将该冲突作为误报忽略。
+
+<Note>
+**所需权限：** `workspace:actor_fact_modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+<ParamField path="conflictId" type="string" required>
+冲突 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="strategy" type="string" required>
+要应用的解决策略：
+
+| 策略 | 操作说明 |
+|---|---|
+| `keep_fact` | 保留由 `keep_fact_id` 指定的事实，并遗忘其他冲突事实 |
+| `trust_fact` | 在事实与文档冲突中信任事实一方 |
+| `trust_document` | 在事实与文档冲突中信任文档一方；冲突事实会被遗忘或改写 |
+| `dismiss` | 标记冲突为已解决，但不更改任何事实 |
+</ParamField>
+
+<ParamField body="keep_fact_id" type="string">
+要保留的事实 ID。当 `strategy` 为 `keep_fact` 时必填。
+</ParamField>
+
+<RequestExample>
+```bash 保留特定事实
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts/conf-def456/resolve' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "strategy": "keep_fact",
+    "keep_fact_id": "fact-101"
+  }'
+```
+
+```bash 忽略
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts/conf-def456/resolve' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "strategy": "dismiss"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="解决结果">
+  <ResponseField name="id" type="string">冲突标识符</ResponseField>
+  <ResponseField name="resolved" type="boolean">冲突现在是否已解决</ResponseField>
+  <ResponseField name="strategy" type="string">已应用的解决策略</ResponseField>
+  <ResponseField name="resolve_id" type="string">解决记录标识符</ResponseField>
+  <ResponseField name="forgotten_fact_ids" type="array">解决过程中被遗忘的事实 ID</ResponseField>
+  <ResponseField name="updated_fact_ids" type="array">解决过程中被改写的事实 ID</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "conf-def456",
+    "resolved": true,
+    "strategy": "keep_fact",
+    "resolve_id": "res-1a2b3c4d",
+    "forgotten_fact_ids": ["fact-102"],
+    "updated_fact_ids": []
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,96 @@
+---
+title: "速率限制与配额"
+description: "API 速率限制和使用配额"
+---
+
+## 速率限制概览
+
+API 请求受速率限制，以确保公平使用和系统稳定性。限制在两个层级执行：**每 IP 地址**和**每用户账户**。
+
+## 当前限制
+
+| 维度 | 限制 |
+|-----------|-------|
+| 每 IP 地址 | 数分钟的滑动窗口；具体阈值按部署设定，对正常的集成流量足够宽松 |
+| 每用户账户 | 默认访问组下 600 次请求 / 分钟 |
+| 每 IP 地址，上传端点 | 独立且更严格的按分钟计数桶 |
+
+<Note>
+当任一限制被超出时，API 返回 HTTP 状态码 `429 Too Many Requests` 并带有 `Retry-After` 响应头。按账户的限制由您所在的访问组设定，因此可能与上方展示的默认值不同 —— 如需更高限制，请联系支持团队。
+</Note>
+
+## 速率限制超出响应
+
+当速率限制被超出时，API 响应如下：
+
+```json
+{
+  "success": false,
+  "message": "Rate limit exceeded. Please retry later.",
+  "error_code": "RATE_LIMIT_EXCEEDED"
+}
+```
+
+## 处理速率限制
+
+### 实现指数退避
+
+```javascript
+async function apiRequestWithBackoff(url, options, maxRetries = 3) {
+  for (let i = 0; i < maxRetries; i++) {
+    const response = await fetch(url, options);
+
+    if (response.status === 429) {
+      const waitTime = Math.pow(2, i) * 1000;
+      console.log(`Rate limited. Retrying in ${waitTime}ms...`);
+      await sleep(waitTime);
+      continue;
+    }
+
+    return response;
+  }
+
+  throw new Error('Max retries exceeded due to rate limiting');
+}
+```
+
+### 最佳实践
+
+- 实现带抖动的指数退避重试
+- 尽可能缓存响应以减少冗余请求
+- 在支持的情况下使用批量操作（例如批量移除文档）
+- 实现客户端请求队列以平滑流量峰值
+- 监控请求量并记录 `429` 响应以便可观测
+
+## 存储与资源配额
+
+| 资源 | 限制 |
+|----------|-------|
+| 项目数 | 无限制 |
+| 每项目记忆数 | 无限制 |
+| 每项目文档数 | 无限制 |
+| 总存储空间 | 取决于您的套餐 |
+| 最大文件大小 | 取决于您的套餐；大文件会自动通过分片方式上传 |
+
+<Note>
+存储额度与您的订阅绑定。请在[控制台](https://app.memorylake.cn/panel/billing)的 **Billing** 中查看当前套餐；如果预计有异常大的上传量，请联系支持团队。
+</Note>
+
+## 申请更高限制
+
+如需申请更高的速率限制，请联系支持团队并提供以下信息：
+- 当前使用模式和峰值请求量
+- 预期的未来使用量
+- 使用场景描述
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="API 概览" icon="book" href="/features/memorylake/api-reference/overview">
+返回 API 概览
+</Card>
+
+<Card title="错误处理" icon="triangle-exclamation" href="/features/memorylake/api-reference/errors">
+处理速率限制错误
+</Card>
+</CardGroup>

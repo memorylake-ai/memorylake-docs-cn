@@ -1,0 +1,74 @@
+---
+title: "限制与前提条件"
+description: "在集成之前明确模型可用性、配额、速率限制和调用前提条件"
+---
+
+## 您需要提前准备的内容
+
+- 一个账户，并已登录[控制台](https://app.memorylake.cn)
+- 在您准备发起调用的空间（个人或团队）下，通过 **API Keys** 至少创建了一个 API Key
+- 充足的余额——配额不足时调用会被拒绝（参阅[计费](/features/model-router/view-usage-and-billing)）
+
+## 模型可用性
+
+- **由您的访问分组决定**：每个 API Key 只能调用其模型访问分组下启用的模型。同一账户下的两个 Key 看到的模型列表可能不同。
+- **模型目录是权威来源**：`GET /v1/models`、`/claude/v1/models` 和 `/gemini/:version/models` 返回的正是当前 Key 真正可以调用的模型。不在列表中的即为不可用。
+- **单 Key 限制**：可以在 Key 的详情面板中进一步限定其可用模型——即使某个模型在您的分组内，对该 Key 仍可能被禁止。
+- **任务服务**：Midjourney、Suno、RecraftAI、Kling 等能力取决于您的部署是否启用了对应通道。
+
+## 配额与计费
+
+- **配额不足立即拒绝**：在请求到达模型之前会先校验并预扣配额。任一层级（个人、团队或所有者余额）不足时，调用即被拒绝。
+- **两阶段结算**：请求时预扣，完成后按实际用量结算；失败时回滚预留的配额。
+- **配额池相互独立**：个人上下文和团队上下文彼此独立。自动化之前请确认您当前所处的空间。
+
+## 速率限制
+
+速率限制作用于两个维度：**按 IP 地址**（普通 API 流量、上传和下载各自独立计数，阈值按部署配置）和**按账户**（由您的访问分组决定——默认分组为每分钟 600 次请求）。超出任一维度都会返回 `429`，并带有 `Retry-After` 响应头。
+
+无论如何都建议按此设计：
+- 在 `429` 时实现指数退避
+- 将批量负载分散执行，而非并发峰值式发起
+- 在 API 支持的场景下优先使用批量接口
+
+<Info>
+模型中转流量按配额计量，而非由通用 API 限流器管控——对高并发推理而言，真正起作用的限制是您的余额以及上游服务商自身的限制。
+</Info>
+
+## 协议与入口说明
+
+- **OpenAI 兼容** `/v1/*`：接受 OpenAI 风格的请求体。覆盖面广——chat completions、responses、embeddings、images、audio、moderations、files、batches 等。
+- **原生路径**：`/claude/v1/messages` 和 `/gemini/:version/models/:model` 保留各服务商自有的协议、字段和模型 ID。请配合官方 Claude/Gemini SDK 使用。
+- **任务接口**：Midjourney、Suno、RecraftAI 和 Kling 遵循"提交 → 轮询 task id"的异步模式；单次请求不会直接返回最终产物。
+- **参数透传**：服务商特有参数（reasoning effort、Claude thinking、Gemini 搜索与代码执行）原样透传——请保持官方格式。
+
+<Note>
+较新的 OpenAI 推理模型（`gpt-5` 系列、`o1`/`o3`/`o4`）在 Chat Completions 上需要使用 `max_completion_tokens` 而非 `max_tokens`。
+</Note>
+
+## 稳定性说明
+
+- **通道健康度**：自动重试和通道切换需要至少有一个健康的备选通道；当某个模型的所有通道都不可用时，请求会失败。
+- **长时间流式调用**：网络错误或超时会导致流关闭——请在客户端实现超时与重连处理。
+
+## 权限与上下文
+
+- **空间上下文**：调用在个人或团队上下文中执行，各自拥有独立的配额池和模型可见范围。
+- **角色**：管理团队配额、查看团队级用量、调整成员额度取决于您的团队角色——参阅[角色与权限](/features/team-collaboration/roles-permissions)。
+- **日志可见性**：成员可以看到自己的调用记录；团队级日志和统计需要相应权限。
+
+## 使用前检查清单
+
+1. 确认当前空间（个人还是团队）以及余额是否充足
+2. 通过模型目录端点列出模型，确认目标模型出现在列表中
+3. 对于任务服务，确认您的部署已启用相应通道
+4. 在正式流量之前预估用量并预留配额
+
+## 相关文档
+
+- [创建 API Key](/features/model-router/getting-started/create-api-key)
+- [查看可用模型](/features/model-router/list-available-models)
+- [查看用量与计费](/features/model-router/view-usage-and-billing)
+- [错误处理](/features/model-router/others/error-handling)
+- [可靠性与故障转移](/features/model-router/others/reliability-and-failover)
+- [多模态与任务接口](/features/model-router/others/multimodal-and-tasks)

@@ -1,0 +1,105 @@
+---
+title: "批量获取消息"
+description: "通过消息条目 ID 批量获取多条消息"
+---
+
+```
+POST /openapi/memorylake/api/v3/conversations/{conversationId}/messages/batch-get
+```
+
+在单次请求中从会话中获取多条消息。传入消息条目 ID 列表，返回对应的消息。当您需要获取多条特定消息时，这比逐条调用更高效。
+
+<Note>
+**所需权限：** `project:conv_read`
+</Note>
+
+### 路径参数
+
+<ParamField path="conversationId" type="string" required>
+会话标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="entry_ids" type="array" required>
+要获取的消息条目 ID 列表。每次请求最多 100 条。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_7d2e3f4a5b6c7d8e/messages/batch-get' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "entry_ids": [
+      "msg_3f4a5b6c7d8e9f0a",
+      "msg_9e4b2c3d5f6a7b8c"
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="array">
+与请求的条目 ID 匹配的消息对象数组
+<Expandable title="消息对象">
+  <ResponseField name="id" type="string">唯一消息标识符</ResponseField>
+  <ResponseField name="content" type="array">
+  内容块数组
+  <Expandable title="内容块">
+    <ResponseField name="block_type" type="string">块类型：`TEXT`、`FILE`、`IMAGE`、`THINKING`、`TOOL_USE`、`TOOL_RESULT`</ResponseField>
+    <ResponseField name="text" type="string">文本内容（当 `block_type` 为 `TEXT` 时存在）</ResponseField>
+    <ResponseField name="uri" type="string">Drive 资源 URI（当 `block_type` 为 `IMAGE` 时存在）</ResponseField>
+    <ResponseField name="mime_type" type="string">MIME 类型（当 `block_type` 为 `IMAGE` 时存在）</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="metadata" type="object">附加的键值元数据</ResponseField>
+  <ResponseField name="timestamp" type="string">调用方提供的时间戳（ISO 8601）</ResponseField>
+  <ResponseField name="conversation_id" type="string">消息所属的会话 ID</ResponseField>
+  <ResponseField name="sequence_no" type="integer">消息在会话中的位置</ResponseField>
+  <ResponseField name="actor_id" type="string">发送消息的 Actor ID</ResponseField>
+  <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": [
+    {
+      "id": "msg_3f4a5b6c7d8e9f0a",
+      "content": [
+        {
+          "block_type": "TEXT",
+          "text": "Can you summarize last quarter's revenue numbers?"
+        }
+      ],
+      "metadata": {},
+      "timestamp": "2025-06-01T14:10:00Z",
+      "conversation_id": "conv_7d2e3f4a5b6c7d8e",
+      "sequence_no": 3,
+      "actor_id": "actor_user_jane",
+      "created_at": "2025-06-01T14:10:05Z"
+    },
+    {
+      "id": "msg_9e4b2c3d5f6a7b8c",
+      "content": [
+        {
+          "block_type": "TEXT",
+          "text": "Q1 revenue was $12.5M, up 15% from the previous quarter."
+        }
+      ],
+      "metadata": {},
+      "timestamp": "2025-06-01T14:10:30Z",
+      "conversation_id": "conv_7d2e3f4a5b6c7d8e",
+      "sequence_no": 4,
+      "actor_id": "actor_assistant_v2",
+      "created_at": "2025-06-01T14:10:32Z"
+    }
+  ]
+}
+```
+</ResponseExample>

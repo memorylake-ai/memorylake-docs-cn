@@ -1,0 +1,159 @@
+---
+title: "追加会话消息"
+description: "向会话中追加一条消息"
+---
+
+```
+POST /openapi/memorylake/api/v3/conversations/{conversationId}/messages
+```
+
+向会话中追加一条新消息。每条消息包含一个或多个内容块（文本、文件或两者兼有），并归属于一个 Actor。MemoryLake 会自动处理新消息以提取结构化事实。
+
+<Note>
+**所需权限：** `project:conv_append`
+</Note>
+
+### 路径参数
+
+<ParamField path="conversationId" type="string" required>
+会话标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="content" type="array" required>
+组成消息体的内容块数组。每个块必须包含 `block_type` 字段。
+
+可接受的 `block_type` 值：`TEXT`、`FILE`、`IMAGE`、`THINKING`、`TOOL_USE`、`TOOL_RESULT`。
+
+**文本块：** `{ "block_type": "TEXT", "text": "message content" }`
+
+**图片块：** `{ "block_type": "IMAGE", "uri": "drive://...", "mime_type": "image/png" }`
+</ParamField>
+
+<ParamField body="actor_id" type="string" required>
+发送此消息的 Actor ID。应引用参与该会话的 Actor。
+</ParamField>
+
+<ParamField body="timestamp" type="string">
+消息原始发生时间的 ISO 8601 时间戳。在导入历史会话时使用此字段，以便 MemoryLake 保留原始时间线。
+</ParamField>
+
+<ParamField body="metadata" type="object">
+附加到消息的任意键值元数据
+</ParamField>
+
+<ParamField body="custom_id" type="string" required>
+调用方定义的消息在会话内的唯一标识符
+</ParamField>
+
+<ParamField body="parent_message_id" type="string">
+父消息的 ID，用于线程化会话。设置后，此消息将被视为对指定父消息的回复。
+</ParamField>
+
+<RequestExample>
+```bash Text message
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_7d2e3f4a5b6c7d8e/messages' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "content": [
+      {
+        "block_type": "TEXT",
+        "text": "Can you summarize last quarter'\''s revenue numbers?"
+      }
+    ],
+    "actor_id": "actor_user_jane",
+    "timestamp": "2025-06-01T14:10:00Z",
+    "metadata": {
+      "source": "web-app"
+    }
+  }'
+```
+
+```bash Image attachment
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_7d2e3f4a5b6c7d8e/messages' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "content": [
+      {
+        "block_type": "TEXT",
+        "text": "Here is the chart for your review."
+      },
+      {
+        "block_type": "IMAGE",
+        "uri": "drive://items/item_abc123/chart.png",
+        "mime_type": "image/png"
+      }
+    ],
+    "actor_id": "actor_assistant_v2",
+    "timestamp": "2025-06-01T14:10:30Z"
+  }'
+```
+
+```bash Threaded reply
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_7d2e3f4a5b6c7d8e/messages' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "content": [
+      {
+        "block_type": "TEXT",
+        "text": "Good point — I'\''ve updated the figures in the attached version."
+      }
+    ],
+    "actor_id": "actor_user_jane",
+    "parent_message_id": "msg_9e4b2c3d5f6a7b8c"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="消息对象">
+  <ResponseField name="id" type="string">消息唯一标识符</ResponseField>
+  <ResponseField name="content" type="array">
+  组成消息体的内容块数组
+  <Expandable title="内容块">
+    <ResponseField name="block_type" type="string">块类型：`TEXT`、`FILE`、`IMAGE`、`THINKING`、`TOOL_USE`、`TOOL_RESULT`</ResponseField>
+    <ResponseField name="text" type="string">文本内容（当 `block_type` 为 `TEXT` 时存在）</ResponseField>
+    <ResponseField name="uri" type="string">Drive 资源 URI（当 `block_type` 为 `IMAGE` 时存在）</ResponseField>
+    <ResponseField name="mime_type" type="string">图片 MIME 类型（当 `block_type` 为 `IMAGE` 时存在）</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="metadata" type="object">附加到消息的任意键值元数据</ResponseField>
+  <ResponseField name="timestamp" type="string">调用方提供的消息原始发生时间戳（ISO 8601）</ResponseField>
+  <ResponseField name="conversation_id" type="string">此消息所属会话的 ID</ResponseField>
+  <ResponseField name="sequence_no" type="integer">此消息在会话中的位置</ResponseField>
+  <ResponseField name="actor_id" type="string">发送此消息的 Actor ID</ResponseField>
+  <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "msg_3f4a5b6c7d8e9f0a",
+    "content": [
+      {
+        "block_type": "TEXT",
+        "text": "Can you summarize last quarter's revenue numbers?"
+      }
+    ],
+    "metadata": {
+      "source": "web-app"
+    },
+    "timestamp": "2025-06-01T14:10:00Z",
+    "conversation_id": "conv_7d2e3f4a5b6c7d8e",
+    "sequence_no": 3,
+    "actor_id": "actor_user_jane",
+    "created_at": "2025-06-01T14:10:05Z"
+  }
+}
+```
+</ResponseExample>

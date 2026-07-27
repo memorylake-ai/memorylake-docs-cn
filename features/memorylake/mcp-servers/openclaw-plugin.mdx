@@ -1,0 +1,129 @@
+---
+title: "OpenClaw 插件参考"
+description: "memorylake-openclaw —— 配置、自动化行为、工具、CLI 与 skills"
+---
+
+`memorylake-openclaw` 插件把 OpenClaw（以及 QClaw）Agent 连接到 MemoryLake。本页是配置与能力参考；如需叙述式走查，请参阅[编程 Agent 场景](/scenarios/coding-agents)。
+
+## 安装
+
+<Tabs>
+<Tab title="一行安装脚本（推荐）">
+控制台的 **Integrations → OpenClaw** 卡片会生成已预填好的命令：
+
+```bash
+curl -fsSL https://app.memorylake.cn/memorylake-openclaw/install.sh | bash -s -- \
+  --project-id <project-id> --api-key sk-... --host https://app.memorylake.cn
+```
+
+Windows PowerShell：使用同一 host 上的 `install.ps1`。脚本会写入插件配置、把 `tools.profile` 设为 `"full"`（必需；如果您自定义过，会先询问），并重启 gateway。环境变量 `MEMORYLAKE_API_KEY` / `MEMORYLAKE_PROJECT_ID` / `MEMORYLAKE_HOST` 可以替代命令行参数。
+</Tab>
+<Tab title="手动安装">
+```bash
+openclaw plugins install memorylake-openclaw
+openclaw gateway restart
+```
+
+然后在 `~/.openclaw/openclaw.json`（QClaw 为 `~/.qclaw/openclaw.json`）中添加：
+
+```json5
+{
+  "plugins": {
+    "entries": {
+      "memorylake-openclaw": {
+        "enabled": true,
+        "config": {
+          "apiKey": "${MEMORYLAKE_API_KEY}",   // 支持环境变量插值
+          "projectId": "proj-...",
+          "host": "https://app.memorylake.cn"
+        }
+      }
+    }
+  }
+}
+```
+</Tab>
+</Tabs>
+
+## 配置参考
+
+| 配置项 | 默认值 | 说明 |
+|---|---|---|
+| `apiKey` | — | **必填。** MemoryLake API Key（`sk-…`）；支持 `${ENV_VAR}` 插值 |
+| `projectId` | — | **必填。** Agent 读写的目标项目 |
+| `host` | `https://app.memorylake.cn` | 您的 MemoryLake host |
+| `autoRecall` | `true` | 在每个用户回合注入召回指令 |
+| `autoCapture` | `true` | 上报会话回合，交由服务端提取 |
+| `autoUpload` | `true` | 把对话中分享的文件上传到项目 |
+| `topK` | `5` | 每次检索返回的结果数 |
+| `searchThreshold` | `0.3` | 最低相关性分数 |
+| `rerank` | `true` | 对检索结果重排序 |
+| `webSearchIncludeDomains` / `webSearchExcludeDomains` / `webSearchCountry` / `webSearchTimezone` | — | `advanced_web_search` 的约束条件 |
+
+<Warning>
+未知的配置项会直接报错——请不要添加自定义字段。配置支持**热加载**：Key、项目、host 或检索相关设置的改动无需重启 gateway 即可生效。
+</Warning>
+
+### 按 Agent / 按目录覆盖配置
+
+`{workspace}/.memorylake/config.json` 会覆盖该目录下会话的全局配置——典型用法是为不同客户端或代码库指定不同的 `projectId`。插件内置的 `agent-memorylake-config` skill 可以通过对话完成这项设置。
+
+## 自动化行为
+
+- **Auto-Recall（自动召回）** —— 注入指令（并附带每回合提醒），引导 Agent 在回答每条用户消息前调用 `retrieve_context`，并在会话开始时宣告项目已订阅的 Open Data 类别。由模型驱动的召回在保证上下文新鲜的同时保持低延迟。
+- **Auto-Capture（自动捕获）** —— 每个用户回合成功结束后，新增的会话消息（通过每会话水位线去重）会被发送到 MemoryLake，由提取流程决定存储、更新还是合并。工具输出不会被捕获。
+- **Auto-Upload（自动上传）** —— 您在对话中分享的文件会被识别并异步上传到项目（与此前的上传去重）；Agent 不会因等待而阻塞。
+
+## Agent 工具
+
+| 工具 | 用途 |
+|---|---|
+| `retrieve_context` | 一次调用并行搜索**记忆和文档**，返回用户上下文、偏好、历史与文档摘录——以及任何尚未消解的记忆冲突 |
+| `memory_store` | 显式存储一条事实（文本，可选用户 id 与元数据） |
+| `memory_list` | 列出某个用户的记忆 |
+| `memory_forget` | 按 id 删除一条记忆 |
+| `document_download` | 把项目文档下载到工作空间（`.memorylake/downloads/`） |
+| `advanced_web_search` | 在配置的域名/国家约束下进行网络搜索——注册为**可选**工具，除非 Agent 显式允许，否则默认关闭 |
+| `open_data_search` | 按类别搜索精选数据集：科研/学术（arXiv、PubMed 等）、临床试验、药物数据库、金融市场、公司基本面（SEC）、经济数据（FRED、World Bank）、专利（USPTO） |
+
+## CLI
+
+```bash
+openclaw memorylake search "<query>" [--limit n]     # 从终端搜索记忆
+openclaw memorylake upload <path> [--project-id id]  # 文件、目录或压缩包
+openclaw memorylake stats                            # 项目统计
+```
+
+`upload` 支持单个文件、目录（设有 500 文件的保护阈值，防止误传 `node_modules`）以及压缩包——zip/tar/tgz/7z/bz2/rar/xz 会被自动解压并并发上传，同时跳过 `.DS_Store` 之类的无用文件。
+
+## 内置 Skills
+
+| Skill | 用途 |
+|---|---|
+| `memorylake-upload` | 上传文件/压缩包/目录，并将其关联到项目 |
+| `memorylake-api` | 兜底方案：从在线 OpenAPI spec 发现并调用任意 MemoryLake REST 端点 |
+| `migrate-memories-to-memorylake` | 从已有的 Agent 会话文件导入记忆和会话历史 |
+| `agent-memorylake-config` | 写入按目录的配置覆盖 |
+
+## 配套：模型插件
+
+`memorylake-models-openclaw`（独立插件）把 MemoryLake [Model Router](/features/model-router/overview) 注册为 OpenClaw 的**模型提供方**——一个 `sk-…` Key 即可使用全部受支持的 LLM：
+
+```bash
+openclaw plugins install memorylake-models-openclaw
+openclaw memorylake setup        # 交互式：校验 Key、列出模型、设置默认模型
+# 或者：在 `openclaw onboard` 中选择 "Memorylake AI"
+# 或者无交互方式：export MEMORYLAKE_API_KEY=sk-...
+```
+
+模型列表实时从 `GET /v1/models` 拉取；插件会在您的 OpenClaw 配置中写入一个 OpenAI 兼容的 provider 条目（`https://app.memorylake.cn/v1`）。
+
+## 隐私与遥测
+
+插件只与您配置的 `host` 通信。用量遥测为**选择加入**——除非您显式配置遥测 Key，否则不会上报任何数据。
+
+## 故障排查
+
+- **工具缺失** → 确认 `tools.profile` 为 `"full"`，且安装后重启过 gateway。
+- **401 错误** → Key 无效或已过期；更新 `apiKey`（热加载，无需重启）。
+- **记忆写进了错误的项目** → 检查是否存在按目录的 `.memorylake/config.json` 覆盖了全局 `projectId`。

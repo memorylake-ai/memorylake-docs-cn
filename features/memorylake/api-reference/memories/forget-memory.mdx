@@ -1,0 +1,45 @@
+---
+title: "遗忘记忆"
+description: "将记忆标记为已遗忘而不删除它"
+---
+
+```
+POST /openapi/memorylake/api/v2/projects/{id}/memories/{memoryId}/forget
+```
+
+将记忆标记为已遗忘（过期）而不删除它。该记忆会保留用于审计目的，但不会出现在未来的搜索和召回结果中。
+
+<Note>
+**所需权限：** [`project:mem_delete`](/features/team-collaboration/permission-reference#遗忘（删除）事实) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="memoryId" type="string" required>
+要遗忘的记忆 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v2/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/memories/mem-123/forget' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Memory forgotten successfully"
+}
+```
+</ResponseExample>

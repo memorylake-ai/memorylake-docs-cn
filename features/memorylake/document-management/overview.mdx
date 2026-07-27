@@ -1,0 +1,190 @@
+---
+title: "文档管理"
+description: "以层级导航和评论功能存储、组织和管理文件与文件夹"
+---
+
+## 概述
+
+MemoryLake 的文档管理系统为组织文件和文件夹提供了强大而直观的界面。它构建在层级文件系统之上并具备进阶能力，既保留了传统文件浏览器的熟悉体验，又带来了现代云存储的能力。
+
+在控制台中，您会在两个位置接触到文档：
+
+- **文件库**（侧边栏 → Advanced → Library）：您完整的个人文件存储，包含文件夹树、评论和连接器空间
+- **项目的「文件」标签页**：关联到某个具体项目的文档，以及它们的处理状态——参见[文档关联](/features/memorylake/project-management/document-association)
+
+## 核心能力
+
+<CardGroup cols={2}>
+<Card title="文件与文件夹操作" icon="folder" href="/features/memorylake/document-management/file-folder-operations">
+创建文件夹、上传文件、重命名、移动、删除，并通过拖放整理您的文档层级。
+</Card>
+
+<Card title="评论" icon="comment" href="/features/memorylake/document-management/metadata-comments">
+为任意文件或文件夹添加富文本 Markdown 评论，补充上下文信息。
+</Card>
+</CardGroup>
+
+## 主要功能
+
+### 层级化组织
+- **无限嵌套**：文件夹可层层嵌套，没有深度限制
+- **可视化树结构**：一眼看清整个文档层级
+- **文件夹展开**：展开和收起文件夹，专注于相关内容
+- **面包屑导航**：随时清楚自己在文档树中的位置
+
+{/* SCREENSHOT: Document tree showing multiple levels of folder hierarchy */}
+
+### 文件上传与管理
+- **多种上传方式**：
+  - 单文件选择
+  - 多文件选择
+  - 整个文件夹上传并保留结构
+  - 从桌面拖放
+
+- **可靠上传**：
+  - 支持任意大小的文件
+  - 可同时上传多个文件
+  - 实时进度跟踪
+  - 中断后可续传
+
+- **支持的文件类型**：
+  - 文档：PDF、Microsoft Word
+  - 表格：Microsoft Excel、CSV、TSV
+  - 演示文稿：Microsoft PowerPoint
+  - 文本：纯文本、Markdown
+  - 图片：PNG、JPEG、GIF、BMP、WebP、TIFF
+
+<Tip>
+MemoryLake 会自动可靠地处理大文件上传。
+</Tip>
+
+### 文件操作
+支持全部标准文件操作：
+- **创建**：在层级中的任意位置新建文件夹
+- **读取**：下载文件以在本地查看
+- **更新**：重命名文件和文件夹、移动条目
+- **删除**：删除文件和文件夹，并带确认提示
+
+### 评论
+- **Markdown 评论**：添加支持格式、列表和链接的富文本评论
+- **实时预览**：即时查看 Markdown 渲染效果
+- **自动保存**：草稿保护，防止数据丢失
+
+{/* SCREENSHOT: Comment panel with Markdown editor and preview */}
+
+### 树视图功能
+- **可调节界面**：调整树面板宽度以适配您的工作流
+- **右键菜单**：通过右键快速调用各类操作
+
+## 常见工作流
+
+<AccordionGroup>
+<Accordion title="整理研究资料">
+1. 创建项目文件夹结构（例如 "Research/Topic/Sources"）
+2. 使用文件夹上传方式上传文档以保留结构
+3. 为关键文档添加包含摘要或洞见的 Markdown 评论
+4. 将文件夹关联到项目，供 AI 访问
+</Accordion>
+
+<Accordion title="团队文档仓库">
+1. 为每个团队或部门创建文件夹
+2. 上传共享文档和资源
+3. 添加 Markdown 评论，按类别或状态为文档打标
+4. 将合适的文件夹关联到团队项目，让成员的助手共享同一份上下文
+</Accordion>
+
+<Accordion title="搭建知识库">
+1. 用清晰的文件夹结构按主题组织文档
+2. 添加详尽的 Markdown 评论，说明上下文与关联关系
+3. 批量上传相关文档
+4. 创建项目，将相关文档归组
+5. 生成 MCP 服务器密钥，让 AI 访问您的知识库
+</Accordion>
+
+<Accordion title="从外部服务迁移">
+1. 从外部服务下载文档结构
+2. 使用文件夹上传导入，保持结构完整
+3. 通过进度跟踪确认所有文件均已成功上传
+4. 按需补充元数据和评论
+5. 通过连接器直接接入外部服务，以便后续同步
+</Accordion>
+</AccordionGroup>
+
+## 支持的文件格式
+
+MemoryLake 可解析并索引以下文档类型：
+
+- **PDF** —— 便携文档格式
+- **Microsoft Word** —— Word 文档与模板
+- **Microsoft Excel** —— Excel 工作簿与模板，以及 CSV 和 TSV 数据
+- **Microsoft PowerPoint** —— PowerPoint 演示文稿与模板
+- **文本与 Markdown** —— 纯文本和 Markdown 笔记
+- **图片** —— PNG、JPEG、GIF、BMP、WebP 和 TIFF
+
+## 安全与权限
+
+- **用户隔离**：您的云盘仅对您的账户私有可见
+- **项目共享**：通过项目关联和 MCP 服务器共享访问权限
+
+## 性能
+
+MemoryLake 针对海量文档集合做了优化，即使有数千个文件也能流畅运行。
+
+## 与其他功能的集成
+
+文档管理与 MemoryLake 的其他功能无缝协作：
+
+- **项目**：将文档关联到项目以便组织管理
+- **连接器**：将外部文档服务挂载到您的文件树中
+- **集成**：为 AI 助手和 Agent 提供对您文档的搜索访问能力
+- **记忆**：将记忆关联到具体文档以补充上下文
+
+## 开始使用
+
+准备开始整理文档了吗？请从下方选择一份指南：
+
+<CardGroup cols={2}>
+<Card title="文件与文件夹操作" icon="folder-open" href="/features/memorylake/document-management/file-folder-operations">
+了解创建文件夹、上传文件和组织内容的基础操作。
+</Card>
+
+<Card title="评论" icon="pen-to-square" href="/features/memorylake/document-management/metadata-comments">
+用富文本 Markdown 评论丰富您的文档。
+</Card>
+</CardGroup>
+
+## 最佳实践
+
+<AccordionGroup>
+<Accordion title="文件夹组织">
+- 使用清晰、有描述性的文件夹名称
+- 将相关文档归到一处
+- 避免过度嵌套（3–5 层最为合适）
+- 在同类项目之间保持一致的结构
+</Accordion>
+
+<Accordion title="文件命名">
+- 使用能体现内容的描述性名称
+- 需要时使用 ISO 格式日期（YYYY-MM-DD）
+- 避免可能引起问题的特殊字符
+- 在同一项目或文件夹内保持一致
+</Accordion>
+
+<Accordion title="元数据使用">
+- 为需要补充上下文的文档添加评论
+- 使用 Markdown 格式提升可读性
+- 加入指向相关文档的链接
+- 文档用途变化时更新评论
+</Accordion>
+
+<Accordion title="性能建议">
+- 批量上传文件夹，而不是逐个上传文件
+- 使用文件夹上传以保留结构
+- 不要一次展开所有文件夹，充分利用按需加载
+- 定期清理无用文件
+</Accordion>
+</AccordionGroup>
+
+<Tip>
+先从简单的文件夹结构开始，按需扩展。增加复杂度比日后简化一个过度复杂的结构容易得多。
+</Tip>

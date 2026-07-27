@@ -1,0 +1,162 @@
+---
+title: "查看可用模型"
+description: "了解如何检查您的 API Key 可以使用哪些模型"
+---
+
+## 什么是模型列表？
+
+模型列表展示了您的 API Key 可以使用的所有 AI 模型。每个 API Key 根据其分组配置可以访问不同的模型。在进行 API 调用之前，您应始终检查哪些模型可用。
+
+<Info>
+只有为您的 API Key 分组启用的模型才会出现在列表中。如果您没有看到预期的模型，请联系管理员或查看[限制与前提条件](/features/model-router/others/limits-and-prerequisites)。
+</Info>
+
+## 如何获取模型列表
+
+您可以通过发送一个简单的 GET 请求来获取可用模型列表。使用的端点取决于您想使用的协议。
+
+### OpenAI 兼容模型
+
+如果您使用 OpenAI 风格的请求，请使用此端点：
+
+<CodeGroup>
+```ts TypeScript
+await fetch("https://app.memorylake.cn/v1/models", {
+  headers: { "Authorization": "Bearer sk-demo123" }
+});
+```
+```py Python
+import requests
+
+resp = requests.get(
+    "https://app.memorylake.cn/v1/models",
+    headers={"Authorization": "Bearer sk-demo123"}
+)
+print(resp.json())
+```
+```bash cURL
+curl https://app.memorylake.cn/v1/models \
+  -H "Authorization: Bearer sk-demo123"
+```
+</CodeGroup>
+
+### Claude 模型
+
+使用此端点获取 Claude 模型：
+
+<CodeGroup>
+```ts TypeScript
+await fetch("https://app.memorylake.cn/claude/v1/models", {
+  headers: { "Authorization": "Bearer sk-demo123" }
+});
+```
+```py Python
+import requests
+
+resp = requests.get(
+    "https://app.memorylake.cn/claude/v1/models",
+    headers={"Authorization": "Bearer sk-demo123"}
+)
+print(resp.json())
+```
+```bash cURL
+curl https://app.memorylake.cn/claude/v1/models \
+  -H "Authorization: Bearer sk-demo123"
+```
+</CodeGroup>
+
+### Gemini 模型
+
+使用此端点获取 Gemini 模型：
+
+<CodeGroup>
+```ts TypeScript
+await fetch("https://app.memorylake.cn/gemini/v1beta/models", {
+  headers: { "Authorization": "Bearer sk-demo123" }
+});
+```
+```py Python
+import requests
+
+resp = requests.get(
+    "https://app.memorylake.cn/gemini/v1beta/models",
+    headers={"Authorization": "Bearer sk-demo123"}
+)
+print(resp.json())
+```
+```bash cURL
+curl https://app.memorylake.cn/gemini/v1beta/models \
+  -H "Authorization: Bearer sk-demo123"
+```
+</CodeGroup>
+
+## 理解响应内容
+
+响应将包含一个模型列表。每个模型包含以下重要信息：
+
+- **`id`**：模型标识符——在 API 请求中使用此精确值
+- **`owned_by`**：模型的来源或提供商
+- **定价信息**：每个 token 或请求的费用（仅供展示）
+- **其他元数据**：关于模型的其他信息
+
+<Info>
+模型列表中的定价信息仅供参考。实际计费根据您的用量计算。详情请参阅[查看用量与计费](/features/model-router/view-usage-and-billing)。
+</Info>
+
+## 示例响应
+
+```json
+{
+  "data": [
+    {
+      "id": "gpt-4o-mini",
+      "owned_by": "openai",
+      "pricing": {
+        "input": 0.00015,
+        "output": 0.0006
+      }
+    },
+    {
+      "id": "claude-sonnet-5",
+      "owned_by": "anthropic",
+      "pricing": {
+        "input": 0.015,
+        "output": 0.075
+      }
+    }
+  ]
+}
+```
+
+## 何时检查模型列表
+
+1. **首次进行 API 调用之前**：确保您想使用的模型可用
+2. **遇到错误时**：如果模型未找到，请检查它是否在您的可用列表中
+3. **构建 UI 时**：使用模型列表来填充下拉菜单或模型选择器
+4. **配置变更后**：如果管理员更改了您的分组设置，请重新检查列表
+
+## 重要说明
+
+1. **模型可用性**：只有为您的 API Key 分组启用的模型才会出现。不同的 API Key 可能看到不同的模型。
+
+2. **模型名称**：请始终在 API 请求中使用模型列表中的精确 `id`。模型名称区分大小写。
+
+3. **实时更新**：列表反映当前状态。如果模型被启用或禁用，您可能需要刷新列表。
+
+4. **定价**：模型列表中显示的定价仅供参考。实际计费根据您的实际用量计算。
+
+## 下一步
+
+确认可用模型后：
+
+1. 使用可用模型之一发起您的第一次 API 调用
+2. 在[控制台](https://app.memorylake.cn/panel)中监控您的用量
+3. 查看[查看用量与计费](/features/model-router/view-usage-and-billing)了解计费方式
+
+## 相关文档
+
+- [创建 API Key](/features/model-router/getting-started/create-api-key)
+- [直接 API 请求](/features/model-router/getting-started/use-api-key/direct-api-requests)
+- [查看用量与计费](/features/model-router/view-usage-and-billing)
+- [限制与前提条件](/features/model-router/others/limits-and-prerequisites)
+

@@ -1,0 +1,106 @@
+---
+title: "列出事实"
+description: "返回项目中的事实分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/facts
+```
+
+返回项目中存储的事实分页列表。事实是从会话中自动提取的结构化知识片段。您可以使用 `fact_fuzzy` 按内容筛选事实。
+
+<Note>
+**所需权限：** `project:mem_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="50">
+每页返回的事实数量。取值范围：1–200。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页结果
+</ParamField>
+
+<ParamField query="fact_fuzzy" type="string">
+按内容子串筛选事实
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/projects/proj_a1b2c3d4e5f6/memories/facts?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="事实分页列表">
+  <ResponseField name="items" type="array">
+  事实对象数组
+  <Expandable title="事实对象">
+    <ResponseField name="id" type="string">事实唯一标识符</ResponseField>
+    <ResponseField name="fact" type="string">事实文本</ResponseField>
+    <ResponseField name="metadata" type="object">附加到事实的任意键值元数据</ResponseField>
+    <ResponseField name="expired" type="boolean">事实是否已被遗忘</ResponseField>
+    <ResponseField name="score" type="number">相关性评分</ResponseField>
+    <ResponseField name="expiration_date" type="string|null">计划的过期日期，如果事实不会过期则为 `null`</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string|null">
+  用于获取下一页的令牌。当没有更多结果时为 `null`。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "fact_8f3a1b2c4d5e",
+        "fact": "User prefers dark mode in all applications",
+        "metadata": {
+          "category": "preferences",
+          "confidence": "high"
+        },
+        "expired": false,
+        "score": 0.95,
+        "expiration_date": null,
+        "created_at": "2025-06-10T14:30:00Z",
+        "updated_at": "2025-06-10T14:30:00Z"
+      },
+      {
+        "id": "fact_2d4e6f8a0b1c",
+        "fact": "User is based in San Francisco timezone (PST/PDT)",
+        "metadata": {
+          "category": "location"
+        },
+        "expired": false,
+        "score": 0.88,
+        "expiration_date": "2026-06-10T14:30:00Z",
+        "created_at": "2025-06-12T09:15:00Z",
+        "updated_at": "2025-06-12T09:15:00Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0X2lkIjoiZmFjdF8yZDRlNmY4YTBiMWMifQ"
+  }
+}
+```
+</ResponseExample>

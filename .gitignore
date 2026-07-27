@@ -1,0 +1,4 @@
+node_modules/
+.mintlify/
+render_ids.json
+.DS_Store

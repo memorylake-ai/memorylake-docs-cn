@@ -1,0 +1,391 @@
+---
+title: "快速入门"
+description: "5 分钟上手 MemoryLake——创建工作空间、提交会话并搜索记忆"
+---
+
+本指南将引导您完成 MemoryLake 的核心 API 工作流。完成后，您将创建好一个工作空间、提交一段会话并搜索提取的记忆。
+
+## 前提条件
+
+- 拥有 MemoryLake 账户和 API 密钥（参见[认证](/authentication)）
+- 已安装 `curl`（或任意 HTTP 客户端）
+
+<Note>
+所有示例使用基础 URL `https://app.memorylake.cn/openapi/memorylake`。请在每个请求中将 `YOUR_API_KEY` 替换为您的实际 API 密钥。
+</Note>
+
+## 端到端演练
+
+<Steps>
+
+<Step title="获取 API 密钥">
+登录 [MemoryLake 控制台](https://app.memorylake.cn)，在账户设置中生成 API 密钥。您将在所有 API 调用的 `Authorization` 请求头中使用此密钥。
+
+```bash
+export MEMORYLAKE_API_KEY="YOUR_API_KEY"
+```
+</Step>
+
+<Step title="创建工作空间">
+工作空间是所有数据的顶层容器。创建一个工作空间即可开始。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "ws-quickstart-001",
+    "name": "My First Workspace",
+    "description": "Testing MemoryLake memory extraction"
+  }'
+```
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "id": "ws_abc123",
+    "custom_id": "ws-quickstart-001",
+    "name": "My First Workspace",
+    "description": "Testing MemoryLake memory extraction",
+    "created_at": "2026-07-09T10:00:00Z"
+  }
+}
+```
+
+保存工作空间的 `id`——后续步骤中会用到。
+</Step>
+
+<Step title="创建 Actor">
+Actor 代表会话中的参与者。为需要追踪记忆的人类用户创建一个 Actor。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/actors \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "jane-001",
+    "display_name": "Jane",
+    "actor_type": "HUMAN"
+  }'
+```
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "id": "act_jane456",
+    "custom_id": "jane-001",
+    "display_name": "Jane",
+    "actor_type": "HUMAN",
+    "created_at": "2026-07-09T10:01:00Z"
+  }
+}
+```
+
+<Tip>
+将 Actor 绑定到工作空间，以便 MemoryLake 在该工作空间的所有项目中将事实与此 Actor 关联。详见[绑定 Actor](/features/memorylake/api-reference/actors/bind-actor)。
+</Tip>
+</Step>
+
+<Step title="创建项目">
+项目是工作空间中的知识容器，用于存放文档、会话及从中提取的事实。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "proj-support-001",
+    "name": "Customer Support Bot",
+    "description": "Knowledge base for our support assistant"
+  }'
+```
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "id": "proj_def789",
+    "custom_id": "proj-support-001",
+    "name": "Customer Support Bot",
+    "description": "Knowledge base for our support assistant",
+    "workspace_id": "ws_abc123",
+    "created_at": "2026-07-09T10:02:00Z"
+  }
+}
+```
+</Step>
+
+<Step title="创建会话并追加消息">
+向工作空间提交一段会话。首先创建会话，然后逐条添加消息。MemoryLake 会自动从消息中提取结构化事实。
+
+**创建会话：**
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/conversations \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "conv-onboarding-001",
+    "kind": "DIRECT",
+    "rw_project_ids": ["proj_def789"],
+    "name": "Onboarding chat with Jane"
+  }'
+```
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "id": "conv_ghi012",
+    "custom_id": "conv-onboarding-001",
+    "kind": "DIRECT",
+    "rw_project_ids": ["proj_def789"],
+    "name": "Onboarding chat with Jane",
+    "created_at": "2026-07-09T10:03:00Z"
+  }
+}
+```
+
+**追加第一条消息（用户）：**
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_ghi012/messages \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "msg-001",
+    "actor_id": "act_jane456",
+    "content": [
+      {
+        "block_type": "TEXT",
+        "text": "Hi, I am Jane. I work at Acme Corp as a product manager. I prefer concise answers and I use dark mode in all my apps."
+      }
+    ]
+  }'
+```
+
+**追加第二条消息（助手）：**
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_ghi012/messages \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "msg-002",
+    "actor_id": "act_jane456",
+    "content": [
+      {
+        "block_type": "TEXT",
+        "text": "Welcome Jane! I have noted your preferences. How can I help you today?"
+      }
+    ]
+  }'
+```
+
+<Note>
+提交消息后，MemoryLake 会异步处理。事实通常在几秒钟内即可使用。
+</Note>
+</Step>
+
+<Step title="搜索记忆">
+在工作空间中搜索 MemoryLake 从会话中提取的事实。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/search \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "query": "What are Jane preferences?"
+  }'
+```
+
+```json Response
+{
+  "success": true,
+  "data": {
+    "documents": [],
+    "facts": [
+      {
+        "id": "fact_001",
+        "fact": "Jane prefers concise answers",
+        "score": 0.95,
+        "metadata": {},
+        "created_at": "2026-07-09T10:03:05Z",
+        "updated_at": "2026-07-09T10:03:05Z"
+      },
+      {
+        "id": "fact_002",
+        "fact": "Jane uses dark mode in all her apps",
+        "score": 0.92,
+        "metadata": {},
+        "created_at": "2026-07-09T10:03:05Z",
+        "updated_at": "2026-07-09T10:03:05Z"
+      },
+      {
+        "id": "fact_003",
+        "fact": "Jane works at Acme Corp as a product manager",
+        "score": 0.85,
+        "metadata": {},
+        "created_at": "2026-07-09T10:03:05Z",
+        "updated_at": "2026-07-09T10:03:05Z"
+      }
+    ]
+  }
+}
+```
+
+MemoryLake 自动从会话中提取了结构化事实，并将其关联到 Jane 的 Actor。这些事实会持久保存，并可在整个工作空间内搜索。
+</Step>
+
+</Steps>
+
+## 完整 Python 示例
+
+以下是将完整流程整合在一个 Python 脚本中的示例：
+
+```python quickstart.py
+import requests
+import time
+
+BASE_URL = "https://app.memorylake.cn/openapi/memorylake/api/v3"
+API_KEY = "YOUR_API_KEY"
+
+headers = {
+    "Authorization": f"Bearer {API_KEY}",
+    "Content-Type": "application/json",
+}
+
+# 1. Create a workspace
+workspace = requests.post(
+    f"{BASE_URL}/workspaces",
+    headers=headers,
+    json={
+        "custom_id": "ws-quickstart-001",
+        "name": "My First Workspace",
+        "description": "Testing MemoryLake memory extraction",
+    },
+).json()
+workspace_id = workspace["data"]["id"]
+print(f"Workspace created: {workspace_id}")
+
+# 2. Create an actor
+actor = requests.post(
+    f"{BASE_URL}/actors",
+    headers=headers,
+    json={
+        "custom_id": "jane-001",
+        "display_name": "Jane",
+        "actor_type": "HUMAN",
+    },
+).json()
+actor_id = actor["data"]["id"]
+print(f"Actor created: {actor_id}")
+
+# 3. Create a project
+project = requests.post(
+    f"{BASE_URL}/workspaces/{workspace_id}/projects",
+    headers=headers,
+    json={
+        "custom_id": "proj-support-001",
+        "name": "Customer Support Bot",
+        "description": "Knowledge base for our support assistant",
+    },
+).json()
+project_id = project["data"]["id"]
+print(f"Project created: {project_id}")
+
+# 4. Create a conversation
+conversation = requests.post(
+    f"{BASE_URL}/workspaces/{workspace_id}/memories/conversations",
+    headers=headers,
+    json={
+        "custom_id": "conv-onboarding-001",
+        "kind": "DIRECT",
+        "rw_project_ids": [project_id],
+        "name": "Onboarding chat with Jane",
+    },
+).json()
+conversation_id = conversation["data"]["id"]
+print(f"Conversation created: {conversation_id}")
+
+# 5. Append messages (one at a time)
+requests.post(
+    f"{BASE_URL}/conversations/{conversation_id}/messages",
+    headers=headers,
+    json={
+        "custom_id": "msg-001",
+        "actor_id": actor_id,
+        "content": [
+            {
+                "block_type": "TEXT",
+                "text": "Hi, I am Jane. I work at Acme Corp as a product manager. I prefer concise answers.",
+            }
+        ],
+    },
+)
+
+requests.post(
+    f"{BASE_URL}/conversations/{conversation_id}/messages",
+    headers=headers,
+    json={
+        "custom_id": "msg-002",
+        "actor_id": actor_id,
+        "content": [
+            {
+                "block_type": "TEXT",
+                "text": "Welcome Jane! I have noted your preferences. How can I help you today?",
+            }
+        ],
+    },
+)
+print("Messages submitted")
+
+# 6. Wait for fact extraction
+print("Waiting for fact extraction...")
+time.sleep(5)
+
+# 7. Search memories
+results = requests.post(
+    f"{BASE_URL}/workspaces/{workspace_id}/memories/search",
+    headers=headers,
+    json={"query": "What are Jane preferences?"},
+).json()
+
+print("\nExtracted memories:")
+for fact in results.get("data", {}).get("facts", []):
+    print(f"  - {fact['fact']} (score: {fact['score']})")
+```
+
+## 完成内容
+
+仅需几分钟，您已经：
+
+1. 创建了一个**工作空间**来隔离数据
+2. 创建了一个**Actor**来代表人类用户
+3. 创建了一个**项目**来存放知识
+4. 提交了一段带有消息的**会话**
+5. **搜索**并检索了自动提取的事实
+
+MemoryLake 完成了最困难的部分——解析会话、识别事实、将事实关联到正确的 Actor，并为所有内容建立搜索索引。
+
+## 下一步
+
+<CardGroup cols={2}>
+<Card title="工作空间与项目" icon="layer-group" href="/features/memorylake/core-concepts/workspaces-and-projects">
+了解何时使用多个工作空间与多个项目
+</Card>
+
+<Card title="Actor 与记忆" icon="user" href="/features/memorylake/core-concepts/actors-and-memory">
+了解跨项目的每用户记忆如何工作
+</Card>
+
+<Card title="记忆管道" icon="diagram-project" href="/features/memorylake/core-concepts/memory-pipeline">
+深入了解会话如何转化为结构化事实
+</Card>
+
+<Card title="API 参考" icon="code" href="/features/memorylake/api-reference/overview">
+探索工作空间、Actor、项目和搜索的完整 API
+</Card>
+</CardGroup>

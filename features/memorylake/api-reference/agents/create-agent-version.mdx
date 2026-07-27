@@ -1,0 +1,208 @@
+---
+title: "创建 Agent 版本"
+description: "使用更新的配置创建 Agent 的新版本"
+---
+
+```
+POST /openapi/memorylake/api/v3/agents/{id}/versions
+```
+
+为指定 Agent 创建新版本。新版本使用合并语义：仅你提供的字段会覆盖上一版本的值。省略的字段将从当前版本原样继承。
+
+这是更新 Agent 的模型、能力、策略、子 Agent、技能、系统提示词和其他配置的方式。Agent 的 `version` 字段会自动推进到新创建的版本。
+
+<Note>
+**所需权限：** `agent:version_create`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Agent 标识符
+</ParamField>
+
+### 请求体
+
+所有字段都是可选的。仅提供的字段会覆盖上一版本。
+
+<ParamField body="model" type="string">
+此版本使用的模型
+</ParamField>
+
+<ParamField body="capabilities" type="array">
+更新后的能力标识符列表
+</ParamField>
+
+<ParamField body="policies" type="object">
+更新后的执行策略
+<Expandable title="Policies 对象">
+  <ParamField body="policies.max_turns" type="integer">每次运行的最大对话轮次数</ParamField>
+  <ParamField body="policies.max_tool_calls" type="integer">每轮的最大工具调用次数</ParamField>
+  <ParamField body="policies.allow_tools" type="array">Agent 可调用的工具白名单</ParamField>
+  <ParamField body="policies.deny_tools" type="array">Agent 不可调用的工具黑名单</ParamField>
+  <ParamField body="policies.subagent_timeout" type="integer">子 Agent 在被取消前可运行的最大秒数</ParamField>
+  <ParamField body="policies.subagent_max_concurrency" type="integer">可同时运行的最大子 Agent 数量</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="output" type="object">
+更新后的输出配置
+<Expandable title="Output 对象">
+  <ParamField body="output.mode" type="string">输出模式（`text` 或 `json`）</ParamField>
+  <ParamField body="output.json_schema" type="object">当模式为 `json` 时，Agent 输出必须符合的 JSON Schema</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="subagents" type="array">
+更新后的子 Agent 定义
+<Expandable title="Subagent 对象">
+  <ParamField body="subagents[].name" type="string">子 Agent 名称</ParamField>
+  <ParamField body="subagents[].mode" type="string">子 Agent 的执行模式</ParamField>
+  <ParamField body="subagents[].context" type="string">传递给子 Agent 的上下文指令</ParamField>
+  <ParamField body="subagents[].inherit_tools" type="boolean">子 Agent 是否继承父 Agent 的工具</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="skills" type="array">
+更新后的技能引用
+<Expandable title="Skill 引用">
+  <ParamField body="skills[].skill_id" type="string">技能标识符</ParamField>
+  <ParamField body="skills[].skill_version" type="integer">技能版本号</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="system_prompt" type="string">
+更新后的系统提示词
+</ParamField>
+
+<ParamField body="model_settings" type="object">
+更新后的模型特定设置
+</ParamField>
+
+<ParamField body="runtime_bindings" type="object">
+更新后的运行时绑定配置
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2m1n3/versions' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "model": "gpt-4o",
+    "capabilities": ["tool_use", "memory_read", "memory_write"],
+    "policies": {
+      "max_turns": 25,
+      "max_tool_calls": 15
+    },
+    "skills": [
+      {
+        "skill_id": "skl_kb_search",
+        "skill_version": 3
+      }
+    ],
+    "model_settings": {
+      "temperature": 0.5,
+      "max_tokens": 8192
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Agent 版本对象">
+  <ResponseField name="version" type="integer">新创建版本的版本号</ResponseField>
+  <ResponseField name="model" type="string">此版本使用的模型</ResponseField>
+  <ResponseField name="capabilities" type="array">能力标识符列表</ResponseField>
+  <ResponseField name="policies" type="object">
+  此版本的执行策略
+  <Expandable title="Policies 对象">
+    <ResponseField name="max_turns" type="integer">每次运行的最大对话轮次数</ResponseField>
+    <ResponseField name="max_tool_calls" type="integer">每轮的最大工具调用次数</ResponseField>
+    <ResponseField name="allow_tools" type="array">Agent 可调用的工具白名单</ResponseField>
+    <ResponseField name="deny_tools" type="array">Agent 不可调用的工具黑名单</ResponseField>
+    <ResponseField name="subagent_timeout" type="integer">子 Agent 在被取消前可运行的最大秒数</ResponseField>
+    <ResponseField name="subagent_max_concurrency" type="integer">可同时运行的最大子 Agent 数量</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="output" type="object">
+  此版本的输出配置
+  <Expandable title="Output 对象">
+    <ResponseField name="mode" type="string">输出模式</ResponseField>
+    <ResponseField name="json_schema" type="object">结构化输出的 JSON Schema</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="subagents" type="array">
+  此版本中的子 Agent 定义
+  <Expandable title="Subagent 对象">
+    <ResponseField name="name" type="string">子 Agent 名称</ResponseField>
+    <ResponseField name="mode" type="string">子 Agent 的执行模式</ResponseField>
+    <ResponseField name="context" type="string">传递给子 Agent 的上下文指令</ResponseField>
+    <ResponseField name="inherit_tools" type="boolean">子 Agent 是否继承父 Agent 的工具</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="skills" type="array">
+  此版本中的技能
+  <Expandable title="Skill 引用">
+    <ResponseField name="skill_id" type="string">技能标识符</ResponseField>
+    <ResponseField name="skill_version" type="integer">技能版本号</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="agent_id" type="string">父 Agent 标识符</ResponseField>
+  <ResponseField name="system_prompt" type="string">此版本使用的系统提示词</ResponseField>
+  <ResponseField name="model_settings" type="object">此版本的模型特定设置</ResponseField>
+  <ResponseField name="runtime_bindings" type="object">此版本的运行时绑定配置</ResponseField>
+  <ResponseField name="created_at" type="string">版本创建时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "version": 4,
+    "model": "gpt-4o",
+    "capabilities": ["tool_use", "memory_read", "memory_write"],
+    "policies": {
+      "max_turns": 25,
+      "max_tool_calls": 15,
+      "allow_tools": ["search_kb", "create_ticket"],
+      "deny_tools": [],
+      "subagent_timeout": 300,
+      "subagent_max_concurrency": 3
+    },
+    "output": {
+      "mode": "text",
+      "json_schema": null
+    },
+    "subagents": [
+      {
+        "name": "ticket-creator",
+        "mode": "delegate",
+        "context": "Create support tickets from conversation context",
+        "inherit_tools": false
+      }
+    ],
+    "skills": [
+      {
+        "skill_id": "skl_kb_search",
+        "skill_version": 3
+      }
+    ],
+    "agent_id": "agt_r8k2m1n3",
+    "system_prompt": "You are a helpful support assistant. Use the knowledge base to answer questions accurately.",
+    "model_settings": {
+      "temperature": 0.5,
+      "max_tokens": 8192
+    },
+    "runtime_bindings": {
+      "knowledge_base": "kb_prod_docs"
+    },
+    "created_at": "2025-05-15T10:00:00Z"
+  }
+}
+```
+</ResponseExample>

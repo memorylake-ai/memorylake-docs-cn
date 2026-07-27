@@ -1,0 +1,94 @@
+---
+title: "核心概念"
+description: "MemoryLake 的术语体系——以及个人记忆与组织记忆如何协同"
+---
+
+MemoryLake 按组织真实的运作方式来建模记忆：知识有**归属**、有**范围**、有**来源**。本页是简短的导览；每个概念都链接到对应的深入说明。
+
+<Info>
+您不需要手动配置这些内容。注册时，MemoryLake 会自动为您开通一个工作空间和一个助手——随着您的使用从"我的个人记忆"扩展到"我团队的记忆"再到"我产品内部的记忆"，这些概念才会逐渐变得有用。
+</Info>
+
+## 层级结构
+
+```text
+Workspace                    ← 顶层容器与隔离边界
+├── Project                  ← 一个聚焦的知识体
+│   ├── Documents            ← 内容会被解析并建立索引的文件
+│   ├── Conversations        ← 提取记忆的消息往来
+│   ├── Project Facts        ← 作用域限定在本项目的知识
+│   └── Open Data            ← 已订阅的外部数据集
+├── Actors                   ← 记忆的归属方（人和助手）
+│   └── Actor Facts          ← 每用户记忆，跨项目跟随该 Actor
+└── Agents                   ← 在此工作空间中运行的 AI 助手
+```
+
+<CardGroup cols={3}>
+<Card title="工作空间与项目" icon="folder-tree" href="/features/memorylake/core-concepts/workspaces-and-projects">
+隔离边界、知识容器与多租户模式。
+</Card>
+
+<Card title="Actor 与记忆" icon="user" href="/features/memorylake/core-concepts/actors-and-memory">
+身份、项目事实与 Actor 事实的区别，以及每用户记忆。
+</Card>
+
+<Card title="记忆管道" icon="arrows-spin" href="/features/memorylake/core-concepts/memory-pipeline">
+文档和会话如何变成可搜索的记忆。
+</Card>
+</CardGroup>
+
+## 个人记忆与组织记忆
+
+同一套机制服务于两种不同的知识，而分清您正在构建的是哪一种，比任何 API 细节都更重要。
+
+| | 个人记忆 | 组织记忆 |
+|---|---|---|
+| 归属于 | 一个人，跨其使用的每个工具 | 一个团队，在共享工作空间中 |
+| 示例 | "偏好 TypeScript"、"对贝类过敏"、"正在执行马拉松训练计划" | "退款窗口为 30 天"、"客户 X 在 3 月续约"、"我们选择 Postgres 是因为……" |
+| 存在形式 | Actor 事实（跨项目跟随该人） | 项目事实（作用域限定在共享知识体内） |
+| 治理方式 | 此人自己的工作空间——私有 | 角色、细粒度权限和按资源划分的作用域 |
+| 解决的顾虑 | "我的工具会记得我吗？" | "人走了，知识还在吗？" |
+
+两者都流经同一条管道——提取、来源溯源、冲突检查、检索。区别在于范围和治理。参见[个人 AI 记忆](/scenarios/personal-ai-memory)和[团队知识库](/scenarios/team-knowledge-base)场景。
+
+## 记忆治理：溯源与冲突
+
+有两个特性让记忆足够可信，从而值得在其上构建：
+
+- **来源溯源** —— 每条记忆都链接回它来自的会话或文档。当助手断言某件事时，您总能回答*"你是怎么知道的？"*。在控制台和溯源 API 中均可查看。
+- **冲突检测** —— 当一条新记忆与已有记忆矛盾时（截止日期变更、政策调整），MemoryLake 会标记一个**冲突**供审阅，而不是悄悄把两者都保留。在团队中，由持有消解权限的人决定何为真。
+
+参见[记忆](/features/memorylake/memories/overview)了解两者在实践中如何工作。
+
+## Open Data
+
+**Open Data** 是您为项目订阅的精选外部知识——科研与学术来源、临床试验、药物数据库、金融市场、公司基本面、经济指标、专利等。已订阅的类别会与您自有内容一起成为 Agent 可检索的对象，因此生物科技项目可以引用 PubMed，而金融科技项目可以引用 SEC 备案文件。
+
+## Boundary（Memory Router 与 MCP）
+
+**Boundary** 是 API 流量和 MCP 客户端所使用的记忆范围。它把一个工作空间、若干项目和若干 Actor 绑定成单一引用：
+
+- 使用 [Memory Router](/features/memory-router/overview) 时，您在 LLM 调用上以 `?boundary_id=` 传入它——通常每个终端用户对应一个 Boundary，这样每个用户的会话只读写自己的记忆。
+- 使用 [MCP](/features/memorylake/mcp-servers/creating-api-keys) 时，客户端连接时在 OAuth 授权页面上选择工作空间和 Boundary。
+
+## API Key
+
+**API Key**（`sk-…`）是您进行一切编程访问的凭证：REST API、Model Router 和 Agent 插件。在控制台的 **API Keys** 下创建 Key——每个 Key 有名称和有效期，其权限与创建它的成员保持一致。可随时轮换或吊销。参见[认证](/authentication)。
+
+## 这些概念如何对应到您
+
+| 您是…… | 工作空间 | 项目 | 记忆流向 |
+|---|---|---|---|
+| 个人用户 | 您的默认个人工作空间 | 每个生活/工作场景一个 | 您的对话与文件 → 您的记忆 → 您连接的每个工具 |
+| 团队 | 共享的团队工作空间 | 每个项目或客户一个 | 所有人的贡献 → 受治理的共享记忆 → 每位成员的助手 |
+| 产品构建者 | 一个工作空间，或每个租户一个 | 按产品领域或按终端用户划分 | 您用户的会话 → 通过 Boundary 实现的每用户记忆 → 您应用的 LLM 调用 |
+
+<CardGroup cols={2}>
+<Card title="快速开始" icon="rocket" href="/quickstart">
+五分钟在控制台中体验记忆。
+</Card>
+
+<Card title="场景" icon="map" href="/scenarios/personal-ai-memory">
+针对个人、团队、Agent 和产品用例的深入实操指南。
+</Card>
+</CardGroup>

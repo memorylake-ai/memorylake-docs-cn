@@ -1,0 +1,81 @@
+---
+title: "更新工作空间"
+description: "更新现有工作空间的名称、描述或元数据"
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{id}
+```
+
+更新现有工作空间。仅更新请求体中包含的字段；未提供的字段保持不变。
+
+<Note>
+**所需权限：** `workspace:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string">
+更新后的工作空间名称
+</ParamField>
+
+<ParamField body="description" type="string">
+更新后的工作空间描述
+</ParamField>
+
+<ParamField body="metadata" type="object">
+更新后的键值元数据。将完全替换现有的元数据对象。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "My Updated Workspace",
+    "description": "Updated workspace description"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="工作空间对象">
+  <ResponseField name="id" type="string">工作空间唯一标识符</ResponseField>
+  <ResponseField name="name" type="string">更新后的工作空间名称</ResponseField>
+  <ResponseField name="description" type="string">更新后的工作空间描述</ResponseField>
+  <ResponseField name="metadata" type="object">附加到工作空间的任意键值元数据</ResponseField>
+  <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "ws_abc123def456",
+    "name": "My Updated Workspace",
+    "description": "Updated workspace description",
+    "metadata": {
+      "team": "research",
+      "priority": "high"
+    },
+    "custom_id": "research-ws-001",
+    "created_at": "2025-03-10T08:30:00Z",
+    "updated_at": "2025-03-20T09:15:00Z"
+  }
+}
+```
+</ResponseExample>

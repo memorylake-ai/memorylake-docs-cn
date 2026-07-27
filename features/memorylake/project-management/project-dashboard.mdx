@@ -1,0 +1,58 @@
+---
+title: "项目仪表盘"
+description: "浏览项目的各个标签页——文件、Open Data、记忆、冲突与集成"
+---
+
+## 仪表盘概览
+
+通过**工作空间 → 您的工作空间 → 项目**打开一个项目。项目详情页将所有内容按标签页组织；您能看到哪些标签页取决于您的权限（以及已启用的功能）。
+
+{/* SCREENSHOT: Project detail page with tabs */}
+
+## 文件标签页
+
+项目已关联的文档：
+
+- **添加内容**：拖放上传、文件夹上传，或关联文件库中已有的文档
+- 每份文档的**处理状态**：`pending` → `running` → `okay`（或 `error` 并附详情）——处理完成后内容即可被搜索
+- **移除**：取消关联某份文档会将其从项目上下文中移出；文件仍保留在您的文件库中
+
+## Open Data 标签页
+
+为项目订阅精选行业数据集——研究/学术、临床、金融、经济、专利等。已订阅的分类会与您自己的内容一起，被 Playground 和已连接的 Agent 搜索到。
+
+## 记忆标签页
+
+项目提取出的记忆：
+
+- **搜索与筛选**，并实时显示数量；切换到**词频视图**可快速了解该项目掌握了什么
+- **查看**任意记忆——内容、元数据，以及展示其出处的**来源溯源**标签页
+- **编辑**或**遗忘**记忆；支持批量选择以便清理
+
+## 冲突标签页
+
+矛盾的记忆会汇集到这里，而不是默默共存。逐条审核并消解冲突——参见[记忆](/features/memorylake/memories/overview#冲突检测)。（在团队空间中需要冲突消解权限。）
+
+## 集成标签页
+
+将这个特定项目连接到您的工具：OpenClaw / QClaw / Hermes 配置（含预填命令），以及 API 访问详情。参见[集成概览](/features/memorylake/mcp-servers/overview)。
+
+## 编辑项目详情
+
+项目名称和描述可以在项目页面中编辑。删除项目会移除其记忆和文档关联（文件库中的文件保留）。
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="文档关联" icon="link" href="/features/memorylake/project-management/document-association">
+向项目添加文档
+</Card>
+
+<Card title="记忆" icon="brain" href="/features/memorylake/memories/overview">
+提取、溯源与冲突的工作机制
+</Card>
+
+<Card title="集成" icon="plug" href="/features/memorylake/mcp-servers/overview">
+连接 Agent 和应用
+</Card>
+</CardGroup>

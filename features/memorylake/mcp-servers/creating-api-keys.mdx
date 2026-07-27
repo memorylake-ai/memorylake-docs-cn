@@ -1,0 +1,108 @@
+---
+title: "通过 MCP 连接"
+description: "用标准 OAuth2 将 Claude Code、Codex、Cursor 等 MCP 客户端连接到 MemoryLake"
+---
+
+MemoryLake 运行着一个**远程 MCP 服务器**，任何支持 MCP 的客户端都可以通过 HTTP 连接。授权采用标准 **OAuth2**——您无需把任何密钥粘贴到配置文件中，并可在授权页面选择该客户端可访问的工作空间和 Boundary。
+
+## 服务器 URL
+
+```text
+https://app.memorylake.cn/memorylake/mcp/v2
+```
+
+中国站已启用该端点，**无需在控制台预先开通**——直接把客户端指向上面的 URL，首次连接时完成 OAuth 授权即可。
+
+<Info>
+连接页面不带作用域：没有项目选择器。工作空间和 Boundary 在 OAuth 授权步骤中选择，因此一个客户端连接可以重新授权到不同作用域，无需改动任何配置。
+</Info>
+
+## 连接您的客户端
+
+<Tabs>
+<Tab title="Claude Code">
+```bash
+claude mcp add --transport http --scope user memorylake https://app.memorylake.cn/memorylake/mcp/v2
+```
+
+Claude Code 首次使用时会打开 MemoryLake 授权页面。批准授权、选择工作空间和 Boundary，工具即会出现。
+</Tab>
+
+<Tab title="Codex">
+将该服务器添加到您的 Codex 配置中：
+
+```toml
+[mcp_servers.memorylake]
+url = "https://app.memorylake.cn/memorylake/mcp/v2"
+```
+
+然后登录：
+
+```bash
+codex mcp login memorylake
+```
+</Tab>
+
+<Tab title="Cursor / Claude Desktop">
+```json
+{
+  "mcpServers": {
+    "memorylake": {
+      "url": "https://app.memorylake.cn/memorylake/mcp/v2"
+    }
+  }
+}
+```
+
+重启客户端；首次连接时它会提示进行 OAuth 授权。
+</Tab>
+
+<Tab title="其他客户端">
+任何支持通过 HTTP + OAuth2 接入远程 MCP 服务器的客户端都可以使用。把它指向上面的服务器 URL 即可——不需要 API Key，也不需要自定义 header。客户端会走标准的 OAuth2 授权码流程，并自行保存得到的 token。
+</Tab>
+</Tabs>
+
+## 已连接客户端能做什么
+
+授权完成后，客户端将获得用于搜索和分析作用域内内容的工具：
+
+| 工具 | 功能 |
+|---|---|
+| `search_memory` | 在记忆和文档中执行关键词 + 语义混合搜索 |
+| `fetch_memory` | 获取特定结果的详细元数据与下载链接 |
+| `get_memorylake_metadata` | 概览——按类型统计文件数、电子表格的 sheet 名称、文档统计 |
+| `create_memory_code_runner` / `run_memory_code` | 沙箱化 Python（pandas、numpy 等）处理作用域内的文件，状态在多次调用间保持 |
+
+OpenAI 协议的客户端会自动获得这些工具的简化版 `search` / `fetch` 变体——同一个端点自适应不同客户端。
+
+这些工具只做读取与分析；它们不会修改或删除您的文档和记忆。
+
+## 管理访问权限
+
+- **重设作用域**：重新走一遍 OAuth 流程即可授权到不同的工作空间或 Boundary，无需修改配置。
+- **吊销**：在控制台移除该授权，客户端的 token 会立即失效。
+- **Token 有效期**：访问 token 生命周期很短，由客户端自动刷新。
+
+<Note>
+早期版本的 MemoryLake 使用 v1 MCP 端点，需要把项目级 Key 嵌入 URL（`…/mcp/v1?apikey=…`）。该方式已从控制台下线，改用 OAuth2。v1 端点仍保留以兼容旧集成，但新集成应使用上面的 v2 URL。
+</Note>
+
+## 故障排查
+
+<AccordionGroup>
+<Accordion title="客户端无法连接">
+确认 URL 以 `/mcp/v2` 结尾，且客户端配置的是**远程 HTTP** MCP 服务器（而不是本地命令）。同时确认客户端支持 MCP 的 OAuth2——只接受静态 token 的旧客户端无法使用 v2 端点。
+</Accordion>
+
+<Accordion title="授权成功但看不到工具">
+检查是否在授权页面完成了工作空间和 Boundary 的选择。重新执行客户端的 MCP 登录再试一次。
+</Accordion>
+
+<Accordion title="工具没有返回任何结果">
+授权的作用域可能指向了一个空项目。请在控制台确认您所选的工作空间和项目中确实有文档或记忆。
+</Accordion>
+
+<Accordion title="我的控制台里看不到 MCP">
+不影响使用。中国站的 MCP 服务端（OAuth2）已启用，连接不依赖控制台里的任何卡片——按上面的方式配置客户端并完成 OAuth 授权即可。私有化部署的功能集由部署方配置决定，如果授权失败，请联系您环境的管理员或商务确认。
+</Accordion>
+</AccordionGroup>

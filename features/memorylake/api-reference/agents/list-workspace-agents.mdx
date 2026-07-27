@@ -1,0 +1,86 @@
+---
+title: "列出工作空间 Agent"
+description: "返回绑定到工作空间的 Agent 分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents
+```
+
+返回绑定到指定工作空间的所有 Agent 的分页列表。已绑定的 Agent 可在工作空间内进行 A2A 通信和任务执行。
+
+<Note>
+**所需权限：** `workspace:agent_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer">
+每页返回的 Agent 绑定数量
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应中的 token，用于获取下一页结果
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按 Agent 名称模糊搜索
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页 Agent 绑定列表">
+  <ResponseField name="items" type="array">
+  Agent 绑定对象数组
+  <Expandable title="Agent 绑定对象">
+    <ResponseField name="name" type="string">Agent 名称</ResponseField>
+    <ResponseField name="agent_id" type="string">Agent 标识符</ResponseField>
+    <ResponseField name="custom_id" type="string">用于外部系统集成的自定义标识符</ResponseField>
+    <ResponseField name="latest_version" type="integer">Agent 的最新版本号</ResponseField>
+    <ResponseField name="bound_at" type="string">Agent 绑定到工作空间的时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页结果的 token。当没有更多页时不返回。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "name": "Support Assistant",
+        "agent_id": "agt_r8k2m1n3",
+        "custom_id": "support-assistant-v1",
+        "latest_version": 3,
+        "bound_at": "2025-04-01T08:00:00Z"
+      },
+      {
+        "name": "Research Agent",
+        "agent_id": "agt_t5v9w3y7",
+        "custom_id": "research-agent-v1",
+        "latest_version": 1,
+        "bound_at": "2025-04-10T15:30:00Z"
+      }
+    ],
+    "continuation_token": null
+  }
+}
+```
+</ResponseExample>

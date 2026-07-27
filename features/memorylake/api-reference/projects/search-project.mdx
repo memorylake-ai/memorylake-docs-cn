@@ -1,0 +1,257 @@
+---
+title: "搜索项目中的记忆和文档"
+description: "在单次调用中同时执行文档搜索和记忆搜索"
+---
+
+```
+POST /openapi/memorylake/api/v1/projects/{id}/search
+```
+
+在项目已知的所有内容中进行搜索 -- 包括已导入的文档内容和积累的对话记忆 -- 并按来源分组返回匹配结果。单次查询即可呈现完整信息，这正是聊天助手在基于文档回答问题**并且**使用记忆进行个性化时所需要的。
+
+<Note>
+`documents` 和 `memories` 中的条目与[搜索文档](/features/memorylake/api-reference/memories/search-documents)和[搜索记忆](/features/memorylake/api-reference/memories/search-memories)的结构相同 -- 相关的请求参数（`top_n`、`threshold`）在此处含义一致。
+</Note>
+
+<Note>
+**所需权限：** [`project:search`](/features/team-collaboration/permission-reference#跨项目搜索（仅-api）) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="query" type="string" required>
+自然语言搜索查询。同时用于两个子搜索。
+</ParamField>
+
+<ParamField body="user_id" type="string" required>
+记忆子搜索的用户 ID 过滤条件。文档搜索忽略此字段。
+</ParamField>
+
+<ParamField body="top_n" type="integer" default="10">
+返回的最大结果数，范围 1-1000。同时应用于文档和记忆匹配 -- 例如 `top_n=10` 最多返回 10 条文档和 10 条记忆。
+</ParamField>
+
+<ParamField body="threshold" type="number" default="0.3">
+记忆结果的最低相似度分数。低于此分数的结果将被过滤。不适用于文档。
+</ParamField>
+
+<ParamField body="with_conflicts" type="boolean" default="false">
+在记忆结果中包含冲突信息。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v1/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/search' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "What were the quarterly sales figures in 2024?",
+    "user_id": "user-abc123",
+    "top_n": 10,
+    "threshold": 0.3
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="组合搜索结果">
+
+  <ResponseField name="documents" type="array">
+  文档搜索结果。每个条目是一个可区分联合体 -- `type` 决定哪些变体专有字段存在，以及 `highlight` 的哪个子字段被填充。点击展开查看完整的单条目结构。
+
+  <Expandable title="文档结果条目">
+    <ResponseField name="type" type="string" required>
+    类型区分符。可选值为 `paragraph`、`table` 或 `figure`。
+    </ResponseField>
+    <ResponseField name="document_id" type="string">文档 ID</ResponseField>
+    <ResponseField name="document_name" type="string">文档文件名，例如 `report_2024.xlsx`</ResponseField>
+    <ResponseField name="source_document" type="object">
+    源文件信息。
+    <Expandable title="source_document 属性">
+      <ResponseField name="file_name" type="string">原始文件名</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="highlight" type="object">
+    匹配内容。该对象始终包含以下三个可选字段 -- 根据父条目的 `type` 值，恰好填充其中一个。
+    <Expandable title="highlight 属性">
+      <ResponseField name="chunks" type="Chunk[]">
+      当 `type=paragraph` 时填充。按文档顺序排列的匹配文本片段。其他情况下不存在。
+      <Expandable title="Chunk 属性">
+        <ResponseField name="text" type="string">匹配的纯文本片段</ResponseField>
+        <ResponseField name="range" type="string">位置提示（例如页码 `p12`，或工作簿段落的单元格范围）</ResponseField>
+      </Expandable>
+      </ResponseField>
+      <ResponseField name="inner_tables" type="InnerTable[]">
+      当 `type=table` 时填充。源表区域内匹配的子表。其他情况下不存在。
+      <Expandable title="InnerTable 属性">
+        <ResponseField name="id" type="string">内部表 ID</ResponseField>
+        <ResponseField name="data_range" type="string">覆盖的单元格范围，例如 `A1:D50`</ResponseField>
+        <ResponseField name="num_rows" type="integer">数据行数</ResponseField>
+        <ResponseField name="persist_path" type="string">物化表的内部存储路径</ResponseField>
+        <ResponseField name="columns" type="TableColumn[]">
+        列描述符。
+        <Expandable title="TableColumn 属性">
+          <ResponseField name="id" type="string">列 ID</ResponseField>
+          <ResponseField name="name" type="string">列标题名称</ResponseField>
+          <ResponseField name="data_type" type="string">推断的数据类型（例如 `string`、`number`、`date`）</ResponseField>
+          <ResponseField name="range" type="string">列单元格范围</ResponseField>
+          <ResponseField name="count" type="integer">非空值数量</ResponseField>
+          <ResponseField name="null_count" type="integer">空值数量</ResponseField>
+          <ResponseField name="approx_ndv" type="integer">近似不同值数量</ResponseField>
+          <ResponseField name="min_value" type="string">最小值（字符串编码）</ResponseField>
+          <ResponseField name="max_value" type="string">最大值（字符串编码）</ResponseField>
+          <ResponseField name="examples" type="object[]">列中的原始值示例</ResponseField>
+          <ResponseField name="display_examples" type="object[]">格式化/显示值示例</ResponseField>
+          <ResponseField name="semantic_comment" type="string">模型推断的列语义注释</ResponseField>
+          <ResponseField name="has_hierarchy" type="boolean">该列是否参与行层次结构</ResponseField>
+        </Expandable>
+        </ResponseField>
+      </Expandable>
+      </ResponseField>
+      <ResponseField name="figure" type="object">
+      当 `type=figure` 时填充。匹配的图表描述符。其他情况下不存在。
+      <Expandable title="figure 属性">
+        <ResponseField name="caption" type="string">原始图表标题</ResponseField>
+        <ResponseField name="text" type="string">图表内的 OCR / 提取文本</ResponseField>
+        <ResponseField name="summary_text" type="string">模型生成的图表摘要</ResponseField>
+        <ResponseField name="prequestion_list" type="string[]">预生成的图表可回答问题</ResponseField>
+        <ResponseField name="persist_path" type="string">图表资源的内部存储路径</ResponseField>
+      </Expandable>
+      </ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="paragraph_block_id" type="string">**仅当 `type=paragraph` 时存在。** 文档内的段落块 ID。</ResponseField>
+    <ResponseField name="table_id" type="string">**仅当 `type=table` 时存在。** 表实体 ID。</ResponseField>
+    <ResponseField name="title" type="string">**仅当 `type=table` 时存在。** 表标题。</ResponseField>
+    <ResponseField name="footnote" type="string">**仅当 `type=table` 时存在。** 表脚注。</ResponseField>
+    <ResponseField name="sheet_name" type="string">**仅当 `type=table` 时存在。** 工作表名称（工作簿表格）。</ResponseField>
+    <ResponseField name="semantic_sheet_name" type="string">**仅当 `type=table` 时存在。** 模型推断的工作表语义名称。</ResponseField>
+    <ResponseField name="semantic_comment" type="string">**仅当 `type=table` 时存在。** 模型推断的工作表语义注释。</ResponseField>
+    <ResponseField name="table_region_info" type="string">**仅当 `type=table` 时存在。** 表区域位置，例如 `A1:D50`。</ResponseField>
+    <ResponseField name="figure_id" type="integer">**仅当 `type=figure` 时存在。** 图表数字 ID。</ResponseField>
+  </Expandable>
+  </ResponseField>
+
+  <ResponseField name="memories" type="array">
+  记忆搜索结果。结构与[搜索记忆](/features/memorylake/api-reference/memories/search-memories)相同。
+  <Expandable title="记忆结果条目">
+    <ResponseField name="id" type="string">记忆 ID</ResponseField>
+    <ResponseField name="content" type="string">记忆内容</ResponseField>
+    <ResponseField name="user_id" type="string">关联的用户 ID</ResponseField>
+    <ResponseField name="expired" type="boolean">该记忆是否已过期</ResponseField>
+    <ResponseField name="has_unresolved_conflict" type="boolean">该记忆是否存在未解决的冲突（仅当 `with_conflicts=true` 时有意义）</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间（ISO 8601）</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间（ISO 8601）</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "documents": [
+      {
+        "type": "paragraph",
+        "document_id": "doc-123",
+        "document_name": "report_2024.pdf",
+        "paragraph_block_id": "blk-456",
+        "highlight": {
+          "chunks": [
+            { "text": "Q1 2024 sales reached $2.5M...", "range": "p12" }
+          ]
+        },
+        "source_document": { "file_name": "report_2024.pdf" }
+      },
+      {
+        "type": "table",
+        "document_id": "doc-789",
+        "document_name": "sales_data.xlsx",
+        "table_id": "tbl-001",
+        "title": "Quarterly Sales Summary",
+        "sheet_name": "Sheet1",
+        "semantic_sheet_name": "2024 Quarterly Sales",
+        "table_region_info": "A1:D50",
+        "highlight": {
+          "inner_tables": [
+            {
+              "id": "itbl-001",
+              "data_range": "A1:D50",
+              "num_rows": 49,
+              "persist_path": "tables/doc-789/itbl-001",
+              "columns": [
+                {
+                  "id": "col-1",
+                  "name": "Quarter",
+                  "data_type": "string",
+                  "range": "A2:A50",
+                  "count": 49,
+                  "null_count": 0,
+                  "approx_ndv": 4,
+                  "examples": [{ "v": "Q1" }, { "v": "Q2" }],
+                  "display_examples": [{ "v": "Q1" }, { "v": "Q2" }]
+                },
+                {
+                  "id": "col-2",
+                  "name": "Revenue",
+                  "data_type": "number",
+                  "range": "B2:B50",
+                  "min_value": "1200000",
+                  "max_value": "3100000"
+                }
+              ]
+            }
+          ]
+        },
+        "source_document": { "file_name": "sales_data.xlsx" }
+      },
+      {
+        "type": "figure",
+        "document_id": "doc-456",
+        "document_name": "report_2024.pdf",
+        "figure_id": 7,
+        "highlight": {
+          "figure": {
+            "caption": "Figure 7. Quarterly revenue trend, 2024",
+            "text": "Q1 $2.5M  Q2 $2.8M  Q3 $3.0M  Q4 $3.1M",
+            "summary_text": "Bar chart showing steady quarterly revenue growth across 2024.",
+            "prequestion_list": [
+              "Which quarter had the highest revenue in 2024?",
+              "What was the revenue trend across 2024?"
+            ],
+            "persist_path": "figures/doc-456/fig-7.png"
+          }
+        },
+        "source_document": { "file_name": "report_2024.pdf" }
+      }
+    ],
+    "memories": [
+      {
+        "id": "mem-123",
+        "content": "User prefers Hangzhou cuisine restaurants",
+        "user_id": "user-abc123",
+        "expired": false,
+        "has_unresolved_conflict": false,
+        "created_at": "2024-01-15T10:00:00Z",
+        "updated_at": "2024-01-15T10:00:00Z"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
+
+<Tip>
+任一列表在没有匹配项超过阈值时可能为空。请独立处理 `documents` 和 `memories` -- 它们只是为了方便而一起返回的两个查找结果。
+</Tip>

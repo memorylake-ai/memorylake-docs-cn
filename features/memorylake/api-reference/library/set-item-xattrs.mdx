@@ -1,0 +1,64 @@
+---
+title: "设置条目扩展属性"
+description: "为文件库条目附加或更新自定义键值元数据"
+---
+
+```
+PUT /openapi/memorylake/api/v1/drives/items/{item_id}/xattrs
+```
+
+在文件库的文件或文件夹上存储您自己的字符串键值对（扩展属性，即 *xattrs*）。您可以借此为条目打上应用所关心的元数据 — 例如租户 ID、工作流状态或内容分类 — 而无需改动文件本身。
+
+此调用会与条目已有的 xattrs **合并**：您发送的键会被新增或覆盖；条目上已有但本次未发送的键保持不变。要移除某个键，请调用[删除条目扩展属性](/features/memorylake/api-reference/library/delete-item-xattrs)。
+
+<Note>
+系统保留了少量由其自行管理的内部 xattr 键。为这些键发送值不会产生任何效果 — 它们会被静默过滤。系统根文件夹（`My Space`、`WPS Space`、`Lark Space`）完全拒绝 xattr 写入并返回 `403`。
+</Note>
+
+<Note>
+**所需权限：** [`drive:item_modify`](/features/team-collaboration/permission-reference#编辑文件) · `service`
+</Note>
+
+### 路径参数
+
+<ParamField path="item_id" type="string" required>
+要设置 xattrs 的文件或文件夹的 ID。
+</ParamField>
+
+### 请求体
+
+<ParamField body="x_attrs" type="object" required>
+要写入该条目的 `字符串 → 字符串` 映射（存在则更新，不存在则新增）。每一项对应一个扩展属性。允许传入空映射，但不会产生任何变更。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5/xattrs' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "x_attrs": {
+      "tenant_id": "acme-corp",
+      "review_status": "approved"
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>
+
+<Tip>
+要读取条目当前的 xattrs，请调用[获取条目](/features/memorylake/api-reference/library/get-item) — 其响应包含完整的 `x_attrs` 映射。
+</Tip>

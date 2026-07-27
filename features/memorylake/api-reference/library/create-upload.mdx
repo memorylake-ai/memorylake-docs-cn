@@ -1,0 +1,101 @@
+---
+title: "创建上传会话"
+description: "创建分块上传会话并获取每个分块的预签名 PUT URL"
+---
+
+```
+POST /openapi/memorylake/api/v1/drives/items/upload
+```
+
+创建分块上传会话。响应包含一个 `upload_id`，以及每个分块对应的一个预签名 `PUT` URL。随后您将每个分块直接上传到其 URL，保存返回的 `ETag`，最后调用[创建条目](/features/memorylake/api-reference/library/create-item)并传入 `item_type: "file"` 和 `from: { upload_id, part_etags }`，在文件库中生成该文件。
+
+<Note>
+此接口仅预留存储空间并返回 URL — 不会传输任何字节。在“创建条目”成功之前，文件在文件库中不可见。
+</Note>
+
+<Note>
+**所需权限：** [`drive:item_add`](/features/team-collaboration/permission-reference#上传和创建文件) · `service`
+
+**流程说明：** 这是文件库上传流程的第 1 步。第 2 步是[创建条目](/features/memorylake/api-reference/library/create-item)（相同权限）。如需再将文件附加到项目中，请调用[导入文档](/features/memorylake/api-reference/v3-documents/import-documents)，该操作还额外需要 [`project:doc_add`](/features/team-collaboration/permission-reference#向项目添加文档) 权限。
+</Note>
+
+### 请求体
+
+<ParamField body="file_size" type="integer" required>
+文件总大小（字节）。最小值为 `1`。服务器根据此值决定分块方案 — 分块数量以及每个分块的字节范围。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/upload' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "file_size": 10485760
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="上传会话">
+  <ResponseField name="upload_id" type="string">上传令牌。创建文件条目时通过 `from.upload_id` 传回。</ResponseField>
+  <ResponseField name="part_items" type="array">
+  按顺序排列的待上传分块数组
+  <Expandable title="分块条目">
+    <ResponseField name="number" type="integer">分块编号（从 1 开始）</ResponseField>
+    <ResponseField name="size" type="integer">此分块需要 PUT 的字节数</ResponseField>
+    <ResponseField name="upload_url" type="string">此分块的预签名 PUT URL</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "upload_id": "upl-abc123def456",
+    "part_items": [
+      {
+        "number": 1,
+        "size": 5242880,
+        "upload_url": "https://storage.example.com/upload?partNumber=1&uploadId=upl-abc123def456"
+      },
+      {
+        "number": 2,
+        "size": 5242880,
+        "upload_url": "https://storage.example.com/upload?partNumber=2&uploadId=upl-abc123def456"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
+
+## 上传分块
+
+此调用返回后，将每个分块 `PUT` 到其 `upload_url`。每次 PUT 的响应都包含一个 `ETag` 头 — 您必须按顺序收集全部 ETag 才能完成上传。
+
+```bash
+# Read part 1's bytes and PUT them
+curl -X PUT 'https://storage.example.com/upload?partNumber=1&uploadId=upl-abc123def456' \
+  --data-binary @part1.bin -D -
+# → ETag: "d41d8cd98f00b204e9800998ecf8427e"
+```
+
+<Warning>
+向 `upload_url` 发起 PUT 请求时不要发送 `Authorization` 头 — 该 URL 已经是预签名的。发送 Bearer 认证可能导致存储后端拒绝该 PUT 请求。
+</Warning>
+
+<Tip>
+预签名 URL 会过期。创建上传会话后，请尽快完成所有分块上传并调用“创建条目”。如果在收尾前 URL 已过期，只需创建一个新的上传会话并重新开始。
+</Tip>
+
+## 下一步
+
+<Card title="创建条目" icon="plus" href="/features/memorylake/api-reference/library/create-item">
+创建一个引用本次上传的 `upload_id` 和已收集 `part_etags` 的 `file` 条目，完成上传收尾。
+</Card>

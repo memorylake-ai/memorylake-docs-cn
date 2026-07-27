@@ -1,0 +1,222 @@
+---
+title: "记忆管道"
+description: "MemoryLake 如何将会话和文档处理为可搜索的结构化记忆"
+---
+
+## 核心流程
+
+MemoryLake 有两个输入通道——文档和会话——汇入统一的搜索索引。以下是数据在系统中的流转方式：
+
+```
+输入通道                          处理                          输出
+--------                          ----                          ----
+
+文档 ----------> 索引建立 ------+
+  （来自文档库                  |
+   的文件）                     +----> 统一搜索索引
+                                |
+会话 ----------> 事实 ---------+
+  （消息）       提取
+                   |
+                   +-> 项目事实
+                   +-> Actor 事实
+```
+
+两个通道共同贡献到相同的搜索结果中。当您查询工作空间时，MemoryLake 同时搜索文档内容和提取的事实，返回最相关的结果，无论来源是什么。
+
+## 文档记忆
+
+文档记忆来自您从文档库导入到项目中的文件。MemoryLake 为内容建立语义搜索索引，让您可以使用自然语言查询找到相关段落。
+
+### 工作原理
+
+<Steps>
+<Step title="上传到文档库">
+使用[文档库 API](/features/memorylake/api-reference/library/overview)将文件上传到 MemoryLake 文档库。文档库是您的中央文件存储——它独立于任何项目保存原始文件。
+</Step>
+
+<Step title="导入到项目">
+使用[导入文档 API](/features/memorylake/api-reference/v3-documents/import-documents)将文档从文档库导入到项目中。这告诉 MemoryLake 为该项目索引文件内容。
+</Step>
+
+<Step title="建立索引">
+MemoryLake 异步处理文档——解析内容、分块并构建语义索引。完成后，文档内容即可被搜索。
+</Step>
+</Steps>
+
+### 支持的格式
+
+MemoryLake 支持常见的文档格式，包括 PDF、Word（`.docx`）、Excel（`.xlsx`）、PowerPoint（`.pptx`）、纯文本、Markdown 和图片。
+
+<Tip>
+为获得最佳效果，请使用结构清晰、带有明确标题和章节的文档。MemoryLake 利用文档结构来产生更好的搜索结果。
+</Tip>
+
+## 会话记忆
+
+会话记忆来自您提交到项目中的用户与助手的交互。这是 MemoryLake 自动事实提取发生的地方。
+
+### 工作原理
+
+<Steps>
+<Step title="创建会话">
+在项目中创建会话，将相关消息分组在一起。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspace_id}/memories/conversations \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "planning-001",
+    "kind": "DIRECT",
+    "rw_project_ids": ["{project_id}"],
+    "name": "Planning session"
+  }'
+```
+</Step>
+
+<Step title="追加消息">
+逐条向会话提交消息。包含 `actor_id` 以便 MemoryLake 将事实关联到正确的参与者。
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{conversation_id}/messages \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "msg-001",
+    "actor_id": "act_jane456",
+    "content": [{"block_type": "TEXT", "text": "We decided to use React for the frontend. Launch target is March."}]
+  }'
+
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{conversation_id}/messages \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "custom_id": "msg-002",
+    "actor_id": "act_assistant",
+    "content": [{"block_type": "TEXT", "text": "Got it. I will note that the frontend uses React with a March launch target."}]
+  }'
+```
+</Step>
+
+<Step title="自动事实提取">
+MemoryLake 分析消息并提取结构化事实：
+
+- **项目事实：** "The frontend uses React"
+- **项目事实：** "Launch target is March"
+- **Actor 事实（Jane）：** 关于 Jane 参与决策的上下文
+
+事实异步提取，通常在提交消息后几秒钟内完成。
+</Step>
+</Steps>
+
+### 提取内容
+
+MemoryLake 从会话中识别并提取以下几类知识：
+
+| 类别 | 示例 |
+|---|---|
+| **偏好** | "I prefer dark mode," "Send me weekly summaries" |
+| **决策** | "We chose PostgreSQL," "The deadline is Q3" |
+| **个人上下文** | "I manage the billing team," "I work at Acme Corp" |
+| **目标和计划** | "We are targeting 10K users by launch," "Next sprint focuses on auth" |
+| **关系** | "Sarah is the engineering lead," "The billing team reports to me" |
+
+## 搜索如何统一两个通道
+
+当您搜索工作空间时，MemoryLake 在一次请求中同时查询文档内容和提取的事实：
+
+```bash
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspace_id}/memories/search \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "What technology stack are we using?"}'
+```
+
+响应包含来自两个通道的结果：
+
+```json
+{
+  "success": true,
+  "data": {
+    "documents": [
+      {
+        "document_id": "doc_xyz",
+        "document_name": "Tech Stack Overview",
+        "items": [
+          {"text": "...our backend runs on Node.js with PostgreSQL..."}
+        ]
+      }
+    ],
+    "facts": [
+      {
+        "id": "fact_001",
+        "fact": "The frontend uses React",
+        "score": 0.95
+      },
+      {
+        "id": "fact_002",
+        "fact": "The team chose PostgreSQL for the database",
+        "score": 0.88
+      }
+    ]
+  }
+}
+```
+
+结果将从会话中提取的事实与在文档中找到的段落合并在一起。从调用者的角度来看，这是一次查询、一个结果集。
+
+完整的搜索参数和选项请参阅[搜索 API 参考](/features/memorylake/api-reference/search/search-memories)。
+
+## 文档与会话：何时使用哪个
+
+两个通道都汇入相同的搜索索引，但它们服务于不同的目的：
+
+| 使用文档当... | 使用会话当... |
+|---|---|
+| 您有现成的文件（PDF、文档、Wiki） | 您在捕获实时交互 |
+| 信息是静态的或不经常变化 | 信息通过对话不断演进 |
+| 您需要对长文本内容进行全文搜索 | 您需要自动事实提取 |
+| 您在利用现有资料构建知识库 | 您在长期构建每用户记忆 |
+
+<Tip>
+大多数应用同时使用两个通道。将现有文档作为文档导入，将持续的用户交互作为会话提交。MemoryLake 无缝地跨两者进行搜索。
+</Tip>
+
+## 优化消息以获得更好的提取效果
+
+提取的事实质量取决于消息的编写方式。以下是一些最佳实践：
+
+**表达明确。** "I prefer email notifications" 比 "yeah email is fine I guess" 提取效果更好。
+
+**直接陈述事实。** "Our deadline is March 15" 产生清晰、有用的事实。模糊的表述如 "we should probably aim for mid-March" 会产生不太精确的提取结果。
+
+**包含上下文。** "We chose React for the frontend because of team expertise" 比仅仅 "React" 给 MemoryLake 提供了更多可用信息。
+
+**使用 `actor_id` 字段。** 始终在用户消息上包含 Actor ID。没有它，MemoryLake 无法将个人事实关联到正确的 Actor。
+
+**发送完整的交互。** 包含用户和助手的消息。完整的会话上下文帮助 MemoryLake 提取更准确和相关的事实。
+
+<Warning>
+不要在会话消息中包含敏感信息（密码、API 密钥、密钥等）。事实会被提取并持久存储。请像对待写入数据库的数据一样对待会话内容。
+</Warning>
+
+## 下一步
+
+<CardGroup cols={2}>
+<Card title="快速入门" icon="rocket" href="/features/memorylake/quickstart">
+查看完整的端到端流程实战
+</Card>
+
+<Card title="Actor 与记忆" icon="user" href="/features/memorylake/core-concepts/actors-and-memory">
+深入了解 Actor 的每用户记忆
+</Card>
+
+<Card title="会话 API" icon="code" href="/features/memorylake/api-reference/conversations/create-conversation">
+创建会话和消息的 API 参考
+</Card>
+
+<Card title="搜索 API" icon="code" href="/features/memorylake/api-reference/search/search-memories">
+跨文档和事实搜索的 API 参考
+</Card>
+</CardGroup>

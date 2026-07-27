@@ -1,0 +1,223 @@
+---
+title: "快速入门"
+description: "三步为您的 LLM 调用加上持久记忆"
+---
+
+三步即可跑通 Memory Router。您的应用只需改动三处：base URL、`boundary_id` 查询参数，以及——在 BYOK 模式下——一个请求头。
+
+<Note>
+Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关，下面的步骤和端点在中国站当前无法跑通——本页保留完整流程，供您提前评估接入方案。如需在中国站使用，请联系商务了解开放计划；现在就要落地记忆，请改用 [REST API](/features/memorylake/api-reference/overview) 或 [MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)。
+</Note>
+
+## 第 1 步：获取密钥和 Boundary
+
+1. 登录[控制台](https://app.memorylake.cn)，创建一个 MemoryLake API Key（以 `sk-` 开头）。
+2. 打开 **Integrations → Memory Router API**，创建一个 **Boundary**（记忆范围）——它把您的会话绑定到指定的工作空间、项目和 Actor。复制它的 id。
+
+<Info>
+请将 MemoryLake 密钥保存在环境变量中，例如 `MEMORYLAKE_API_KEY`。密钥管理详见[身份验证](/authentication)。**不带** `boundary_id` 的请求仍然可用，但会以纯透传方式运行，记忆功能关闭。
+</Info>
+
+## 第 2 步：选择模式并替换 base URL
+
+两种模式使用相同的端点——区别在于您发送哪些密钥：
+
+| 模式 | 密钥 |
+| --- | --- |
+| **MemoryLake 托管** | 仅需 MemoryLake 密钥，放在原生鉴权头中 |
+| **BYOK**（自带密钥） | 您的模型厂商密钥放在原生鉴权头中 + MemoryLake 密钥放在 `x-memorylake-api-key` 头中 |
+
+| 协议 | 端点 |
+| --- | --- |
+| OpenAI · Chat Completions | `POST https://app.memorylake.cn/openai/v1/chat/completions` |
+| OpenAI · Responses | `POST https://app.memorylake.cn/openai/v1/responses` |
+| OpenAI · Embeddings | `POST https://app.memorylake.cn/openai/v1/embeddings` |
+| Anthropic · Messages | `POST https://app.memorylake.cn/anthropic/v1/messages` |
+
+完整对比见[部署模式](/features/memory-router/deployment-modes)。
+
+### MemoryLake 托管——一个密钥
+
+无需模型厂商账号。GPT、Claude 和 Qwen 系列模型均已内置；按原生模型名称调用任意模型即可。
+
+<CodeGroup>
+```ts TypeScript
+import OpenAI from "openai";
+
+// 托管模式：无需模型厂商账号。模型由 MemoryLake 运行，
+// 因此只需要一个 MemoryLake 密钥。
+const client = new OpenAI({
+  baseURL: "https://app.memorylake.cn/openai/v1",
+  apiKey: process.env.MEMORYLAKE_API_KEY,
+});
+
+const resp = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello!" }],
+}, { query: { boundary_id: process.env.MEMORYLAKE_BOUNDARY_ID } });
+```
+```py Python
+from openai import OpenAI
+import os
+
+# 托管模式：无需模型厂商账号。模型由 MemoryLake 运行，
+# 因此只需要一个 MemoryLake 密钥。
+client = OpenAI(
+    base_url="https://app.memorylake.cn/openai/v1",
+    api_key=os.environ["MEMORYLAKE_API_KEY"],
+)
+
+resp = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello!"}],
+    extra_query={"boundary_id": os.environ["MEMORYLAKE_BOUNDARY_ID"]},
+)
+```
+```bash cURL
+curl "https://app.memorylake.cn/openai/v1/chat/completions?boundary_id=$MEMORYLAKE_BOUNDARY_ID" \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+</CodeGroup>
+
+### BYOK——使用您自己的模型厂商密钥
+
+保留您现有的模型厂商账号。您的模型厂商密钥放在该厂商的**原生**鉴权头中（OpenAI 用 `Authorization: Bearer`，Anthropic 用 `x-api-key`）；MemoryLake 密钥则放在 `x-memorylake-api-key` 头中。
+
+<CodeGroup>
+```ts TypeScript
+import OpenAI from "openai";
+
+// BYOK：您发送自己的模型厂商密钥。它在传输中加密，
+// 转发给模型厂商，且绝不存储。
+const client = new OpenAI({
+  baseURL: "https://app.memorylake.cn/openai/v1",
+  apiKey: process.env.OPENAI_API_KEY,        // 您的模型厂商密钥
+  defaultHeaders: {
+    "x-memorylake-api-key": process.env.MEMORYLAKE_API_KEY,
+  },
+});
+
+const resp = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Hello!" }],
+}, { query: { boundary_id: process.env.MEMORYLAKE_BOUNDARY_ID } });
+```
+```py Python
+from openai import OpenAI
+import os
+
+# BYOK：您发送自己的模型厂商密钥。它在传输中加密，
+# 转发给模型厂商，且绝不存储。
+client = OpenAI(
+    base_url="https://app.memorylake.cn/openai/v1",
+    api_key=os.environ["OPENAI_API_KEY"],        # 您的模型厂商密钥
+    default_headers={
+        "x-memorylake-api-key": os.environ["MEMORYLAKE_API_KEY"],
+    },
+)
+
+resp = client.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "Hello!"}],
+    extra_query={"boundary_id": os.environ["MEMORYLAKE_BOUNDARY_ID"]},
+)
+```
+```bash cURL
+curl "https://app.memorylake.cn/openai/v1/chat/completions?boundary_id=$MEMORYLAKE_BOUNDARY_ID" \
+  -H "Authorization: Bearer $OPENAI_API_KEY" \
+  -H "x-memorylake-api-key: $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-4o-mini",
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+</CodeGroup>
+
+### Anthropic SDK
+
+使用 Anthropic SDK 时，将 base URL 设为 `https://app.memorylake.cn/anthropic`——SDK 会自行追加 `/v1/messages`。
+
+<CodeGroup>
+```ts TypeScript
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic({
+  baseURL: "https://app.memorylake.cn/anthropic",
+  apiKey: process.env.MEMORYLAKE_API_KEY,   // 或在 BYOK 模式下使用您的 Anthropic 密钥 + x-memorylake-api-key 头
+});
+
+const resp = await client.messages.create({
+  model: "claude-sonnet-5",
+  max_tokens: 1024,
+  messages: [{ role: "user", content: "Hello!" }],
+}, { query: { boundary_id: process.env.MEMORYLAKE_BOUNDARY_ID } });
+```
+```py Python
+import anthropic
+import os
+
+client = anthropic.Anthropic(
+    base_url="https://app.memorylake.cn/anthropic",
+    api_key=os.environ["MEMORYLAKE_API_KEY"],
+)
+
+resp = client.messages.create(
+    model="claude-sonnet-5",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": "Hello!"}],
+    extra_query={"boundary_id": os.environ["MEMORYLAKE_BOUNDARY_ID"]},
+)
+```
+```bash cURL
+curl "https://app.memorylake.cn/anthropic/v1/messages?boundary_id=$MEMORYLAKE_BOUNDARY_ID" \
+  -H "x-api-key: $MEMORYLAKE_API_KEY" \
+  -H "anthropic-version: 2023-06-01" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "claude-sonnet-5",
+    "max_tokens": 1024,
+    "messages": [{"role": "user", "content": "Hello!"}]
+  }'
+```
+</CodeGroup>
+
+<Tip>
+控制台的 **Integrations → Memory Router API** 页面会为您生成这些代码片段，已预填您的 Boundary id，覆盖 cURL / Python / Node.js 以及两种模式。
+</Tip>
+
+## 第 3 步：照常调用
+
+像今天一样发送请求。附上 `boundary_id` 后，相关记忆会自动召回并注入提示词，新记忆则异步提取并存储——响应绝不会被延迟。
+
+```ts TypeScript
+const completion = await client.chat.completions.create({
+  model: "gpt-4o-mini",
+  messages: [{ role: "user", content: "Remind me what we decided last time." }],
+}, { query: { boundary_id: process.env.MEMORYLAKE_BOUNDARY_ID } });
+
+console.log(completion.choices[0].message.content);
+```
+
+查看响应头 `X-Trace-ID` 和控制台 **Logs** 页面，即可确认调用确实经过了 Router——参见[可观测性](/features/memory-router/observability)。
+
+<Note>
+较新的 OpenAI 推理模型（`gpt-5` 系列、`o1`/`o3`/`o4`）在 Chat Completions 上要求使用 `max_completion_tokens` 而非 `max_tokens`。请让参数保持模型厂商官方格式——Router 会原样透传。
+</Note>
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="部署模式" icon="key" href="/features/memory-router/deployment-modes">
+BYOK 与托管模式的完整对比，以及支持的模型厂商。
+</Card>
+
+<Card title="可观测性" icon="activity" href="/features/memory-router/observability">
+追踪请求并理解错误约定。
+</Card>
+</CardGroup>

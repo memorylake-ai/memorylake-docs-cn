@@ -1,0 +1,105 @@
+---
+title: "构建带记忆的应用"
+description: "通过 REST API 或 Memory Router 为您自己的产品加上每用户长期记忆"
+---
+
+## 问题所在
+
+您正在做一款 AI 产品——副驾助手、客服机器人、陪伴类应用。用户理所当然地期待它记得自己，但要自建记忆层就意味着向量数据库、提取管道、去重和冲突处理：好几个月的基础设施投入，而这些并不是您的产品本身。
+
+## MemoryLake 带来的改变
+
+MemoryLake 就是您的记忆后端。两种接入方式，共享同一个记忆池：
+
+| 方式 | 怎么用 | 适合场景 |
+|---|---|---|
+| **REST API**（中国站可用） | 显式调用 `https://app.memorylake.cn/openapi/memorylake` 上的 `add` / `search` / `trace` / `forget` | 完全掌控存什么、何时召回 |
+| **Memory Router**（中国站暂未开放） | 把现有的 OpenAI/Anthropic SDK 指向网关，为每个用户传入一个 `boundary_id` | 最快路径——无需改动调用点即可获得记忆 |
+
+两者写入同一个池：通过 Router 沉淀的记忆可以用 API 搜索到，反之亦然。**在中国站请从下面的路径 B（REST API）开始**——路径 A 保留在此供您了解与提前设计。
+
+## 路径 A：Memory Router——改一行 base URL 就有记忆
+
+为每个用户创建一个 [Boundary](/concepts#boundary（memory-router-与-mcp）)（它把工作空间 + 项目 + Actor 绑定成单一的作用域 id），然后让请求经由网关转发：
+
+```python
+from openai import OpenAI
+import os
+
+client = OpenAI(
+    base_url="https://app.memorylake.cn/openai/v1",
+    api_key=os.environ["MEMORYLAKE_API_KEY"],
+)
+
+def chat(user, message):
+    return client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=[{"role": "user", "content": message}],
+        extra_query={"boundary_id": user.boundary_id},   # 每用户记忆作用域
+    )
+```
+
+每位用户的会话只读写属于自己的记忆——无需检索代码，无需提取管道，无需设计表结构。BYOK 模式让您继续沿用现有的厂商账号与计费。详见 [Memory Router 快速入门](/features/memory-router/quickstart)。
+
+<Note>
+Memory Router 在 MemoryLake **中国站暂未开放**——上面的端点在中国站当前无法调用，如需使用请联系商务了解开放计划。下方的 REST API 路径在中国站已正式可用。
+</Note>
+
+## 路径 B：REST API——显式的记忆操作
+
+先设计好您的多租户模型——每个租户一个工作空间，每个终端用户一个 [Actor](/features/memorylake/core-concepts/actors-and-memory)，每个知识领域一个项目——再按您自己的业务流程灌入并查询记忆：
+
+```bash
+BASE="https://app.memorylake.cn/openapi/memorylake"
+
+# 灌入：为该用户开启一个会话，然后追加他的消息。
+# 事实会自动从这段交互中提取出来。
+curl -X POST "$BASE/api/v3/workspaces/$WORKSPACE_ID/memories/conversations" \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d "{\"project_id\": \"$PROJECT_ID\", \"actor_id\": \"$ACTOR_ID\"}"
+
+curl -X POST "$BASE/api/v3/conversations/$CONVERSATION_ID/messages" \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"role": "user", "content": "I am vegetarian and lactose intolerant"}'
+
+# 召回：一次搜索同时覆盖文档片段与提取的事实
+curl -X POST "$BASE/api/v3/workspaces/$WORKSPACE_ID/memories/search" \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"query": "dietary restrictions"}'
+```
+
+这套 API 还提供了自建记忆方案通常缺失的能力：
+
+- **文档**：把文件上传到文件库，导入项目，并与事实一并搜索其内容
+- **每用户记忆**：Actor 事实会跨项目跟随用户，您无需重建身份关联的那套管道
+- **溯源**：清楚看到一条记忆的来源——面向用户的"你怎么知道这个？"有据可查
+- **冲突**：以编程方式列出并消解相互矛盾的记忆，而不是继续输出过时的事实
+- **遗忘**：硬删除一条事实——直接满足 GDPR"被遗忘权"的处理要求
+
+建议从[核心记忆操作](/features/memorylake/api-reference/core-memory/overview)开始，它会完整串起整个流程。
+
+## 顺带解决模型，无需自建厂商账号
+
+无论选择哪条路径，都可以搭配 [Model Router](/features/model-router/overview)：一个 OpenAI 兼容端点（`https://app.memorylake.cn/v1`）覆盖主流模型，配额管控、日志与故障转移一应俱全——用的还是您手上那个 `sk-…` Key。
+
+## 生产环境设计要点
+
+- **始终按用户划分作用域**：每个用户一个 boundary（Router）或一个项目（API），从结构上排除跨用户记忆泄漏。
+- **有选择地召回**：检索本身已按作用域限定并做了排序，但提示词预算由您掌握——取排名靠前的结果，而不是全部。
+- **把记忆呈现给用户**："我对你的了解"（列表 + 溯源）与"忘掉这条"（删除）都应可见可操作。这既建立信任，也简化合规。
+- **处理冲突**：主动轮询或人工审阅冲突记忆，让您的应用永远不会对同一个用户断言两条互相矛盾的事实。
+
+## 深入了解
+
+<CardGroup cols={2}>
+<Card title="Memory Router" icon="route" href="/features/memory-router/overview">
+网关架构、BYOK、Boundary 与可观测性。
+</Card>
+
+<Card title="API 参考" icon="code" href="/features/memorylake/api-reference/overview">
+全部端点：项目、文档、记忆、搜索、冲突。
+</Card>
+</CardGroup>

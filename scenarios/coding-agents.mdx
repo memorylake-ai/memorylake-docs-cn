@@ -1,0 +1,133 @@
+---
+title: "编码 Agent 的记忆"
+description: "让 OpenClaw 及其他编码 Agent 跨会话记住上下文、决策与文件"
+---
+
+## 问题所在
+
+您的编码 Agent 在两次会话之间会忘掉一切。昨天的架构讨论、你们一起定下的库、一起分析过的那份 CSV——全都没了。每次会话都从零开始，而长期项目受影响最深。
+
+## MemoryLake 带来的改变
+
+**memorylake-openclaw** 插件为您的 Agent 提供三种自动行为，以及一组显式工具：
+
+| 行为 | 具体作用 |
+|---|---|
+| **Auto-Recall** | Agent 会在回答您的每条消息之前，先检索相关记忆和文档上下文。 |
+| **Auto-Capture** | 每一轮对话结束后，在服务端分析会话内容——持久有效的事实会被存储、更新或合并（自动去重、增量处理）。 |
+| **Auto-Upload** | 您在对话中提供的文件会在后台上传到项目中，成为可搜索的文档。 |
+
+Agent 还会获得一组显式工具：`retrieve_context`（一次调用同时搜索记忆*和*文档，并暴露记忆冲突）、`memory_store`、`memory_list`、`memory_forget`、`document_download`，以及可选的 `advanced_web_search` 和用于精选外部数据集（arXiv、PubMed、SEC、FRED、USPTO 等）的 `open_data_search`。
+
+## 接入配置
+
+<Steps>
+<Step title="获取 API Key 与项目 ID">
+在[控制台](https://app.memorylake.cn)中创建 API Key（侧边栏的 **API Keys**），并确认希望 Agent 使用的项目。控制台的 **Integrations → OpenClaw** 页面会生成下面这些已预填参数的命令。
+</Step>
+
+<Step title="安装插件">
+使用控制台提供的一行命令（推荐——它会自动完成全部配置）：
+
+```bash
+curl -fsSL https://app.memorylake.cn/memorylake-openclaw/install.sh | bash -s -- \
+  --project-id <your-project-id> --api-key sk-... --host https://app.memorylake.cn
+```
+
+或手动安装：
+
+```bash
+openclaw plugins install memorylake-openclaw
+openclaw gateway restart
+```
+
+然后在 `~/.openclaw/openclaw.json` 中加入：
+
+```json5
+{
+  "plugins": {
+    "entries": {
+      "memorylake-openclaw": {
+        "enabled": true,
+        "config": {
+          "apiKey": "sk-...",          // 或使用 "${MEMORYLAKE_API_KEY}"
+          "projectId": "<project-id>",
+          "host": "https://app.memorylake.cn"
+        }
+      }
+    }
+  }
+}
+```
+
+<Note>
+安装脚本会把 `tools.profile` 设为 `"full"`——插件的工具需要该配置。Windows PowerShell 安装脚本（`install.ps1`）与 QClaw（`~/.qclaw/openclaw.json`）以同样方式支持。配置支持热加载：修改 Key、项目或 host 无需重启 gateway 即可生效。
+</Note>
+</Step>
+
+<Step title="验证">
+开启一次会话，告诉 Agent 一件值得记住的事，例如*"记住：我们只在周五发布。"* 结束会话，重新开一个新会话，然后问*"我们什么时候发布？"*——Agent 会通过 `retrieve_context` 召回它。
+</Step>
+</Steps>
+
+## 进阶用法
+
+### 一个 Agent 服务多个客户——互不串味
+
+为每个客户创建一个项目，然后在各自的工作目录里放一份目录级覆盖配置：
+
+```json
+// {workspace}/.memorylake/config.json
+{ "projectId": "<client-a-project-id>" }
+```
+
+在该目录下的会话只会读写这一个客户的记忆。插件自带的 `agent-memorylake-config` skill 可以通过对话方式帮您完成设置。
+
+### 批量灌入上下文
+
+直接从命令行给 Agent 的记忆喂数据——支持单个文件、目录或压缩包（zip/tar/7z/rar 自动解压）：
+
+```bash
+openclaw memorylake upload ./docs-archive.zip
+openclaw memorylake search "authentication flow" --limit 10
+openclaw memorylake stats
+```
+
+### 迁移已有历史
+
+插件自带的 `migrate-memories-to-memorylake` skill 可从 Agent 现有的会话文件中导入记忆和对话历史，让您不必从零开始。
+
+### 受控的网络访问
+
+`advanced_web_search` 注册为**可选**工具（除非您显式允许，默认关闭），并遵循插件级的域名白名单/黑名单——这对需要限制 Agent 上网的企业环境非常有用。
+
+### 顺便把 MemoryLake 的模型也用上
+
+独立的 **memorylake-models-openclaw** 插件会把 MemoryLake 的 [Model Router](/features/model-router/overview) 注册为模型提供方——一个 `sk-…` Key 同时打通记忆与模型：
+
+```bash
+openclaw plugins install memorylake-models-openclaw
+openclaw memorylake setup   # 交互式：校验 Key，选择默认模型
+```
+
+## 日常使用体验
+
+- *"继续做重构"*——Agent 记得两次会话之前你们定下的模块划分。
+- 您把一份堆栈跟踪文件拖进对话——它被自动上传；下周 Agent 依然能引用它。
+- *"我们当初为什么选 Postgres 而不是 MySQL？"*——由决策当时捕获的记忆作答，并附带来源溯源。
+
+## 隐私与遥测
+
+插件只会把数据发送到您配置的 MemoryLake host。用量遥测采用**选择性开启**（除非您显式设置遥测 Key，否则关闭）。
+
+## 深入了解
+
+<CardGroup cols={2}>
+<Card title="集成概览" icon="plug" href="/features/memorylake/mcp-servers/overview">
+连接 Agent 与应用的全部方式，包含 MCP。
+</Card>
+
+<Card title="记忆指南" icon="brain" href="/features/memorylake/memories/overview">
+了解提取、冲突与溯源的运作方式。
+</Card>
+</CardGroup>

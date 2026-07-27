@@ -1,0 +1,48 @@
+---
+title: "删除项目"
+description: "永久删除项目及其所有关联数据"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}
+```
+
+<Warning>
+这是一个破坏性操作。项目及其所有关联的文档和对话将被永久删除。
+</Warning>
+
+从工作空间中永久删除项目。此操作不可撤销。
+
+<Note>
+**所需权限：** `project:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects/proj_def456' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 字段。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>

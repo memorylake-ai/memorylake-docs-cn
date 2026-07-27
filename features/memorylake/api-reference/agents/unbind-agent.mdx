@@ -1,0 +1,44 @@
+---
+title: "从工作空间解绑 Agent"
+description: "从工作空间移除 Agent 绑定"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}
+```
+
+移除 Agent 与工作空间之间的绑定。解绑后，Agent 将不再可在该工作空间内进行 A2A 通信。Agent 定义本身不会被删除。
+
+<Note>
+**所需权限：** `workspace:agent_unbind`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="agentId" type="string" required>
+要从工作空间解绑的 Agent 标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 字段。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>

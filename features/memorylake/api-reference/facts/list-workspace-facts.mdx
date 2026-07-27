@@ -1,0 +1,133 @@
+---
+title: "列出工作空间事实"
+description: "返回工作空间中跨项目和 Actor 的事实"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/facts
+```
+
+按时间倒序返回工作空间中指定项目和/或 Actor 范围内的事实。每条事实都会标注其所属的项目或 Actor，因此您可以在整个工作空间范围内查询知识，无需分别调用每个项目或 Actor 的端点。
+
+`project_ids` 或 `actor_ids` 至少需要提供一项，且两者合计最多只能引用 50 个不同的项目/Actor。
+
+<Note>
+**所需权限：** `project:mem_list`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="project_ids" type="array of strings">
+要包含的项目 ID；以逗号分隔（例如 `proj-a,proj-b`）
+</ParamField>
+
+<ParamField query="actor_ids" type="array of strings">
+要包含的 Actor ID；以逗号分隔（例如 `actor-a,actor-b`）
+</ParamField>
+
+<ParamField query="fact_fuzzy" type="string">
+按内容子串筛选事实
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="50">
+每页返回的事实数量。范围：1–200。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页结果
+</ParamField>
+
+<RequestExample>
+```bash 两个项目的事实
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/facts?project_ids=proj_def456,proj_ghi789' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 一个项目和一个 Actor 的事实
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/facts?project_ids=proj_def456&actor_ids=act-a1b2c3d4e5f6' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 按内容筛选
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/facts?project_ids=proj_def456&fact_fuzzy=deadline' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="事实分页列表">
+  <ResponseField name="items" type="array">
+  事实对象数组
+  <Expandable title="事实对象">
+    <ResponseField name="id" type="string">事实唯一标识符</ResponseField>
+    <ResponseField name="fact" type="string">事实文本</ResponseField>
+    <ResponseField name="metadata" type="object">附加到事实的任意键值元数据</ResponseField>
+    <ResponseField name="expired" type="boolean">事实是否已被遗忘</ResponseField>
+    <ResponseField name="owner" type="object">
+    该事实所属的项目或 Actor
+    <Expandable title="归属对象">
+      <ResponseField name="type" type="string">归属类型：`project` 或 `actor`</ResponseField>
+      <ResponseField name="id" type="string">归属 ID：当 `type` 为 `project` 时为项目 ID，为 `actor` 时为 Actor ID</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="expiration_date" type="string|null">计划的过期日期，如果事实不会过期则为 `null`</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string|null">
+  用于获取下一页的令牌。当没有更多结果时为 `null`。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "fact_8f3a1b2c4d5e",
+        "fact": "Project deadline was moved to June 2025",
+        "metadata": {
+          "category": "planning"
+        },
+        "expired": false,
+        "owner": {
+          "type": "project",
+          "id": "proj_def456"
+        },
+        "expiration_date": null,
+        "created_at": "2025-06-10T14:30:00Z",
+        "updated_at": "2025-06-10T14:30:00Z"
+      },
+      {
+        "id": "fact_2d4e6f8a0b1c",
+        "fact": "User prefers dark mode in all applications",
+        "metadata": {
+          "category": "preferences"
+        },
+        "expired": false,
+        "owner": {
+          "type": "actor",
+          "id": "act-a1b2c3d4e5f6"
+        },
+        "expiration_date": null,
+        "created_at": "2025-06-12T09:15:00Z",
+        "updated_at": "2025-06-12T09:15:00Z"
+      }
+    ],
+    "continuation_token": null
+  }
+}
+```
+</ResponseExample>

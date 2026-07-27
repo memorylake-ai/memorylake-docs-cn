@@ -1,0 +1,43 @@
+---
+title: "概述"
+description: "项目是工作空间内的知识容器，持有文档、会话和事实"
+---
+
+**项目（Project）**是[工作空间](/features/memorylake/api-reference/workspaces/overview)内的知识容器。文档在这里被导入，对话在这里被捕获，事实在这里被提取和存储。每个项目组织一个独立的知识体系 — 产品的文档、客户的交互历史，或一个研究领域。
+
+## 项目包含的内容
+
+```
+Project
+├── Documents — 从文件库导入的文件，索引后支持语义搜索
+├── Conversations — 用户-助手消息交换
+│   └── Messages — 会话中的单条消息
+└── Project Facts — 从对话中提取的结构化知识
+```
+
+## 典型工作流
+
+<Steps>
+<Step title="创建项目">
+在工作空间内[创建项目](/features/memorylake/api-reference/v3-projects/create-project)，开始组织知识。
+</Step>
+<Step title="导入文档">
+将文件上传到[文件库](/features/memorylake/api-reference/library/overview)，然后[导入](/features/memorylake/api-reference/v3-documents/import-documents)到项目中。MemoryLake 会索引文档内容以支持语义搜索。
+</Step>
+<Step title="捕获对话">
+[创建会话](/features/memorylake/api-reference/conversations/create-conversation)并[追加消息](/features/memorylake/api-reference/conversations/create-message)。MemoryLake 自动从对话中提取结构化事实。
+</Step>
+<Step title="查询和管理">
+[搜索](/features/memorylake/api-reference/search/search-memories)所有记忆来源，或直接管理[项目事实](/features/memorylake/api-reference/facts/list-facts)。
+</Step>
+</Steps>
+
+## 端点
+
+| 操作 | 方法 | 路径 |
+|------|------|------|
+| [列出项目](/features/memorylake/api-reference/v3-projects/list-projects) | `GET` | `/api/v3/workspaces/{id}/projects` |
+| [创建项目](/features/memorylake/api-reference/v3-projects/create-project) | `POST` | `/api/v3/workspaces/{id}/projects` |
+| [获取项目](/features/memorylake/api-reference/v3-projects/get-project) | `GET` | `/api/v3/workspaces/{id}/projects/{projectId}` |
+| [更新项目](/features/memorylake/api-reference/v3-projects/update-project) | `PATCH` | `/api/v3/workspaces/{id}/projects/{projectId}` |
+| [删除项目](/features/memorylake/api-reference/v3-projects/delete-project) | `DELETE` | `/api/v3/workspaces/{id}/projects/{projectId}` |

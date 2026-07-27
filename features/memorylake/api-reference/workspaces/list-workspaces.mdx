@@ -1,0 +1,82 @@
+---
+title: "列出工作空间"
+description: "返回工作空间的分页列表，支持可选的筛选条件"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces
+```
+
+返回已认证用户可访问的工作空间分页列表。您可以通过名称模糊搜索筛选结果，并使用延续令牌控制分页。
+
+<Note>
+**所需权限：** `workspace:list`
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的工作空间数量
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页结果
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按工作空间名称模糊筛选（部分匹配）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="工作空间分页列表">
+  <ResponseField name="items" type="array">
+  工作空间对象数组
+  <Expandable title="工作空间对象">
+    <ResponseField name="id" type="string">工作空间唯一标识符</ResponseField>
+    <ResponseField name="name" type="string">工作空间名称</ResponseField>
+    <ResponseField name="description" type="string">工作空间描述</ResponseField>
+    <ResponseField name="metadata" type="object">附加到工作空间的任意键值元数据</ResponseField>
+    <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string|null">
+  用于获取下一页的令牌。当没有更多结果时为 `null`。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "ws_abc123def456",
+        "name": "My Research Workspace",
+        "description": "Central workspace for research documents and notes",
+        "metadata": {
+          "team": "research",
+          "priority": "high"
+        },
+        "custom_id": "research-ws-001",
+        "created_at": "2025-03-10T08:30:00Z",
+        "updated_at": "2025-03-15T12:00:00Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0X2lkIjoid3NfYWJjMTIzZGVmNDU2In0"
+  }
+}
+```
+</ResponseExample>

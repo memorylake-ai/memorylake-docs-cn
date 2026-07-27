@@ -1,0 +1,77 @@
+---
+title: "概览"
+description: "MemoryLake 是一个 AI 记忆平台——为个人、团队和 AI Agent 存储、计算和检索长期记忆"
+---
+
+## 什么是 MemoryLake？
+
+MemoryLake 让 AI 拥有持久的记忆。上传文档、进行会话、连接您的 AI 工具——MemoryLake 会从中提取可长期沉淀的记忆，保持其一致性，并将它们提供给任何需要上下文的模型或 Agent。
+
+每次 LLM 调用默认都是无状态的。MemoryLake 补上了缺失的那一层：一个可跨会话、跨应用、跨模型、跨成员持续存在的共享、可查询的记忆池。
+
+<Note>
+您正在阅读 **MemoryLake 中国站**（`app.memorylake.cn`）的文档。中国站与国际站是相互独立的部署，账号与数据不互通，开放的功能范围也不同 —— 详见[部署与数据存储](/deployment)。
+</Note>
+
+## 平台一览
+
+<CardGroup cols={2}>
+<Card title="MemoryLake Memory" icon="brain" href="/features/memorylake/overview">
+核心产品：工作空间、项目、文档和提取出的记忆——配备 Playground 体验记忆增强的对话，并通过集成把记忆带入您的工具。
+</Card>
+
+<Card title="Memory Router" icon="route" href="/features/memory-router/overview">
+一个即插即用网关，只需更改 Base URL，即可为现有的 OpenAI / Anthropic API 调用加上持久记忆。中国站暂未开放。
+</Card>
+
+<Card title="Model Router" icon="globe" href="/features/model-router/overview">
+统一、兼容 OpenAI 的主流模型入口——一个 API Key、一个端点，并为 Claude 和 Gemini 保留原生路径。
+</Card>
+
+<Card title="团队协作" icon="users" href="/features/team-collaboration/overview">
+共享工作空间，具备角色、细粒度权限、成员配额和用量分析——让记忆归属于组织，而不只是某一个人。
+</Card>
+</CardGroup>
+
+## 核心能力
+
+- **记忆提取**：会话和文档会被提炼为结构化、去重后的记忆——而不只是存为原始文本
+- **记忆检索**：跨记忆与文档内容的语义 + 关键词混合搜索，按工作空间和项目限定范围
+- **记忆治理**：来源溯源显示每条记忆的出处；冲突检测将互相矛盾的记忆呈现出来供您消解
+- **多模态文档**：PDF、Word、Excel、PowerPoint、Markdown、文本和图片都会被解析并建立检索索引
+- **Open Data**：为项目订阅精选行业数据集（科研、临床、金融、专利等），让 Agent 可以在检索您自有内容的同时检索这些数据
+- **集成**：OpenClaw / QClaw / Hermes Agent 插件、REST API 和 MCP 服务——记忆随您的 Agent 运行到哪里就跟到哪里
+
+## 个人记忆与组织记忆
+
+MemoryLake 围绕一个简单的理念构建：记忆有归属，也有范围。
+
+- **个人**：您自己的工作空间记住您的偏好、决策和文件——您连接的每个 AI 工具都能获得关于您的同一份上下文。
+- **组织**：团队工作空间沉淀共享知识——项目文档、决策和领域事实——由角色和按资源划分的权限治理，让机构记忆在人员变动后依然留存。
+
+在[核心概念](/concepts)中了解各部分如何协同，或直接进入某个场景：
+
+<CardGroup cols={2}>
+<Card title="个人 AI 记忆" icon="user" href="/scenarios/personal-ai-memory">
+让您使用的每个 AI 工具都拥有一份一致、私有的关于您的记忆。
+</Card>
+
+<Card title="团队知识库" icon="building" href="/scenarios/team-knowledge-base">
+把散落的文档和决策变成可治理的组织记忆。
+</Card>
+
+<Card title="编程 Agent 的记忆" icon="terminal" href="/scenarios/coding-agents">
+让 OpenClaw 和其他编程 Agent 跨会话记住上下文。
+</Card>
+
+<Card title="构建带记忆的应用" icon="code" href="/scenarios/ai-apps-with-memory">
+通过 API 或 Memory Router 为您自己的产品加上每用户长期记忆。
+</Card>
+</CardGroup>
+
+## 开始使用
+
+1. **[注册](https://app.memorylake.cn)** —— 系统会自动为您开通一个默认工作空间。
+2. **[试用 Playground](/quickstart)** —— 告诉它一件需要记住的事，添加 Open Data，上传文件，看记忆如何生效。
+3. **[创建 API Key](/authentication)** —— 一个 Key 即可认证 REST API、Model Router 和 Agent 插件。
+4. **[连接您的工具](/features/memorylake/mcp-servers/overview)** —— 安装 OpenClaw 插件或通过 API 集成，让记忆随处跟随您。

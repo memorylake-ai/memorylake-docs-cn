@@ -1,0 +1,71 @@
+---
+title: "获取 Actor 事实"
+description: "返回单个 Actor 级别事实的内容和元数据"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts/{factId}
+```
+
+返回特定 Actor 范围内单个事实的内容和元数据。
+
+<Note>
+**所需权限：** `workspace:actor_fact_read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+<ParamField path="factId" type="string" required>
+事实 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/actors/actor_5e4d3c2b1a0f/facts/fact_4c5d6e7f8a9b' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="事实对象">
+  <ResponseField name="id" type="string">事实唯一标识符</ResponseField>
+  <ResponseField name="fact" type="string">事实文本</ResponseField>
+  <ResponseField name="metadata" type="object">附加到事实的任意键值元数据</ResponseField>
+  <ResponseField name="expired" type="boolean">事实是否已被遗忘</ResponseField>
+  <ResponseField name="score" type="number">相关性评分</ResponseField>
+  <ResponseField name="expiration_date" type="string|null">计划的过期日期，如果事实不会过期则为 `null`</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "fact_4c5d6e7f8a9b",
+    "fact": "User's primary programming language is Python",
+    "metadata": {
+      "category": "skills",
+      "confidence": "high"
+    },
+    "expired": false,
+    "score": 0.92,
+    "expiration_date": null,
+    "created_at": "2025-05-20T10:00:00Z",
+    "updated_at": "2025-05-20T10:00:00Z"
+  }
+}
+```
+</ResponseExample>

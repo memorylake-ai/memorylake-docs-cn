@@ -1,0 +1,159 @@
+---
+title: "A2A 集成"
+description: "使用标准 A2A 协议与 MemoryLake Agent 通信"
+---
+
+MemoryLake 实现了 Google 的 [A2A（Agent 对 Agent）协议](https://a2a-protocol.org/)。如果你已熟悉 A2A，可以使用任何兼容 A2A 的客户端与 MemoryLake Agent 交互。
+
+有关标准请求和响应 schema，请参阅 [A2A 规范](https://a2a-protocol.org/latest/specification/)。官方 SDK 可在 [github.com/a2aproject](https://github.com/a2aproject) 获取。
+
+<Note>
+**所需权限：** `workspace:a2a`
+</Note>
+
+## Base URL
+
+```
+https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}/a2a
+```
+
+直接追加标准 A2A 路径即可 —— 例如 `POST {baseUrl}/message:send` 或 `GET {baseUrl}/tasks/{taskId}`。
+
+## 协议版本
+
+MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本：
+
+| 路由 | 协议版本 | 消息体 | 发送配置 |
+|---|---|---|---|
+| `{baseUrl}/message:send`、`{baseUrl}/tasks/...` | **A2A v1.0** | `message.parts` | `returnImmediately`、`taskPushNotificationConfig` |
+| `{baseUrl}/v1/message:send`、`{baseUrl}/v1/tasks/...` | **A2A v0.3** | `message.content` | `blocking`、`pushNotificationConfig` |
+
+<Warning>
+`/v1/` 路径前缀指的是较旧的 **A2A v0.3** 传输格式，而非协议 1.0 版本。不带前缀的路由实现的才是当前的 **A2A v1.0** 格式。请确保请求体结构与所调用的路由匹配 —— v0.3 风格的请求体（`content`、`blocking`）会被 v1.0 路由拒绝，反之亦然。
+</Warning>
+
+两组路由都支持下文描述的同一套 MemoryLake 扩展。
+
+## MemoryLake 扩展
+
+MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议。在 `message:send` 或 `message:stream` 的请求元数据中传入此对象，以控制 Agent 与 MemoryLake 记忆层的交互方式。
+
+这是与普通 A2A 服务器的核心区别 —— 这些字段将 Agent 连接到 MemoryLake 中的工作空间、项目和 Actor。
+
+<ParamField body="metadata.memorylake" type="object" required>
+MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上下文的情况下运行。
+<Expandable title="字段说明" defaultOpen>
+  <ParamField body="actorId" type="string">
+  代表终端用户的 Actor 标识符。从会话中提取的事实将关联到此 Actor，实现按用户记忆。
+  </ParamField>
+
+  <ParamField body="readWriteProjectId" type="string">
+  Agent 可读写的项目。提取的事实和会话历史将持久化到此项目。
+  </ParamField>
+
+  <ParamField body="readOnlyProjectIds" type="array">
+  Agent 可搜索（文档和事实）但不能修改的附加项目。用于让 Agent 访问共享知识库。
+  </ParamField>
+
+  <ParamField body="subagentMapping" type="object">
+  将子 Agent 名称（在 Agent 配置中定义）映射到具体的 Agent ID。允许在请求时动态路由子 Agent 调用。
+  </ParamField>
+
+  <ParamField body="overrides" type="object">
+  Agent 配置的运行时覆盖。
+  <Expandable title="覆盖字段">
+    <ParamField body="model" type="string">覆盖 Agent 的模型（例如 `gpt-4o`、`claude-sonnet-4-20250514`）</ParamField>
+    <ParamField body="systemPromptOverride" type="string">替换此次请求的 Agent 系统提示词</ParamField>
+    <ParamField body="modelParams" type="object">覆盖模型参数（例如 `temperature`、`max_tokens`）</ParamField>
+    <ParamField body="reasoning" type="object">
+    推理配置
+    <Expandable title="推理字段">
+      <ParamField body="type" type="string">推理类型</ParamField>
+      <ParamField body="budgetTokens" type="integer">推理 token 预算</ParamField>
+    </Expandable>
+    </ParamField>
+    <ParamField body="capabilitiesOverride" type="array">覆盖 Agent 的能力列表</ParamField>
+    <ParamField body="maxTurns" type="integer">覆盖最大轮次数</ParamField>
+  </Expandable>
+  </ParamField>
+</Expandable>
+</ParamField>
+
+## 示例
+
+<RequestExample>
+```bash 发送消息 (A2A v1.0)
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/message:send' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "message": {
+      "role": "ROLE_USER",
+      "parts": [
+        { "text": "How do I configure two-factor authentication?" }
+      ],
+      "contextId": "ctx_m4n7p2q9"
+    },
+    "configuration": {
+      "returnImmediately": false,
+      "historyLength": 10
+    },
+    "metadata": {
+      "memorylake": {
+        "actorId": "act_user_jane",
+        "readWriteProjectId": "proj_def456",
+        "readOnlyProjectIds": ["proj_shared_kb"],
+        "overrides": {
+          "model": "gpt-4o",
+          "maxTurns": 5
+        }
+      }
+    }
+  }'
+```
+
+```bash 流式消息 (A2A v1.0, SSE)
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/message:stream' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{
+    "message": {
+      "role": "ROLE_USER",
+      "parts": [
+        { "text": "Summarize our last meeting notes" }
+      ]
+    },
+    "metadata": {
+      "memorylake": {
+        "actorId": "act_user_jane",
+        "readOnlyProjectIds": ["proj_meetings"]
+      }
+    }
+  }'
+```
+
+```bash 发送消息 (A2A v0.3)
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/v1/message:send' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "message": {
+      "role": "ROLE_USER",
+      "content": [
+        { "text": "How do I configure two-factor authentication?" }
+      ]
+    },
+    "configuration": {
+      "blocking": true,
+      "historyLength": 10
+    },
+    "metadata": {
+      "memorylake": {
+        "actorId": "act_user_jane",
+        "readWriteProjectId": "proj_def456"
+      }
+    }
+  }'
+```
+</RequestExample>

@@ -1,0 +1,169 @@
+---
+title: "搜索文档"
+description: "对项目中的文档进行语义搜索"
+---
+
+```
+POST /openapi/memorylake/api/v1/projects/{id}/documents/search
+```
+
+对项目中的所有文档执行语义搜索。返回按相关性排序的匹配内容。结果分为三种类型 —— `table`、`paragraph` 和 `figure` —— 每种通过 `type` 字段标识。
+
+<Note>
+**所需权限：** [`project:doc_search`](/features/team-collaboration/permission-reference#搜索项目内的文档（仅-api）) · `instance`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+项目 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="query" type="string" required>
+搜索查询文本
+</ParamField>
+
+<ParamField body="top_n" type="integer" default="10">
+返回的最大结果数（最小为 1）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v1/projects/proj-a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6/documents/search' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "query": "What were the quarterly sales figures in 2024?",
+    "top_n": 10
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="搜索结果">
+  <ResponseField name="count" type="integer">实际返回的结果数量</ResponseField>
+  <ResponseField name="results" type="array">
+  按相关性排序的搜索结果。每个条目是一个可区分的联合类型 —— `type` 决定了哪些变体字段存在，以及 `highlight` 的哪个子字段会被填充。点击展开完整的条目结构。
+  <Expandable title="结果条目">
+    <ResponseField name="type" type="string" required>
+    区分符。取值为 `paragraph`、`table` 或 `figure` 之一。
+    </ResponseField>
+    <ResponseField name="document_id" type="string">文档 ID</ResponseField>
+    <ResponseField name="document_name" type="string">文档文件名，例如 `report_2024.xlsx`</ResponseField>
+    <ResponseField name="source_document" type="object">
+    源文件信息。
+    <Expandable title="source_document 属性">
+      <ResponseField name="file_name" type="string">原始文件名</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="highlight" type="object">
+    匹配的内容。该对象始终包含以下三个可选字段 —— 恰好有一个被填充，由父条目的 `type` 决定。
+    <Expandable title="highlight 属性">
+      <ResponseField name="chunks" type="Chunk[]">
+      当 `type=paragraph` 时填充。匹配的文本片段，按文档顺序排列。其他情况下不存在。
+      <Expandable title="Chunk 属性">
+        <ResponseField name="text" type="string">匹配内容的纯文本片段</ResponseField>
+        <ResponseField name="range" type="string">位置提示（例如页码 `p12`，或工作簿段落的单元格范围）</ResponseField>
+      </Expandable>
+      </ResponseField>
+      <ResponseField name="inner_tables" type="InnerTable[]">
+      当 `type=table` 时填充。源表区域内匹配的子表。其他情况下不存在。
+      <Expandable title="InnerTable 属性">
+        <ResponseField name="id" type="string">内部表 ID</ResponseField>
+        <ResponseField name="data_range" type="string">覆盖的单元格范围，例如 `A1:D50`</ResponseField>
+        <ResponseField name="num_rows" type="integer">数据行数</ResponseField>
+        <ResponseField name="persist_path" type="string">物化表的内部存储路径</ResponseField>
+        <ResponseField name="columns" type="TableColumn[]">
+        列描述符。
+        <Expandable title="TableColumn 属性">
+          <ResponseField name="id" type="string">列 ID</ResponseField>
+          <ResponseField name="name" type="string">列标题名称</ResponseField>
+          <ResponseField name="data_type" type="string">推断的数据类型（例如 `string`、`number`、`date`）</ResponseField>
+          <ResponseField name="range" type="string">列单元格范围</ResponseField>
+          <ResponseField name="count" type="integer">非空值数量</ResponseField>
+          <ResponseField name="null_count" type="integer">空值数量</ResponseField>
+          <ResponseField name="approx_ndv" type="integer">近似不同值数量</ResponseField>
+          <ResponseField name="min_value" type="string">最小值（字符串编码）</ResponseField>
+          <ResponseField name="max_value" type="string">最大值（字符串编码）</ResponseField>
+          <ResponseField name="examples" type="object[]">列中的示例原始值</ResponseField>
+          <ResponseField name="display_examples" type="object[]">示例格式化/显示值</ResponseField>
+          <ResponseField name="semantic_comment" type="string">模型推断的列语义注释</ResponseField>
+          <ResponseField name="has_hierarchy" type="boolean">该列是否参与行层级结构</ResponseField>
+        </Expandable>
+        </ResponseField>
+      </Expandable>
+      </ResponseField>
+      <ResponseField name="figure" type="object">
+      当 `type=figure` 时填充。匹配的图片描述符。其他情况下不存在。
+      <Expandable title="figure 属性">
+        <ResponseField name="caption" type="string">原始图片标题</ResponseField>
+        <ResponseField name="text" type="string">图片中 OCR / 提取的文本</ResponseField>
+        <ResponseField name="summary_text" type="string">模型生成的图片摘要</ResponseField>
+        <ResponseField name="prequestion_list" type="string[]">预生成的该图片可以回答的问题</ResponseField>
+        <ResponseField name="persist_path" type="string">图片资源的内部存储路径</ResponseField>
+      </Expandable>
+      </ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="paragraph_block_id" type="string">**仅当 `type=paragraph` 时存在。** 文档中的段落块 ID。</ResponseField>
+    <ResponseField name="table_id" type="string">**仅当 `type=table` 时存在。** 表实体 ID。</ResponseField>
+    <ResponseField name="title" type="string">**仅当 `type=table` 时存在。** 表标题。</ResponseField>
+    <ResponseField name="footnote" type="string">**仅当 `type=table` 时存在。** 表脚注。</ResponseField>
+    <ResponseField name="sheet_name" type="string">**仅当 `type=table` 时存在。** 工作表名称（工作簿表格）。</ResponseField>
+    <ResponseField name="semantic_sheet_name" type="string">**仅当 `type=table` 时存在。** 模型推断的工作表语义名称。</ResponseField>
+    <ResponseField name="semantic_comment" type="string">**仅当 `type=table` 时存在。** 模型推断的工作表语义注释。</ResponseField>
+    <ResponseField name="table_region_info" type="string">**仅当 `type=table` 时存在。** 表区域位置，例如 `A1:D50`。</ResponseField>
+    <ResponseField name="figure_id" type="integer">**仅当 `type=figure` 时存在。** 图片数字 ID。</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "count": 3,
+    "results": [
+      {
+        "type": "paragraph",
+        "document_id": "doc-123",
+        "document_name": "report_2024.pdf",
+        "paragraph_block_id": "blk-456",
+        "highlight": {
+          "chunks": [
+            {
+              "text": "Q1 2024 sales reached $2.5M...",
+              "range": "p12"
+            }
+          ]
+        },
+        "source_document": {
+          "file_name": "report_2024.pdf"
+        }
+      },
+      {
+        "type": "table",
+        "document_id": "doc-789",
+        "document_name": "sales_data.xlsx",
+        "table_id": "tbl-001",
+        "title": "Quarterly Sales Summary",
+        "sheet_name": "Sheet1",
+        "table_region_info": "A1:D50",
+        "highlight": {
+          "inner_tables": [...]
+        },
+        "source_document": {
+          "file_name": "sales_data.xlsx"
+        }
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

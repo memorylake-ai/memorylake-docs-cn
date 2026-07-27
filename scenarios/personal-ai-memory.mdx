@@ -1,0 +1,69 @@
+---
+title: "个人 AI 记忆"
+description: "让您使用的每一个 AI 工具共享同一份一致、私密的个人记忆"
+---
+
+## 问题所在
+
+您每天要用好几个 AI 工具——聊天助手、编码 Agent，也许还有研究工具。每一个都从零开始：它不知道您的偏好、不知道您手上正在推进的项目，也不知道您昨天上传到*另一个工具*里的那份文件。于是每次开始使用，前五分钟都花在重新自我介绍上。
+
+## MemoryLake 带来的改变
+
+您的个人工作空间成为所有 AI 工具共享的唯一记忆。告诉一个助手您偏好简洁的回答并附带代码示例——每一个已连接的工具都会知道。租房合同只需上传一次——之后任何助手都能引用它。
+
+```text
+您 ───┬── Playground 对话 ─────────┐
+      ├── OpenClaw 编码 Agent ─────┼──►  您工作空间的记忆池
+      ├── 文件上传与文件库 ────────┤        （提取的事实 + 已索引的文档）
+      └── WPS / Lark 连接器 ───────┘                    │
+                                                        ▼
+                                    被您连接的每一个工具召回
+```
+
+## 操作流程
+
+<Steps>
+<Step title="在 Playground 中播下记忆的种子">
+访问 [app.memorylake.cn](https://app.memorylake.cn) 开始对话。提及那些值得留存的信息：*"我在为 11 月的马拉松做准备"*、*"我女儿对花生过敏"*、*"我写 Python，不写 JavaScript"*。MemoryLake 会把每一条持久有效的事实提取为一条[记忆](/features/memorylake/memories/overview)——在 **Memories** 页面即可查看，每条都带有来源溯源。
+</Step>
+
+<Step title="用项目划分不同的生活场景">
+为不该混在一起的场景分别创建[项目](/features/memorylake/core-concepts/workspaces-and-projects)："健康"、"买房"、"副业"。检索是按项目限定作用域的，因此您的房贷文件永远不会出现在健身话题的对话里。
+</Step>
+
+<Step title="把您的文档带进来">
+将文件上传到**文件库**（支持拖拽，且保留文件夹层级），或挂载 [WPS / Lark](/features/memorylake/connectors/overview) 直接浏览已有的云端文档。把它们关联到正确的项目——内容随即成为可搜索的上下文。
+</Step>
+
+<Step title="接入您已在使用的工具">
+安装 [OpenClaw 插件](/features/memorylake/mcp-servers/overview)，让您的编码 Agent 自动召回上下文，并在工作过程中持续沉淀新记忆。您交给 Agent 的文件会自动上传到您的项目中。
+</Step>
+
+<Step title="让记忆保持诚实">
+当新事实与旧事实相互矛盾时（"我搬到柏林了"与"居住在慕尼黑"），MemoryLake 不会擅自猜测，而是抛出一个**冲突**。在项目的 Conflicts 标签页中审阅冲突并选出真实的那条——您的记忆始终保持最新，而不会越积越乱。
+</Step>
+</Steps>
+
+## 日常使用体验
+
+- *"帮我规划下周的饮食"* → 助手已经知道马拉松训练计划和花生过敏。
+- *"接着上次爬虫的进度继续"* → 编码 Agent 记得上周的设计决策以及您选定的库。
+- *"我的租房合同里关于转租是怎么写的？"* → 直接引用您几个月前上传的文档作答。
+
+## 隐私说明
+
+- 您的个人工作空间只属于您——除非加入团队空间，否则不会共享任何内容。
+- 记忆可查、可删：查看任意记忆的来源溯源、编辑它，或将其永久**遗忘**。
+- 您创建的 API Key 可限定可用模型与 IP 白名单，并可随时吊销。
+
+## 深入了解
+
+<CardGroup cols={2}>
+<Card title="记忆指南" icon="brain" href="/features/memorylake/memories/overview">
+了解提取、搜索、溯源与冲突的运作方式。
+</Card>
+
+<Card title="编码 Agent 配置" icon="terminal" href="/scenarios/coding-agents">
+完整的 OpenClaw 接入流程。
+</Card>
+</CardGroup>

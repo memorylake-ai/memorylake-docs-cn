@@ -1,0 +1,57 @@
+---
+title: "可观测性"
+description: "追踪每个请求、读懂控制台调用日志，并理解错误约定"
+---
+
+<Note>
+Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关，本页描述的是该能力的完整形态，供您提前评估接入方案；如需在中国站使用，请联系商务了解开放计划。
+</Note>
+
+经过 Memory Router 的每个请求都可端到端追踪——从您的客户端，经网关，到记忆层和模型。
+
+## 请求追踪
+
+每个响应都带有 **`X-Trace-ID`** 头——一个贯穿整条调用链的 W3C 兼容 trace id。请把它与您自己的请求 id 一起记录下来；一旦出现异常，这是支持团队定位具体调用的最快方式。
+
+Memory Router 同时遵循入站的 **W3C Trace Context**（`traceparent` / `tracestate`）头，因此如果您的应用已经在传播分布式链路，Router 的 span 会自动并入您现有的链路。
+
+## 控制台调用日志
+
+每次调用都会进入控制台 **Logs** 页面，附带逐次调用的明细：
+
+| 字段 | 含义 |
+| --- | --- |
+| **Model** | 实际服务该请求的规范模型名。 |
+| **Tokens** | 模型计量的提示词、补全和总 Token 数。 |
+| **Finish reason** | 生成为何停止（`stop`、`length`、工具调用……）。 |
+| **Key source** | `byok`（您的模型厂商密钥）或 `platform`（MemoryLake 托管）。 |
+| **Trace ID** | 与响应头 `X-Trace-ID` 一致，便于交叉比对。 |
+
+<Tip>
+用 **Key source** 确认 BYOK 是否真正生效；对比各轮的 Token 数，即可看出记忆注入相较于重放完整历史的效果差异。
+</Tip>
+
+## 错误约定
+
+| 状态码 | 含义 | 处理方式 |
+| --- | --- | --- |
+| `401 Unauthorized` | MemoryLake 密钥缺失或无效。 | 检查原生鉴权头（托管模式）或 `x-memorylake-api-key`（BYOK）中的密钥。 |
+| `402 Payment Required` | 账户余额低于转发该调用所需的最低额度。 | 在控制台充值后重试。 |
+| `502 Bad Gateway` | 记忆网关无法访问其上游服务。 | 带退避重试；若持续出现，请携带您的 `X-Trace-ID` 联系支持团队。 |
+| 模型厂商错误（`4xx`/`5xx`） | 由模型厂商本身返回，格式为该厂商自有格式。 | 与直连模型厂商调用时的处理方式完全一致。 |
+
+<Note>
+**不带** `boundary_id` 的请求会跳过记忆层，但仍会经网关完成鉴权和计量。如果想判断问题是否与记忆相关，可以去掉 `boundary_id` 重试同一个调用并对比结果。
+</Note>
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="部署模式" icon="key" href="/features/memory-router/deployment-modes">
+BYOK 与托管模式的对比、端点和支持的模型厂商。
+</Card>
+
+<Card title="常见问题" icon="circle-help" href="/features/memory-router/faq">
+关于代码、模型厂商、安全性和开通方式的常见问题。
+</Card>
+</CardGroup>

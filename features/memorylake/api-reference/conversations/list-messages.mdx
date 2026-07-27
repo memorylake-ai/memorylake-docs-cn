@@ -1,0 +1,110 @@
+---
+title: "列出消息"
+description: "返回会话中消息的分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/conversations/{conversationId}/messages
+```
+
+返回会话中消息的分页列表，按序列号排序。使用 `continuation_token` 可翻阅完整的历史记录。
+
+<Note>
+**所需权限：** `project:conv_read`
+</Note>
+
+### 路径参数
+
+<ParamField path="conversationId" type="string" required>
+会话标识符
+</ParamField>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的消息数量
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的分页令牌，用于获取下一页结果
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_7d2e3f4a5b6c7d8e/messages?page_size=50' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页消息列表">
+  <ResponseField name="items" type="array">
+  消息对象数组
+  <Expandable title="消息对象">
+    <ResponseField name="id" type="string">消息唯一标识符</ResponseField>
+    <ResponseField name="content" type="array">
+    组成消息体的内容块数组
+    <Expandable title="内容块">
+      <ResponseField name="block_type" type="string">块类型：`TEXT`、`FILE`、`IMAGE`、`THINKING`、`TOOL_USE`、`TOOL_RESULT`</ResponseField>
+      <ResponseField name="text" type="string">文本内容（当 `block_type` 为 `TEXT` 时存在）</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="metadata" type="object">附加到消息的任意键值元数据</ResponseField>
+    <ResponseField name="timestamp" type="string">调用方提供的消息原始发生时间戳（ISO 8601）</ResponseField>
+    <ResponseField name="conversation_id" type="string">此消息所属会话的 ID</ResponseField>
+    <ResponseField name="sequence_no" type="integer">此消息在会话中的位置，从 1 开始</ResponseField>
+    <ResponseField name="actor_id" type="string">发送此消息的 Actor ID</ResponseField>
+    <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string|null">
+  用于获取下一页的分页令牌。当没有更多结果时为 `null`。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "msg_1a2b3c4d5e6f7a8b",
+        "content": [
+          {
+            "block_type": "TEXT",
+            "text": "Hi, I'd like to learn more about your enterprise plan."
+          }
+        ],
+        "metadata": {},
+        "timestamp": "2025-06-01T14:05:00Z",
+        "conversation_id": "conv_7d2e3f4a5b6c7d8e",
+        "sequence_no": 1,
+        "actor_id": "actor_user_jane",
+        "created_at": "2025-06-01T14:05:12Z"
+      },
+      {
+        "id": "msg_9e4b2c3d5f6a7b8c",
+        "content": [
+          {
+            "block_type": "TEXT",
+            "text": "Of course! Our enterprise plan includes dedicated support, custom integrations, and advanced analytics. Would you like me to walk you through the details?"
+          }
+        ],
+        "metadata": {},
+        "timestamp": "2025-06-01T14:05:30Z",
+        "conversation_id": "conv_7d2e3f4a5b6c7d8e",
+        "sequence_no": 2,
+        "actor_id": "actor_assistant_v2",
+        "created_at": "2025-06-01T14:05:35Z"
+      }
+    ],
+    "continuation_token": null
+  }
+}
+```
+</ResponseExample>

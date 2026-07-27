@@ -1,0 +1,44 @@
+---
+title: "删除 Agent"
+description: "永久删除一个 Agent 及其所有版本"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/agents/{id}
+```
+
+<Warning>
+这是一个破坏性操作。Agent 及其所有版本将被永久删除。该 Agent 的所有工作空间绑定也将被删除。
+</Warning>
+
+永久删除一个 Agent。此操作不可撤销。
+
+<Note>
+**所需权限：** `agent:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Agent 标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2m1n3' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 字段。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>
