@@ -21,18 +21,27 @@ https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspaceId}/age
 
 ## 协议版本
 
-MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本：
+MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本；每个版本都可以通过**两种传输方式**调用：REST 与 JSON-RPC 2.0。
 
-| 路由 | 协议版本 | 消息体 | 发送配置 |
+| 协议版本 | REST 路由 | 消息体 | `role` 取值 |
 |---|---|---|---|
-| `{baseUrl}/message:send`、`{baseUrl}/tasks/...` | **A2A v1.0** | `message.parts` | `returnImmediately`、`taskPushNotificationConfig` |
-| `{baseUrl}/v1/message:send`、`{baseUrl}/v1/tasks/...` | **A2A v0.3** | `message.content` | `blocking`、`pushNotificationConfig` |
+| **A2A v1.0** | `{baseUrl}/message:send`、`{baseUrl}/tasks/...` | `message.parts`（proto-JSON，part 不带 `kind` 判别符） | `ROLE_USER` |
+| **A2A v0.3** | `{baseUrl}/v1/message:send`、`{baseUrl}/v1/tasks/...` | REST：`message.content` · JSON-RPC：`message.parts`，每个 part 带 `kind` 判别符 | REST：`ROLE_USER` · JSON-RPC：`user` |
 
 <Warning>
-`/v1/` 路径前缀指的是较旧的 **A2A v0.3** 传输格式，而非协议 1.0 版本。不带前缀的路由实现的才是当前的 **A2A v1.0** 格式。请确保请求体结构与所调用的路由匹配 —— v0.3 风格的请求体（`content`、`blocking`）会被 v1.0 路由拒绝，反之亦然。
+`/v1/` 路径前缀指的是较旧的 **A2A v0.3** 传输格式，而非协议 1.0 版本。不带前缀的路由实现的才是当前的 **A2A v1.0** 格式。请确保请求体结构与所调用的路由匹配 —— v0.3 风格的 REST 请求体（`message.content`）会被 v1.0 REST 路由拒绝，反之亦然。
 </Warning>
 
-两组路由都支持下文描述的同一套 MemoryLake 扩展。
+走 JSON-RPC 时，两个协议版本都 POST 到不带后缀的 `{baseUrl}`，由 `method` 指定具体操作：v1.0 使用 `SendMessage`、`SendStreamingMessage`、`GetTask`、`CancelTask`、`SubscribeToTask`；v0.3 使用 `message/send`、`message/stream`、`tasks/get`、`tasks/cancel`、`tasks/resubscribe`。协议版本由方法名协商得出；v1.0 客户端还应额外发送 `A2A-Version: 1.0`。
+
+四组路由都接受同一个 `configuration` 对象，以及下文描述的同一套 MemoryLake 扩展：
+
+| `configuration` 字段 | 类型 | 说明 |
+|---|---|---|
+| `blocking` | boolean | 是否等待任务执行完成后再返回。v1.0 与 v0.3 均适用。 |
+| `historyLength` | integer | 响应中携带的任务历史消息条数（取最近若干条）。 |
+| `acceptedOutputModes` | array | 客户端可处理的输出 MIME 类型。 |
+| `pushNotificationConfig` | object | 任务状态更新回调的 URL（可选带鉴权配置）。 |
 
 ## MemoryLake 扩展
 
@@ -81,8 +90,31 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
 
 ## 示例
 
-<RequestExample>
-```bash 发送消息 (A2A v1.0)
+发送一条消息涉及三个彼此独立的选择 —— **协议版本**（v1.0 / v0.3）×**方法**（send / stream）×**传输方式**（REST / JSON-RPC），因此共有 8 种有效组合。以下把 8 种全部列出。
+
+下表的路径均相对于上文的 base URL；JSON-RPC 一律 POST 到不带后缀的 base URL，由 `method` 指定操作。
+
+| # | 组合 | 请求 | header |
+|---|---|---|---|
+| 1 | v1.0 · send · REST | `POST /message:send` | — |
+| 2 | v1.0 · stream · REST | `POST /message:stream` | SSE |
+| 3 | v0.3 · send · REST | `POST /v1/message:send` | — |
+| 4 | v0.3 · stream · REST | `POST /v1/message:stream` | SSE |
+| 5 | v1.0 · send · JSON-RPC | `SendMessage` | v1.0 |
+| 6 | v1.0 · stream · JSON-RPC | `SendStreamingMessage` | v1.0 + SSE |
+| 7 | v0.3 · send · JSON-RPC | `message/send` | — |
+| 8 | v0.3 · stream · JSON-RPC | `message/stream` | SSE |
+
+上表 **header** 列中，**SSE** 表示 `Accept: text/event-stream`，**v1.0** 表示 `A2A-Version: 1.0`。8 种组合都使用同一个 `configuration` 对象和同一套 `metadata.memorylake` 扩展。其中 4 个 streaming 变体以 `text/event-stream` 返回；4 个 send 变体返回单个 JSON 响应体。
+
+<Note>
+请注意版本与传输方式之间的三处结构差异：v1.0 使用 `parts`，`role` 为 `"ROLE_USER"`；v0.3 **REST** 使用 `content`，`role` 为 `"ROLE_USER"`；v0.3 **JSON-RPC** 使用 `parts` 且每个 part 都带 `kind` 判别符，`role` 为小写的 `"user"`。
+</Note>
+
+### REST 传输
+
+<CodeGroup>
+```bash 1 · v1.0 send（REST）
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/message:send' \
   -H 'Authorization: Bearer sk_xxxxxx' \
   -H 'Content-Type: application/json' \
@@ -95,7 +127,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
       "contextId": "ctx_m4n7p2q9"
     },
     "configuration": {
-      "returnImmediately": false,
+      "blocking": true,
       "historyLength": 10
     },
     "metadata": {
@@ -112,7 +144,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
   }'
 ```
 
-```bash 流式消息 (A2A v1.0, SSE)
+```bash 2 · v1.0 stream（REST）
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/message:stream' \
   -H 'Authorization: Bearer sk_xxxxxx' \
   -H 'Content-Type: application/json' \
@@ -133,7 +165,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
   }'
 ```
 
-```bash 发送消息 (A2A v0.3)
+```bash 3 · v0.3 send（REST）
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/v1/message:send' \
   -H 'Authorization: Bearer sk_xxxxxx' \
   -H 'Content-Type: application/json' \
@@ -156,4 +188,154 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
     }
   }'
 ```
-</RequestExample>
+
+```bash 4 · v0.3 stream（REST）
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a/v1/message:stream' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{
+    "message": {
+      "role": "ROLE_USER",
+      "content": [
+        { "text": "Summarize our last meeting notes" }
+      ]
+    },
+    "metadata": {
+      "memorylake": {
+        "actorId": "act_user_jane",
+        "readOnlyProjectIds": ["proj_meetings"]
+      }
+    }
+  }'
+```
+</CodeGroup>
+
+### JSON-RPC 传输
+
+两个协议版本共用同一个路径 —— 不带任何后缀的 `POST {baseUrl}`。协议版本由方法名决定；v1.0 客户端还应额外发送 `A2A-Version: 1.0`。
+
+<CodeGroup>
+```bash 5 · v1.0 send（JSON-RPC）
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -H 'A2A-Version: 1.0' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "req-1",
+    "method": "SendMessage",
+    "params": {
+      "message": {
+        "messageId": "msg-1",
+        "role": "ROLE_USER",
+        "parts": [
+          { "text": "How do I configure two-factor authentication?" }
+        ],
+        "contextId": "ctx_m4n7p2q9"
+      },
+      "configuration": {
+        "blocking": true,
+        "historyLength": 10
+      },
+      "metadata": {
+        "memorylake": {
+          "actorId": "act_user_jane",
+          "readWriteProjectId": "proj_def456",
+          "readOnlyProjectIds": ["proj_shared_kb"],
+          "overrides": {
+            "model": "gpt-4o",
+            "maxTurns": 5
+          }
+        }
+      }
+    }
+  }'
+```
+
+```bash 6 · v1.0 stream（JSON-RPC）
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -H 'A2A-Version: 1.0' \
+  -H 'Accept: text/event-stream' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "req-2",
+    "method": "SendStreamingMessage",
+    "params": {
+      "message": {
+        "messageId": "msg-2",
+        "role": "ROLE_USER",
+        "parts": [
+          { "text": "Summarize our last meeting notes" }
+        ]
+      },
+      "metadata": {
+        "memorylake": {
+          "actorId": "act_user_jane",
+          "readOnlyProjectIds": ["proj_meetings"]
+        }
+      }
+    }
+  }'
+```
+
+```bash 7 · v0.3 send（JSON-RPC）
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "req-3",
+    "method": "message/send",
+    "params": {
+      "message": {
+        "messageId": "msg-3",
+        "role": "user",
+        "parts": [
+          { "kind": "text", "text": "How do I configure two-factor authentication?" }
+        ],
+        "contextId": "ctx_m4n7p2q9"
+      },
+      "configuration": {
+        "blocking": true,
+        "historyLength": 10
+      },
+      "metadata": {
+        "memorylake": {
+          "actorId": "act_user_jane",
+          "readWriteProjectId": "proj_def456"
+        }
+      }
+    }
+  }'
+```
+
+```bash 8 · v0.3 stream（JSON-RPC）
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3/a2a' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": "req-4",
+    "method": "message/stream",
+    "params": {
+      "message": {
+        "messageId": "msg-4",
+        "role": "user",
+        "parts": [
+          { "kind": "text", "text": "Summarize our last meeting notes" }
+        ]
+      },
+      "metadata": {
+        "memorylake": {
+          "actorId": "act_user_jane",
+          "readOnlyProjectIds": ["proj_meetings"]
+        }
+      }
+    }
+  }'
+```
+</CodeGroup>
