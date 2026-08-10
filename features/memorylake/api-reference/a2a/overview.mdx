@@ -57,7 +57,7 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
   </ParamField>
 
   <ParamField body="readWriteProjectId" type="string">
-  Agent 可读写的项目。提取的事实和会话历史将持久化到此项目。
+  Agent 可读写的项目。提取的事实将持久化到此项目；会话历史存储在工作空间层级，不属于项目。
   </ParamField>
 
   <ParamField body="readOnlyProjectIds" type="array">
