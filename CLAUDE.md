@@ -41,6 +41,7 @@ curl -s https://app.memorylake.cn/api/status | python3 -m json.tool
 
 - **可用**：MemoryLake 记忆平台、Model Router（含 Playground，Claude/Gemini 供应商）、OAuth2 MCP（`/memorylake/mcp/v2`）、Agent 插件（OpenClaw/QClaw/Hermes）、REST API、Claude/ChatGPT/Gemini/Chrome 扩展集成、Open Data、连接器（WPS/飞书/OneDrive/SharePoint/Dropbox）
 - **未开放**：Memory Router（网关未注册）、Memory Arena、NL2SQL/数据库查询、Actor UI、聊天记录导入、连接器中的 Google Drive/钉钉/百度网盘
+- **IM 渠道集成（钉钉机器人）**：2026-08-11 实测已开放（`features.memorylake.im_channels.dingtalk = true`）。注意它与上一行「连接器中的钉钉」是**两个不同功能**：前者把 agent 接进钉钉聊天（工作空间 ▸ 集成），后者把钉钉文档挂进文件库（连接器页面，仍未开放）
 - 登录仅邮箱密码（无第三方登录），注册开启且当前无需邮箱验证
 - 计费按人民币显示；**不要写具体支付方式**，未经确认一律引导到控制台 Billing 或商务
 
