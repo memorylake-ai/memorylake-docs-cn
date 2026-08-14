@@ -29,6 +29,10 @@ Actor ID
 更新后的描述。
 </ParamField>
 
+<ParamField body="tags" type="string[]">
+整份替换 Actor 的标签——您传入的列表即为最终的完整集合。传 `[]` 清空所有标签，省略该字段则保持现有标签不变。
+</ParamField>
+
 <ParamField body="metadata" type="object">
 更新后的元数据。将替换整个元数据对象——如果您想保留现有键，请在发送前先在本地合并。
 </ParamField>
@@ -40,6 +44,7 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors/act-a1
   -H 'Content-Type: application/json' \
   -d '{
     "display_name": "Alice Chen (VIP)",
+    "tags": ["vip", "enterprise"],
     "metadata": {
       "tier": "enterprise",
       "region": "us-west",
@@ -58,6 +63,7 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors/act-a1
   <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
   <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
   <ResponseField name="description" type="string">Actor 描述</ResponseField>
+  <ResponseField name="tags" type="string[]">Actor 上的标签。没有标签时为空数组</ResponseField>
   <ResponseField name="metadata" type="object">调用方定义的元数据</ResponseField>
   <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
   <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
@@ -73,6 +79,7 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors/act-a1
     "custom_id": "user-ext-001",
     "actor_type": "HUMAN",
     "display_name": "Alice Chen (VIP)",
+    "tags": ["vip", "enterprise"],
     "description": "Primary end user for the mobile app",
     "metadata": {
       "tier": "enterprise",

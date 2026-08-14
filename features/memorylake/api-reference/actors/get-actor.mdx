@@ -46,6 +46,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors/user-ext
   <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
   <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
   <ResponseField name="description" type="string">Actor 描述</ResponseField>
+  <ResponseField name="tags" type="string[]">Actor 上的标签。没有标签时为空数组</ResponseField>
   <ResponseField name="metadata" type="object">调用方定义的元数据</ResponseField>
   <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
   <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
@@ -62,6 +63,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors/user-ext
     "actor_type": "HUMAN",
     "display_name": "Alice Chen",
     "description": "Primary end user for the mobile app",
+    "tags": ["vip", "cn"],
     "metadata": {
       "tier": "premium",
       "region": "us-west"

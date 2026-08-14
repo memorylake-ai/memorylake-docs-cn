@@ -31,8 +31,12 @@ Actor 类型。可选值：`HUMAN`（默认，终端用户）或 `ASSISTANT`（A
 Actor 角色或用途的自由文本描述。
 </ParamField>
 
+<ParamField body="tags" type="string[]">
+用于分组和筛选 Actor 的标签，例如 `vip` 或 `cn`。重复的标签会被去除，首尾空白会被裁剪。匹配是精确且区分大小写的，因此 `VIP` 和 `vip` 是两个不同的标签。每个 Actor 最多 20 个标签，每个标签最长 64 个字符，标签中不能包含逗号。
+</ParamField>
+
 <ParamField body="metadata" type="object">
-任意键值对，用于调用方定义的元数据。适用于为 Actor 添加层级、地区或部门等属性标签。
+任意键值对，用于调用方定义的元数据，例如层级、地区或部门。元数据不支持筛选——需要按属性检索时请使用 `tags`。
 </ParamField>
 
 <RequestExample>
@@ -45,6 +49,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors' \
     "actor_type": "HUMAN",
     "display_name": "Alice Chen",
     "description": "Primary end user for the mobile app",
+    "tags": ["vip", "cn"],
     "metadata": {
       "tier": "premium",
       "region": "us-west"
@@ -62,6 +67,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors' \
   <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
   <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
   <ResponseField name="description" type="string">Actor 描述</ResponseField>
+  <ResponseField name="tags" type="string[]">Actor 上的标签。没有标签时为空数组</ResponseField>
   <ResponseField name="metadata" type="object">调用方定义的元数据</ResponseField>
   <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
   <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
@@ -78,6 +84,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors' \
     "actor_type": "HUMAN",
     "display_name": "Alice Chen",
     "description": "Primary end user for the mobile app",
+    "tags": ["vip", "cn"],
     "metadata": {
       "tier": "premium",
       "region": "us-west"
