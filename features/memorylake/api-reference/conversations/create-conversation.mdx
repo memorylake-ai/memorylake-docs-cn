@@ -33,16 +33,16 @@ POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations
 会话读取上下文和写入事实的读写项目。需要恰好一个项目 ID。
 </ParamField>
 
+<ParamField body="actor_ids" type="array" required>
+参与会话的 Actor ID 列表，至少需要一个。每条消息都归属于某个 Actor，Actor 的记忆也由其发言构建，因此没有 Actor 的会话既分不清参与方，也无法为任何人建立记忆。每个 ID 必须引用您已创建、并已绑定到该工作空间的 Actor。
+</ParamField>
+
 <ParamField body="name" type="string">
 会话的显示名称
 </ParamField>
 
 <ParamField body="metadata" type="object">
 附加到会话的任意键值元数据
-</ParamField>
-
-<ParamField body="actor_ids" type="array">
-参与会话的 Actor ID 列表。每个 ID 应引用您之前创建的 Actor。
 </ParamField>
 
 <RequestExample>
