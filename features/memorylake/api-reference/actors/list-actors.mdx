@@ -31,6 +31,10 @@ GET /openapi/memorylake/api/v3/actors
 按显示名称模糊搜索。
 </ParamField>
 
+<ParamField query="tags" type="string[]">
+按标签筛选。重复传参（`?tags=vip&tags=cn`）或用逗号分隔（`?tags=vip,cn`）可同时要求多个标签——只返回同时带有所有列出标签的 Actor。匹配是精确且区分大小写的。
+</ParamField>
+
 <RequestExample>
 ```bash First page
 curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?page_size=20' \
@@ -44,6 +48,11 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?actor_ty
 
 ```bash Search by display name
 curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?display_name_fuzzy=Alice' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 按标签筛选
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?tags=vip&tags=cn' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 
@@ -65,6 +74,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?page_siz
     <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
     <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
     <ResponseField name="description" type="string">Actor 描述</ResponseField>
+    <ResponseField name="tags" type="string[]">Actor 上的标签。没有标签时为空数组</ResponseField>
     <ResponseField name="metadata" type="object">调用方定义的元数据（键值对）</ResponseField>
     <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
     <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
@@ -86,6 +96,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?page_siz
         "actor_type": "HUMAN",
         "display_name": "Alice Chen",
         "description": "Primary end user for the mobile app",
+        "tags": ["vip", "cn"],
         "metadata": {
           "tier": "premium",
           "region": "us-west"
@@ -99,6 +110,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors?page_siz
         "actor_type": "ASSISTANT",
         "display_name": "Intake Bot",
         "description": "Automated intake system for onboarding flows",
+        "tags": [],
         "metadata": {},
         "created_at": "2025-03-12T14:30:00Z",
         "updated_at": "2025-03-12T14:30:00Z"
