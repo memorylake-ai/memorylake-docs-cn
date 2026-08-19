@@ -1,0 +1,341 @@
+---
+title: "Slack 集成"
+description: "把工作空间的记忆接进 Slack：私聊机器人，或把它拉进频道 @ 它提问"
+---
+
+## 概述
+
+Slack 集成把一个**工作空间**里的智能体接到您自己的 Slack 应用上。接入完成后，团队成员不必打开控制台：
+
+- 私聊机器人，或在频道里 @ 它，立刻拿到基于团队记忆库的回答
+- 回答**流式分段呈现**：先显示「思考中…」占位，随后内容逐段刷新，无需等待完整回答生成
+- 发一份文档或一张截图给它，就能接着追问里面的内容
+- 每次问答都会沉淀为记忆，同事再问时不必有人重复解释
+
+机器人的回答基于您指定的项目记忆，而非通用模型的常识性内容。
+
+<Note>
+Slack 侧的配置**无需平台审核**，通常十分钟内即可完成。修改权限或事件订阅后，需 **Reinstall**（重新安装到 workspace）方可生效。
+</Note>
+
+## 开始之前
+
+<CardGroup cols={2}>
+
+<Card title="MemoryLake 侧" icon="database">
+- 团队的 **owner** 或 **admin** 角色（member 既看不到也改不了集成）
+- 一个工作空间，里面至少有一个项目
+- 至少一个**已关联到该工作空间**的智能体（在工作空间的「智能体」标签页关联）
+</Card>
+
+<Card title="Slack 侧" icon="slack">
+- 能在目标 workspace 创建应用的账号（多数 workspace 默认允许所有成员创建；若贵司启用了应用安装审批，安装环节需管理员通过）
+- 一个用于测试的频道（可选，但建议）
+</Card>
+
+</CardGroup>
+
+<Warning>
+如果工作空间页里**没有**「IM」标签页，说明该部署没有启用 IM 渠道功能，或者您的角色是 member。请联系团队管理员确认。
+</Warning>
+
+## 第一部分：在 Slack 创建应用
+
+这部分全部在 [api.slack.com/apps](https://api.slack.com/apps) 完成，目的是获取两项凭证：**Bot User OAuth Token**（`xoxb-` 开头）和 **App-Level Token**（`xapp-` 开头）。
+
+推荐用 **manifest（应用清单）**创建：把下面一段 JSON 粘贴进去，权限、事件订阅、私聊入口、Socket Mode 一次配齐，不会漏项。
+
+<Steps>
+
+<Step title="用 manifest 创建应用">
+打开 [api.slack.com/apps](https://api.slack.com/apps) → **Create New App** → 选择 **From a manifest** → **Continue** → 选择要安装到的 workspace → 把下面整段 JSON 粘贴进配置框 → 核对权限与事件列表 → **Create**。
+
+```json
+{
+  "display_information": {
+    "name": "MemoryLake 助手"
+  },
+  "features": {
+    "bot_user": {
+      "display_name": "memorylake",
+      "always_online": true
+    },
+    "app_home": {
+      "home_tab_enabled": false,
+      "messages_tab_enabled": true,
+      "messages_tab_read_only_enabled": false
+    }
+  },
+  "oauth_config": {
+    "scopes": {
+      "bot": [
+        "app_mentions:read",
+        "im:history",
+        "chat:write",
+        "files:read",
+        "users:read"
+      ]
+    }
+  },
+  "settings": {
+    "event_subscriptions": {
+      "bot_events": [
+        "app_mention",
+        "message.im",
+        "tokens_revoked",
+        "app_uninstalled"
+      ]
+    },
+    "org_deploy_enabled": false,
+    "socket_mode_enabled": true,
+    "token_rotation_enabled": false
+  }
+}
+```
+
+两个名字的规则不同：`display_information.name` 是**展示名**，同事看到的就是它，可用中文，建议改成团队易于辨认的名称；`features.bot_user.display_name` 是 @ 提及用的**机器人用户名**，只接受小写字母、数字、短横线与下划线——填中文会报 "The display_name cannot be converted to a username"。
+
+**manifest 各项对照**（核对或手动配置时用）：
+
+| manifest 字段 | 对应的手动配置位置 | 用途 |
+| --- | --- | --- |
+| `oauth_config.scopes.bot` | OAuth & Permissions → Bot Token Scopes | 收发消息、读文件、查姓名的权限，共 5 项 |
+| `settings.event_subscriptions.bot_events` | Event Subscriptions → Subscribe to bot events | 4 个事件；后两个（`tokens_revoked`、`app_uninstalled`）用于凭证失效时及时同步连接状态，**不可省** |
+| `features.app_home.messages_tab_*` | App Home → Show Tabs → Messages Tab | 私聊入口；`read_only_enabled: false` 即「允许发送消息」，漏配则私聊输入框被禁用 |
+| `settings.socket_mode_enabled` | Socket Mode → Enable Socket Mode | 长连接接收事件，无需公网回调地址 |
+| `settings.token_rotation_enabled: false` | — | 轮换型 token（`xoxe` 开头）与集成的静态凭证模型不兼容，创建集成时会被拒绝 |
+
+<Note>
+`users:read` 严格来说可选：不配则控制台「记忆身份」里每位成员显示为 `U08J5K7UXH6` 形式的 id，机器人也无法回答「我是谁」，其余功能不受影响。manifest 里已包含，建议保留。
+</Note>
+</Step>
+
+<Step title="生成 App-Level Token">
+manifest 覆盖不到 App-Level Token，这一步要手动做：应用创建完成后进入 **Basic Information** → 拉到 **App-Level Tokens** → **Generate Token and Scopes** → 填写名称、scope 选择 **`connections:write`** → 生成后复制这串 `xapp-` 开头的值。
+
+之后可随时回到同一位置再次查看该 token。
+</Step>
+
+<Step title="安装到 workspace，复制 Bot User OAuth Token">
+左侧 **OAuth & Permissions**（或 Basic Information 页的 **Install your app**）→ **Install to Workspace** → 授权。
+
+安装完成后，OAuth & Permissions 页顶部会出现 **Bot User OAuth Token**（`xoxb-` 开头），复制它。
+
+<Warning>
+**后续每次改动 scope 或事件订阅（无论改 manifest 还是手动点），都需回到此处执行 Reinstall to Workspace**，否则新配置不生效。没有审核环节，操作后立即生效。
+</Warning>
+</Step>
+
+</Steps>
+
+## 第二部分：在控制台创建集成
+
+<Steps>
+
+<Step title="打开工作空间的「IM」标签页">
+在 [MemoryLake 控制台](https://app.memorylake.cn) 里进入 **MemoryLake → 工作空间**，打开目标工作空间，切到 **IM** 标签页，点 **开始接入**。
+
+在「选择要接入的平台」里选 **Slack**。
+</Step>
+
+<Step title="第一步：填写 Slack 应用凭证">
+| 字段 | 填写内容 |
+| --- | --- |
+| **Bot User OAuth Token** | `xoxb-` 开头，来自 OAuth & Permissions 页 |
+| **App-Level Token** | `xapp-` 开头，来自 Socket Mode / Basic Information 页 |
+
+填完点 **下一步：智能体与记忆**。
+
+<Note>
+Slack 集成**不需要填任何应用 ID**——身份（workspace + 机器人）由服务端校验 token 时自动推导，创建后显示在集成卡片的「应用标识」上。
+
+同一个 Slack 应用安装在**同一个 workspace** 里只能接一条集成；装到**另一个 workspace** 后是另一个身份，可以另建一条。如果发生占用冲突，表单顶部会直接提示。
+</Note>
+</Step>
+
+<Step title="第二步：选智能体与记忆范围">
+| 字段 | 说明 |
+| --- | --- |
+| **名称** | 只用于控制台里辨认这条集成，已预填好，可改 |
+| **智能体** | 负责回答 Slack 侧消息。只能选**已关联到当前工作空间**的智能体 |
+| **读写项目**（必选） | 机器人检索并写入记忆的项目 |
+| **额外的只读项目**（可选） | 机器人可以检索、但绝不写入的项目 |
+
+<Warning>
+**读写项目是一次授权决策。** 所有能用这个机器人的人，都在往这个项目里写记忆，也都能读到里面已有的内容。选一个本来就打算团队共享的项目，不要选放着敏感资料的那个。
+</Warning>
+</Step>
+
+<Step title="创建并连接">
+点 **创建并连接**。集成创建后**默认就是启用状态**，服务端会先校验 Bot User OAuth Token，再建立与 Slack 的长连接。
+
+<Check>
+集成卡片上的状态徽标显示**已连接**，「应用标识」显示 `T…:U…` 形式的复合身份。
+</Check>
+
+如果创建被拒并提示「Bot User OAuth Token 校验失败」，说明 token 复制有误或已被吊销；如果状态变成「凭证无效，请检查 Bot User OAuth Token / App-Level Token」，回到编辑弹窗核对两个值。
+</Step>
+
+</Steps>
+
+## 第三部分：验证并开始使用
+
+### 私聊
+
+成员在 Slack 左侧 **Apps** 里找到这个应用，直接发问题、不用 @。
+
+回答先出现「思考中…」占位，随后内容分段刷新。消息带 **(edited) 标记**是正常的——流式更新就是通过编辑同一条消息实现的。
+
+### 频道（群聊）
+
+先把机器人**加进频道**（在频道里输入 `/invite @机器人名`，或 @ 它时按提示邀请），之后 **@ 它 + 问题**。
+
+回答会落在**您那条提问消息的线程里**——频道主时间线保持整洁，上下文也随线程延续。机器人在某个频道首次被 @ 时，会额外附一句能力说明，之后不再重复。
+
+<Warning>
+**线程里追问也要 @ 它。** 这是 Slack 平台的机制：不 @ 的消息不会投递给机器人，它完全收不到。这也意味着机器人看不到频道里的其他聊天内容。
+</Warning>
+
+### 发文档和截图给它
+
+- **私聊**：直接把文件或图片发给机器人，然后追问内容
+- **频道**：**把文件和 @ 放在同一条消息里发出**（选好文件、输入「@机器人 + 一句话」一起发）
+
+<Note>
+频道里**单独发送文件（不 @）机器人是收不到的**——Slack 不会投递这条消息。请确保文件与 @ 在同一条消息中。
+</Note>
+
+### 会话与上下文
+
+- **私聊是连续会话**：不因间隔时间而中断，隔夜再问仍衔接上下文。要重新开始，发送 **`new`**（不含斜杠，整条消息仅此一词）
+- **频道按线程**：一个线程就是一个话题，线程内的追问一直接着上下文，**不设过期时间**——隔天回到同一线程接着问也连得上。想换话题，开一条新线程（在频道里重新 @ 它）即可
+- 线程内**每位成员的上下文相互独立**，多人在同一线程 @ 它也不会相互混淆
+- 私聊里发过的文件**不会过期**，一直跟着这个会话；发送 `new` 会一并清掉。频道里发的文件在该线程里约 30 分钟内可继续追问
+
+<Note>
+**为什么是 `new` 而不是 `/new`？** Slack 客户端会把所有 `/` 开头的输入当作斜杠命令拦截，根本不会作为消息发出去。所以在 Slack 里重置会话直接发 `new` 这个词（大小写均可，整条消息只有它）。频道线程里则是 `@机器人 new`。
+</Note>
+
+### 谁是谁
+
+每个 Slack 用户在 MemoryLake 里对应一个独立的**记忆身份**，个人相关的记忆归到各自身上；写入项目里的团队记忆则是所有人共享的。
+
+配置 `users:read` 权限后，记忆身份会显示真实姓名，机器人也能回答「我是谁」。
+
+### 机器人暂时处理不了的
+
+发送语音或视频消息时，会得到一句明确的提示，不会静默无反应。来自 **Slack Connect 共享频道的外部组织用户**会被静默忽略——他们的提问不消耗您的额度，也不会写进您的记忆。
+
+## 管理已有集成
+
+| 操作 | 位置与说明 |
+| --- | --- |
+| **停用 / 启用** | 集成卡片上的开关，**立刻生效** |
+| **更换 token** | 编辑 → 对应字段旁的「更换」按钮 → 填新值保存。不点「更换」就不会改动现有值，两个 token 可以只换其中一个 |
+| **更换智能体** | 编辑 → 智能体。**会重置该集成下所有进行中的会话** |
+| **调整记忆范围** | 编辑 → 读写项目 / 只读项目。改完立刻生效 |
+| **删除集成** | 卡片菜单 → 删除。会一并清除会话记录、身份映射和会话附件，**不可恢复** |
+
+<Note>
+**集成的身份（安装的 workspace + 机器人）创建后不可修改。** 编辑时贴入另一个 workspace 的 token 会被拒绝。要换成别的 workspace，只能删掉重建。
+</Note>
+
+## 常见问题
+
+<AccordionGroup>
+
+<Accordion title="私聊输入框被禁用，提示 Sending messages to this app has been turned off">
+**App Home 的 Messages Tab 未完整开启。** 到应用配置的 **App Home → Show Tabs**，打开 **Messages Tab** 并勾选 "Allow users to send Slash commands and messages from the messages tab"，两项都需开启。修改后无需 Reinstall，刷新 Slack 客户端即可。
+</Accordion>
+
+<Accordion title="在频道里 @ 它没反应">
+按顺序检查：
+
+- **机器人加进这个频道了吗**：`/invite @机器人名`
+- **事件订阅里有 `app_mention` 吗**，加过之后 **Reinstall** 了吗
+- **是在线程里没 @ 吗**：线程内追问也必须 @，不 @ 的消息平台不投递
+- **集成开关是否被停用**（停用时机器人会回「机器人当前不可用」）
+</Accordion>
+
+<Accordion title="发 /new 弹出「not a valid command」">
+Slack 把 `/` 开头的输入拦截成了斜杠命令，这条消息根本没发出去。
+
+在 Slack 里重置会话**不带斜杠**：私聊直接发 `new`，频道线程里发 `@机器人 new`。
+</Accordion>
+
+<Accordion title="改了权限或事件订阅，但不生效">
+Slack 的 scope 和事件改动**必须 Reinstall to Workspace 才生效**：应用配置 → OAuth & Permissions → Reinstall to Workspace。没有审核环节，操作后立即生效。
+</Accordion>
+
+<Accordion title="「记忆身份」里显示的是 U 开头的一串 id，不是姓名">
+需要 `users:read` 权限，添加后 **Reinstall**。
+
+<Warning>
+**已经建出来的记忆身份不会自动改名。** 姓名只在这个人第一次与机器人对话时写入一次，补权限只对**新用户**生效。想让某个人改过来，在「记忆身份」里删掉他那条，他下次发消息时会重新建立。
+</Warning>
+</Accordion>
+
+<Accordion title="Token 被吊销 / 应用被卸载之后会怎样">
+如果订阅了 `tokens_revoked` 和 `app_uninstalled` 事件，集成状态会**在几秒内**变为异常，原因写着「Bot User OAuth Token 已失效…」。没订阅的话，状态可能要等几小时（连接例行重建时）才变红——这就是为什么创建应用时强调四个事件都要订。
+
+注意：吊销 Bot User OAuth Token 等于**卸载应用**，机器人会从 workspace 里消失。恢复方式：应用配置 → OAuth & Permissions → **Reinstall to Workspace** 生成新 token，然后回控制台编辑集成、只更换 Bot User OAuth Token 即可（App-Level Token 不受影响，不用动）。
+</Accordion>
+
+<Accordion title="状态显示「凭证无效，请检查 Bot User OAuth Token / App-Level Token」">
+Slack 侧拒绝了我们的连接，通常为以下三种情况：
+
+- 某个 token 复制时多了空格、少了字符
+- Bot User OAuth Token 被吊销 / 应用被卸载后重装过（重装会生成**新的** token，控制台里还是旧值）
+- App-Level Token 被删除
+
+处理方式：编辑这条集成，点对应字段旁的「更换」填入新值，保存会立刻重连。
+</Accordion>
+
+<Accordion title="回答是一段一段刷新的，不是逐字出现">
+这是 Slack 侧的实现边界：我们通过编辑同一条消息来流式更新（所以带 (edited) 标记），Slack 对消息编辑没有打字机动画，且对更新频率有限流。回答前 12 秒每 0.5 秒刷新一段，之后放缓——内容完整性不受影响。
+</Accordion>
+
+<Accordion title="创建集成被拒：提示 token rotation 或 Enterprise 安装不支持">
+两种当前不支持的应用形态：
+
+- **Token rotation**（`xoxe` 开头的 token）：轮换型 token 每 12 小时过期，与集成的静态凭证模型不兼容。在应用配置里关闭 token rotation 后重新安装取 token。
+- **Enterprise Grid 的 org-wide 安装**：请按单个 workspace 安装（Install to Workspace 而不是 org-wide），每个 workspace 各建一条集成。
+</Accordion>
+
+<Accordion title="同一个 Slack 应用能接到两个工作空间吗">
+按「安装」算：同一个应用**装在同一个 Slack workspace** 只能被一条集成占用；把它**安装到另一个 Slack workspace** 之后是另一个身份，可以在任意 MemoryLake 工作空间再建一条集成。
+
+需要一个机器人服务多个项目的记忆，正确做法是把这些项目作为**只读项目**加进同一条集成。
+</Accordion>
+
+<Accordion title="谁能用这个机器人？能不能配一份白名单">
+访问范围完全由 **Slack 侧**决定，我们刻意不做第二套白名单：
+
+- **私聊**：应用装在 workspace 里，成员就能在 Apps 里找到它
+- **频道**：机器人被拉进哪个频道，该频道成员就能 @ 它
+- **Slack Connect 外部用户**：始终被忽略，不消耗额度、不写记忆
+</Accordion>
+
+<Accordion title="成员之间的对话会互相看到吗">
+分两层看：
+
+- **对话上下文**是按人隔离的。同一线程里 A 的提问不会出现在 B 的对话里。
+- **项目记忆是共享的。** 沉淀进读写项目的记忆，所有能用这个机器人的人都能检索到——这正是这个功能的价值，也是为什么创建时要把读写项目当成一次授权决策来选。
+</Accordion>
+
+<Accordion title="机器人说「当前账户额度已用尽」或「当前请求较多」">
+两句话对应两件不同的事：
+
+- **「当前账户额度已用尽，请联系管理员升级套餐后再试。」** 团队的套餐额度耗尽了。**不充值不会自动恢复**。
+- **「当前请求较多，正在排队，请稍后再发一次。」** 是我们这边一时繁忙，稍后重发即可。
+</Accordion>
+
+<Accordion title="删除集成会影响什么">
+会一并清除这条集成的会话记录、Slack 用户与记忆身份的映射关系，以及会话里挂着的附件引用，且不可恢复。
+
+**已经沉淀进项目的记忆和已入库的文件不会被删**——它们属于项目，不属于集成。
+
+只是临时停用的话，用卡片上的开关就够了，不要删。
+</Accordion>
+
+</AccordionGroup>
