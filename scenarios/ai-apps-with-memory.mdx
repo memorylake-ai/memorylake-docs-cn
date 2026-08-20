@@ -59,10 +59,11 @@ curl -X POST "$BASE/api/v3/workspaces/$WORKSPACE_ID/memories/conversations" \
   -H "Content-Type: application/json" \
   -d "{\"project_id\": \"$PROJECT_ID\", \"actor_id\": \"$ACTOR_ID\"}"
 
+# 首条消息的 parent_message_id 填 null，之后每条填上一次追加返回的 id
 curl -X POST "$BASE/api/v3/conversations/$CONVERSATION_ID/messages" \
   -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
   -H "Content-Type: application/json" \
-  -d '{"role": "user", "content": "I am vegetarian and lactose intolerant"}'
+  -d "{\"custom_id\": \"msg-001\", \"actor_id\": \"$ACTOR_ID\", \"parent_message_id\": null, \"content\": [{\"block_type\": \"TEXT\", \"text\": \"I am vegetarian and lactose intolerant\"}]}"
 
 # 召回：一次搜索同时覆盖文档片段与提取的事实
 curl -X POST "$BASE/api/v3/workspaces/$WORKSPACE_ID/memories/search" \

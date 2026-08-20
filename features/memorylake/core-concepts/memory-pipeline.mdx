@@ -76,7 +76,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{wor
 </Step>
 
 <Step title="追加消息">
-逐条向会话提交消息。包含 `actor_id` 以便 MemoryLake 将事实关联到正确的参与者。
+逐条向会话提交消息。包含 `actor_id` 以便 MemoryLake 将事实关联到正确的参与者，并用 `parent_message_id` 指明每条消息的前驱——第一条填 `null`，之后每一条填上一次追加返回的 `id`。
 
 ```bash
 curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{conversation_id}/messages \
@@ -85,6 +85,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{
   -d '{
     "custom_id": "msg-001",
     "actor_id": "act_jane456",
+    "parent_message_id": null,
     "content": [{"block_type": "TEXT", "text": "We decided to use React for the frontend. Launch target is March."}]
   }'
 
@@ -94,6 +95,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{
   -d '{
     "custom_id": "msg-002",
     "actor_id": "act_assistant",
+    "parent_message_id": "{id_returned_for_msg_001}",
     "content": [{"block_type": "TEXT", "text": "Got it. I will note that the frontend uses React with a March launch target."}]
   }'
 ```
