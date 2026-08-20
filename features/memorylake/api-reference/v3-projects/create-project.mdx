@@ -7,7 +7,7 @@ description: "在工作空间中创建新项目"
 POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects
 ```
 
-在指定工作空间中创建新项目。您需要提供名称和自定义标识符，还可以选择附加描述、元数据和行业分类。
+在指定工作空间中创建新项目。您需要提供名称和自定义标识符，还可以选择附加描述和元数据。
 
 <Note>
 **所需权限：** `project:create`
@@ -37,10 +37,6 @@ POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects
 用于存储额外项目信息的任意键值对
 </ParamField>
 
-<ParamField body="industry_ids" type="array">
-用于对项目进行分类的行业标识符数组
-</ParamField>
-
 <RequestExample>
 ```bash cURL
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects' \
@@ -53,8 +49,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
     "metadata": {
       "team": "product",
       "quarter": "Q1-2024"
-    },
-    "industry_ids": ["ind_tech01"]
+    }
   }'
 ```
 </RequestExample>
@@ -66,14 +61,6 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
   <ResponseField name="id" type="string">项目唯一标识符</ResponseField>
   <ResponseField name="name" type="string">项目名称</ResponseField>
   <ResponseField name="description" type="string">项目描述</ResponseField>
-  <ResponseField name="industries" type="array">
-  分配给项目的行业分类
-  <Expandable title="行业对象">
-    <ResponseField name="id" type="string">行业标识符</ResponseField>
-    <ResponseField name="name" type="string">行业名称</ResponseField>
-    <ResponseField name="description" type="string">行业描述</ResponseField>
-  </Expandable>
-  </ResponseField>
   <ResponseField name="custom_id" type="string">用于外部系统集成的自定义标识符</ResponseField>
   <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
   <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
@@ -88,13 +75,6 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
     "id": "proj_def456",
     "name": "Customer Research",
     "description": "Interview transcripts and survey analysis",
-    "industries": [
-      {
-        "id": "ind_tech01",
-        "name": "Technology",
-        "description": "Software and technology sector"
-      }
-    ],
     "custom_id": "research-2024-q1",
     "created_at": "2024-01-15T10:30:00Z",
     "updated_at": "2024-01-15T10:30:00Z"
