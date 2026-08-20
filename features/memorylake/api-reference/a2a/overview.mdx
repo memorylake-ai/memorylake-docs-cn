@@ -81,7 +81,19 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
       <ParamField body="budgetTokens" type="integer">推理 token 预算</ParamField>
     </Expandable>
     </ParamField>
-    <ParamField body="capabilitiesOverride" type="array">覆盖 Agent 的能力列表</ParamField>
+    <ParamField body="capabilitiesOverride" type="object">
+    按能力名逐项覆盖本次请求的能力配置。传入某个能力，即在本次请求中按您给出的配置启用它；不传则沿用 Agent 自身的配置。能力名及其字段一律用蛇形命名（snake_case），与周围的驼峰字段不同。目前只开放 `web_search` 一个能力，后续可能增加。
+    <Expandable title="能力">
+      <ParamField body="web_search" type="object">
+      让 Agent 联网搜索。仅需联网搜索时，传空对象 `{}`；再加上 `open_datasets`，即可同时检索 MemoryLake 精选的 Open Data 数据集。
+      <Expandable title="web_search 字段">
+        <ParamField body="open_datasets" type="array">
+        随联网搜索一并检索的 Open Data 数据集，用标识符指定：`research/academic`、`clinical/trials`、`drug/database`、`company/fundamentals`、`financial/markets`、`economic/data`、`patents/ip`。
+        </ParamField>
+      </Expandable>
+      </ParamField>
+    </Expandable>
+    </ParamField>
     <ParamField body="maxTurns" type="integer">覆盖最大轮次数</ParamField>
   </Expandable>
   </ParamField>
@@ -137,7 +149,12 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_
         "readOnlyProjectIds": ["proj_shared_kb"],
         "overrides": {
           "model": "gpt-4o",
-          "maxTurns": 5
+          "maxTurns": 5,
+          "capabilitiesOverride": {
+            "web_search": {
+              "open_datasets": ["research/academic", "clinical/trials"]
+            }
+          }
         }
       }
     }
