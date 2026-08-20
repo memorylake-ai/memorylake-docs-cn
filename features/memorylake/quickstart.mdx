@@ -120,6 +120,8 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
 <Step title="创建会话并追加消息">
 向工作空间提交一段会话。首先创建会话，然后逐条添加消息。MemoryLake 会自动从消息中提取结构化事实。
 
+每条消息都用 `parent_message_id` 指明自己的前驱：第一条填 `null`，之后每一条填上一次追加返回的 `id`。会话的顺序就是这样由你声明的。
+
 **创建会话：**
 
 ```bash
@@ -157,6 +159,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/c
   -d '{
     "custom_id": "msg-001",
     "actor_id": "act_jane456",
+    "parent_message_id": null,
     "content": [
       {
         "block_type": "TEXT",
@@ -166,7 +169,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/c
   }'
 ```
 
-**追加第二条消息（助手）：**
+**追加第二条消息（助手）。** 它的 `parent_message_id` 就是第一条追加返回的 `id`：
 
 ```bash
 curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_ghi012/messages \
@@ -175,6 +178,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/c
   -d '{
     "custom_id": "msg-002",
     "actor_id": "act_jane456",
+    "parent_message_id": "msg_jkl345",
     "content": [
       {
         "block_type": "TEXT",
@@ -310,13 +314,15 @@ conversation = requests.post(
 conversation_id = conversation["data"]["id"]
 print(f"Conversation created: {conversation_id}")
 
-# 5. Append messages (one at a time)
-requests.post(
+# 5. Append messages (one at a time). Every message names its predecessor via
+#    parent_message_id; the first one has none, so it sends null.
+first = requests.post(
     f"{BASE_URL}/conversations/{conversation_id}/messages",
     headers=headers,
     json={
         "custom_id": "msg-001",
         "actor_id": actor_id,
+        "parent_message_id": None,
         "content": [
             {
                 "block_type": "TEXT",
@@ -324,7 +330,7 @@ requests.post(
             }
         ],
     },
-)
+).json()
 
 requests.post(
     f"{BASE_URL}/conversations/{conversation_id}/messages",
@@ -332,6 +338,7 @@ requests.post(
     json={
         "custom_id": "msg-002",
         "actor_id": actor_id,
+        "parent_message_id": first["data"]["id"],
         "content": [
             {
                 "block_type": "TEXT",

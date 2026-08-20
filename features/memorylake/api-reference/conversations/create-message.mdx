@@ -47,8 +47,12 @@ POST /openapi/memorylake/api/v3/conversations/{conversationId}/messages
 调用方定义的消息在会话内的唯一标识符
 </ParamField>
 
-<ParamField body="parent_message_id" type="string">
-父消息的 ID，用于线程化会话。设置后，此消息将被视为对指定父消息的回复。
+<ParamField body="parent_message_id" type="string|null" required>
+本条消息在会话中的前驱消息 ID，也就是紧挨在它前面的那一条。它表达的是**顺序**，不是回复关系：即使本条并不是对上一条的回复，也要填上一条的 ID。顺序由调用方声明，服务端不会替你猜。
+
+会话的第一条消息没有前驱，填 `null`。之后的每一条都必须填一个真实的 ID —— 上一次追加返回的 `id`，或者续写已有会话时读到的 `current_message_id`。
+
+请求到达时，这个 ID 必须仍是会话的最新一条消息。如果不是（ID 已过期，或会话已有消息却填了 `null`），追加会失败并返回 `409`，且不写入任何内容。重新读取 `current_message_id`，用它重试。
 </ParamField>
 
 <RequestExample>
@@ -63,7 +67,9 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/
         "text": "Can you summarize last quarter'\''s revenue numbers?"
       }
     ],
+    "custom_id": "msg-001",
     "actor_id": "actor_user_jane",
+    "parent_message_id": null,
     "timestamp": "2025-06-01T14:10:00Z",
     "metadata": {
       "source": "web-app"
@@ -87,12 +93,14 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/
         "mime_type": "image/png"
       }
     ],
+    "custom_id": "msg-002",
     "actor_id": "actor_assistant_v2",
+    "parent_message_id": "msg_3f4a5b6c7d8e9f0a",
     "timestamp": "2025-06-01T14:10:30Z"
   }'
 ```
 
-```bash Threaded reply
+```bash Follow-up message
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/conv_7d2e3f4a5b6c7d8e/messages' \
   -H 'Authorization: Bearer sk_xxxxxx' \
   -H 'Content-Type: application/json' \
@@ -103,6 +111,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/
         "text": "Good point — I'\''ve updated the figures in the attached version."
       }
     ],
+    "custom_id": "msg-003",
     "actor_id": "actor_user_jane",
     "parent_message_id": "msg_9e4b2c3d5f6a7b8c"
   }'
@@ -150,7 +159,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/
     },
     "timestamp": "2025-06-01T14:10:00Z",
     "conversation_id": "conv_7d2e3f4a5b6c7d8e",
-    "sequence_no": 3,
+    "sequence_no": 1,
     "actor_id": "actor_user_jane",
     "created_at": "2025-06-01T14:10:05Z"
   }
