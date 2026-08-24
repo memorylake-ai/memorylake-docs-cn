@@ -125,6 +125,7 @@
                   "features/memorylake/mcp-servers/creating-api-keys",
                   "features/memorylake/mcp-servers/openclaw-plugin",
                   "features/memorylake/im-channels/dingtalk",
+                  "features/memorylake/im-channels/wecom",
                   "features/memorylake/im-channels/feishu",
                   "features/memorylake/im-channels/slack"
                 ]
