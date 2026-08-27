@@ -338,6 +338,53 @@
               "features/memorylake/api-reference/errors",
               "features/memorylake/api-reference/rate-limits"
             ]
+          },
+          {
+            "group": "管理 API",
+            "pages": [
+              "features/management-api/overview",
+              "features/management-api/authentication",
+              {
+                "group": "团队",
+                "pages": [
+                  "features/management-api/team/get-team",
+                  "features/management-api/team/update-team"
+                ]
+              },
+              {
+                "group": "API 密钥",
+                "pages": [
+                  "features/management-api/api-keys/list-api-keys",
+                  "features/management-api/api-keys/create-api-key",
+                  "features/management-api/api-keys/get-api-key",
+                  "features/management-api/api-keys/rotate-api-key",
+                  "features/management-api/api-keys/revoke-api-key"
+                ]
+              },
+              {
+                "group": "成员",
+                "pages": [
+                  "features/management-api/members/list-members",
+                  "features/management-api/members/create-member",
+                  "features/management-api/members/update-member",
+                  "features/management-api/members/remove-member"
+                ]
+              },
+              {
+                "group": "邀请",
+                "pages": [
+                  "features/management-api/invitations/create-invitation",
+                  "features/management-api/invitations/list-invitations",
+                  "features/management-api/invitations/revoke-invitation"
+                ]
+              },
+              {
+                "group": "用量",
+                "pages": [
+                  "features/management-api/usage/get-usage"
+                ]
+              }
+            ]
           }
         ]
       }

@@ -1,0 +1,47 @@
+---
+title: "获取团队信息"
+description: "返回该管理密钥所属的团队"
+---
+
+```
+GET /openapi/admin/api/v1/team
+```
+
+返回调用方密钥所绑定的团队。这里没有团队参数 —— 团队由密钥决定。任何成员的密钥都可以读取。
+
+<RequestExample>
+```bash cURL
+curl 'https://app.memorylake.cn/openapi/admin/api/v1/team' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="团队对象">
+  <ResponseField name="id" type="string">稳定的团队标识符</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="type" type="string">`personal`（单人空间）或 `org`（含成员的团队）</ResponseField>
+  <ResponseField name="owner_principal_id" type="string">团队 Owner 的 `principal_id` —— 可与成员列表关联</ResponseField>
+  <ResponseField name="created_at" type="integer">创建时间，Unix 秒</ResponseField>
+  <ResponseField name="caller_role" type="string">调用方密钥的角色：`tenant_owner`、`tenant_admin`、`tenant_member`，或某个自定义角色的标识</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "74be678f61e34ace95530080a6562bfa",
+    "name": "Acme Research",
+    "type": "org",
+    "owner_principal_id": "32bc58d62b5c4a05a069d5d083f4dd72",
+    "created_at": 1755000000,
+    "caller_role": "tenant_owner"
+  }
+}
+```
+</ResponseExample>

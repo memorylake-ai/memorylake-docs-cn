@@ -1,0 +1,56 @@
+---
+title: "获取 API 密钥"
+description: "返回单把 API 密钥的元数据"
+---
+
+```
+GET /openapi/admin/api/v1/api-keys/{id}
+```
+
+返回单把密钥的元数据。属于其他团队的密钥，以及并不存在的标识符，都会返回同样的 `404`。
+
+<Note>
+**所需权限：** `service_account:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+密钥标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+返回一个 [API 密钥对象](/features/management-api/api-keys/list-api-keys) —— 只有元数据，永远不含密钥值。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "312",
+    "name": "ci-pipeline",
+    "key_prefix": "a1b2c3d4",
+    "key_type": "data",
+    "status": "enabled",
+    "created_at": 1755000000
+  }
+}
+```
+
+```json Not found (404)
+{
+  "success": false,
+  "message": "api key not found",
+  "error_code": "NOT_FOUND"
+}
+```
+</ResponseExample>

@@ -1,0 +1,55 @@
+---
+title: "移除成员"
+description: "把某位成员移出团队"
+---
+
+```
+DELETE /openapi/admin/api/v1/members/{principal_id}
+```
+
+移除一位成员。该成员在本团队中的 API 密钥会被**禁用**（而非删除），管理员因此可以在控制台复核或重新签发。
+
+保护规则：团队 Owner 不能被移除，调用方密钥也不能移除自己的创建者（两种情况都返回 `409`）。
+
+<Note>
+**所需权限：** `member:remove`
+</Note>
+
+### 路径参数
+
+<ParamField path="principal_id" type="string" required>
+来自[成员列表](/features/management-api/members/list-members)的成员标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。用相同的值重试会重放第一次的结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/admin/api/v1/members/9f2c1a7b3d5e4f60a1b2c3d4e5f60718' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+
+```json Removing the owner (409)
+{
+  "success": false,
+  "message": "cannot remove the team owner",
+  "error_code": "STATE_NOT_READY"
+}
+```
+</ResponseExample>

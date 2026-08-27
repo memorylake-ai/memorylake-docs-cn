@@ -1,0 +1,58 @@
+---
+title: "重命名团队"
+description: "更新团队的显示名称 —— 仅 Owner 可用"
+---
+
+```
+PATCH /openapi/admin/api/v1/team
+```
+
+更新团队的显示名称。只有**团队 Owner** 可以执行此操作 —— 与控制台的规则一致。转让所有权和解散团队无法通过本 API 完成。
+
+<Note>
+**所需权限：** 团队 Owner（角色校验，不是一项可授予的权限）
+</Note>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+新的显示名称（1–200 个字符）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/admin/api/v1/team' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "Acme Research EU"}'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的[团队对象](/features/management-api/team/get-team)。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "74be678f61e34ace95530080a6562bfa",
+    "name": "Acme Research EU",
+    "type": "org",
+    "owner_principal_id": "32bc58d62b5c4a05a069d5d083f4dd72",
+    "created_at": 1755000000,
+    "caller_role": "tenant_owner"
+  }
+}
+```
+
+```json Not the owner (403)
+{
+  "success": false,
+  "message": "permission denied",
+  "error_code": "ACCESS_DENIED"
+}
+```
+</ResponseExample>

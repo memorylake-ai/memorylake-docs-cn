@@ -1,0 +1,114 @@
+---
+title: "管理 API 参考"
+description: "以编程方式治理团队 —— 成员、邀请、API 密钥、团队信息与用量"
+---
+
+## API 概览
+
+管理 API 让您把原本需要在控制台团队页面完成的操作自动化 —— 邀请成员、变更角色、签发和轮换 API 密钥、读取用量 —— 全程不需要浏览器会话。适合用来搭建入职/离职自动化、密钥轮换流水线和用量报表。
+
+<Note>
+管理 API 与 MemoryLake 数据 API 是相互独立的：数据密钥无法调用它，管理密钥也无法调用数据 API —— 两个平面按密钥类型彼此隔离。
+</Note>
+
+## 基础 URL
+
+```
+https://app.memorylake.cn/openapi/admin
+```
+
+## 认证
+
+所有请求都需要在 `Authorization` 头中提供**管理密钥**（`sk-admin-...`）。如何获取管理密钥、以及它与数据密钥有何不同，请参阅[认证](/features/management-api/authentication)。
+
+## API 章节
+
+<CardGroup cols={2}>
+<Card title="团队" icon="building" href="/features/management-api/team/get-team">
+读取团队信息，重命名团队（仅 Owner）。
+</Card>
+
+<Card title="API 密钥" icon="key" href="/features/management-api/api-keys/list-api-keys">
+列出、创建、轮换和吊销 API 密钥 —— 读取类接口永远不会返回密钥值。
+</Card>
+
+<Card title="成员" icon="users" href="/features/management-api/members/list-members">
+查看成员名单，变更角色，移除成员。
+</Card>
+
+<Card title="邀请" icon="envelope" href="/features/management-api/invitations/create-invitation">
+按邮箱邀请、列出邀请、撤销待接受的邀请。
+</Card>
+
+<Card title="用量" icon="chart-line" href="/features/management-api/usage/get-usage">
+配额快照与指定时间段内按模型的消耗明细。
+</Card>
+</CardGroup>
+
+**刻意不开放的能力**：创建或删除团队、转让所有权、签发管理密钥，以及变更计费 —— 这些仍然是仅限控制台、需要人工确认的操作。
+
+## 通用模式
+
+### 响应格式
+
+与 MemoryLake 数据 API 使用相同的响应结构：
+
+```json
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    // 响应数据
+  }
+}
+```
+
+错误响应会同时返回真实的 HTTP 状态码（4xx/5xx）：
+
+```json
+{
+  "success": false,
+  "message": "Error description",
+  "error_code": "ERROR_CODE"
+}
+```
+
+`error_code` 的取值：`INVALID_ARGUMENT`、`UNAUTHORIZE`、`ACCESS_DENIED`、`NOT_FOUND`、`CUSTOM_ID_CONFLICT`、`STATE_NOT_READY`、`QUOTA_EXCEEDED`、`INTERNAL_ERROR`。
+
+### 分页
+
+列表接口使用 continuation-token 分页：
+
+**查询参数**：
+- `page_size`：每页条数（1–100，默认 20）
+- `continuation_token`：上一次响应返回的令牌，用于获取下一页
+
+当响应中没有 `continuation_token` 时，表示没有更多页。令牌是不透明的 —— 请不要自行构造或解析。
+
+### 幂等
+
+写入类接口接受可选的 `Idempotency-Key` 请求头（任意唯一字符串，例如一个 UUID）。用相同的值重试会重放第一次的结果，而不会把副作用再执行一遍 —— 对密钥轮换来说，这就是"再次拿到同一把新密钥"和"刚保存好的密钥又被作废"之间的区别。重放的响应会带上 `Idempotency-Replayed: true` 响应头。限流拒绝（429）永远不会被重放，因此固定幂等键的退避重试循环可以正常工作。
+
+### 速率限制
+
+| 限制 | 作用范围 | 超出时 |
+|---|---|---|
+| 60 次请求 / 分钟 | 每个管理密钥 | `429`，并返回 `Retry-After` |
+| 50 封邀请 / 天（UTC） | 每个团队，按已创建的邀请计数 | `429`，并返回 `Retry-After` |
+
+### 权限
+
+各接口都会以 `resource:action` 的形式标注所需权限（例如 `member:invite`）。密钥以其创建者的角色行事 —— 由团队 Admin 创建的密钥，能做的就是该 Admin 能做的事。如果创建者失去了某项权限（或退出了团队），其名下的密钥也随之失去该权限。
+
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="认证" icon="key" href="/features/management-api/authentication">
+获取管理密钥，发出第一个请求
+</Card>
+
+<Card title="团队" icon="building" href="/features/management-api/team/get-team">
+从 GET /team 开始 —— 读取您的团队以及密钥的角色
+</Card>
+</CardGroup>

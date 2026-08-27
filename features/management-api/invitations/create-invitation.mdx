@@ -1,0 +1,85 @@
+---
+title: "邀请成员"
+description: "创建一条邀请，并向被邀请人发送邮件"
+---
+
+```
+POST /openapi/admin/api/v1/invitations
+```
+
+创建一条邀请，并给被邀请人发送一封带接受链接的邮件。链接在 7 天后失效。
+
+同一团队下、同一邮箱同时只能有一条生效的邀请：如果已存在待接受的邀请，本接口返回 `409` —— 需要先撤销，才能重新邀请。这里没有"重新发送"接口；**重新邀请 = 撤销 + 创建**（对同一邮箱操作会重新激活同一条邀请，并生成新的链接）。
+
+创建邀请按团队、按 UTC 自然日限额（默认 50 条，按已创建的邀请计数）。超出后会返回 `429`，并带上 `Retry-After` 响应头。
+
+<Note>
+**所需权限：** `member:invite`
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。用相同的值重试会重放第一次的结果，而不会再发出第二封邮件。
+</ParamField>
+
+### 请求体
+
+<ParamField body="email" type="string" required>
+被邀请人的邮箱 —— 只填地址本身，不要带显示名
+</ParamField>
+
+<ParamField body="role" type="string" required>
+接受邀请后获得的角色：`tenant_admin`、`tenant_member`，或某个自定义角色标识。不能邀请他人成为 Owner。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/invitations' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{"email": "bob@example.com", "role": "tenant_member"}'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="邀请对象">
+  <ResponseField name="id" type="string">稳定的邀请标识符</ResponseField>
+  <ResponseField name="email" type="string">被邀请人邮箱（已统一转为小写）</ResponseField>
+  <ResponseField name="role" type="string">被邀请人接受后将持有的角色</ResponseField>
+  <ResponseField name="status" type="string">`pending`、`accepted`、`rejected`、`expired` 或 `revoked`</ResponseField>
+  <ResponseField name="created_at" type="integer">首次邀请时间，Unix 秒。重新邀请会重新激活同一条邀请，因此该值不会被重置。</ResponseField>
+  <ResponseField name="expires_at" type="integer">当前邮件链接的失效时间，Unix 秒</ResponseField>
+  <ResponseField name="last_invited_at" type="integer">最近一次发出邀请邮件的时间，Unix 秒</ResponseField>
+  <ResponseField name="accepted_at" type="integer">接受时间 —— 仅在已接受时返回</ResponseField>
+  <ResponseField name="accepted_principal_id" type="string">该邀请最终产生的成员 —— 仅在已接受时返回</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (201)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "88",
+    "email": "bob@example.com",
+    "role": "tenant_member",
+    "status": "pending",
+    "created_at": 1756300000,
+    "expires_at": 1756904800,
+    "last_invited_at": 1756300000
+  }
+}
+```
+
+```json Already invited or already a member (409)
+{
+  "success": false,
+  "message": "a pending invitation for this email already exists; revoke it to re-invite",
+  "error_code": "CUSTOM_ID_CONFLICT"
+}
+```
+</ResponseExample>
