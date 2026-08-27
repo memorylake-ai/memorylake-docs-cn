@@ -1,0 +1,74 @@
+---
+title: "创建虚拟成员"
+description: "创建虚拟成员 —— 一种无法登录的受管身份"
+---
+
+```
+POST /openapi/admin/api/v1/members
+```
+
+创建一个**虚拟成员**：没有邮箱、也无法访问控制台的受管身份。它会出现在成员名单里、持有角色，并且只能通过为它签发的 API 密钥来行动（用[创建 API 密钥](/features/management-api/api-keys/create-api-key)并带上 `member_principal_id`）。通过这些密钥产生的记忆和会话都会归属到该虚拟成员。
+
+这里无法创建真人成员 —— 真人只能通过[邀请](/features/management-api/invitations/create-invitation)加入。
+
+<Note>
+**所需权限：** `member:manage_virtual`（默认授予团队 Owner 和 Admin）
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。用相同的值重试会重放第一次的结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="display_name" type="string" required>
+显示名称（1–20 个字符）
+</ParamField>
+
+<ParamField body="role" type="string" required>
+角色：`tenant_admin`、`tenant_member`，或本团队的某个自定义角色标识。不能指派 Owner 角色。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/members' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{"display_name": "Support Bot", "role": "tenant_member"}'
+```
+</RequestExample>
+
+### 响应
+
+返回一个 [成员对象](/features/management-api/members/list-members)，其 `member_type` 为 `"virtual"`。
+
+<ResponseExample>
+```json Success (201)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "principal_id": "9f2c1a7b3d5e4f60a1b2c3d4e5f60718",
+    "display_name": "Support Bot",
+    "member_type": "virtual",
+    "role": "tenant_member",
+    "joined_at": 1756300000,
+    "status": "active",
+    "used_tokens": 0
+  }
+}
+```
+</ResponseExample>
+
+### 为虚拟成员签发密钥
+
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{"name": "support-bot-key", "member_principal_id": "9f2c1a7b3d5e4f60a1b2c3d4e5f60718"}'
+```
+
+该密钥会**以这个虚拟成员的身份**行事 —— 使用它的角色，产出也归属到它的身份。只能指向虚拟成员；传入真人成员的 `principal_id` 会返回与未知标识符完全相同的 `404`，因此密钥永远无法冒充同事。移除虚拟成员会禁用它名下的密钥。

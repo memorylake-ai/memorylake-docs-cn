@@ -1,0 +1,78 @@
+---
+title: "列出成员"
+description: "返回团队的成员名单"
+---
+
+```
+GET /openapi/admin/api/v1/members
+```
+
+列出团队的成员。任何成员的密钥都可以读取成员名单；但只有当密钥的创建者是团队 Owner 或 Admin 时，才会返回联系方式（`email`、`username`）。
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页条数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按显示名称做子串匹配，不区分大小写。对 Owner 和 Admin 来说，还会同时匹配邮箱和用户名。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl 'https://app.memorylake.cn/openapi/admin/api/v1/members' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页的成员列表">
+  <ResponseField name="items" type="array">
+  <Expandable title="成员对象">
+    <ResponseField name="principal_id" type="string">稳定的成员标识符 —— 用于成员相关的写入接口，也与团队的 `owner_principal_id` 相对应</ResponseField>
+    <ResponseField name="display_name" type="string">显示名称</ResponseField>
+    <ResponseField name="member_type" type="string">`human`（通过邀请加入）或 `virtual`（由 Owner/Admin 创建的受管身份 —— 参见[创建虚拟成员](/features/management-api/members/create-member)）</ResponseField>
+    <ResponseField name="role" type="string">`tenant_owner`、`tenant_admin`、`tenant_member`，或某个自定义角色的标识</ResponseField>
+    <ResponseField name="email" type="string">仅对 Owner 和 Admin 返回</ResponseField>
+    <ResponseField name="username" type="string">仅对 Owner 和 Admin 返回</ResponseField>
+    <ResponseField name="joined_at" type="integer">加入时间，Unix 秒</ResponseField>
+    <ResponseField name="status" type="string">`active` 或 `inactive`</ResponseField>
+    <ResponseField name="used_tokens" type="integer">该成员已消耗的 token 数</ResponseField>
+    <ResponseField name="max_tokens" type="integer">该成员的 token 配额上限。未设上限时不返回该字段。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="total" type="integer">成员总数</ResponseField>
+  <ResponseField name="continuation_token" type="string">存在下一页时返回</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "principal_id": "32bc58d62b5c4a05a069d5d083f4dd72",
+        "display_name": "Alice",
+        "role": "tenant_owner",
+        "email": "alice@example.com",
+        "username": "alice",
+        "joined_at": 1750000000,
+        "status": "active",
+        "used_tokens": 1284000
+      }
+    ],
+    "total": 1
+  }
+}
+```
+</ResponseExample>

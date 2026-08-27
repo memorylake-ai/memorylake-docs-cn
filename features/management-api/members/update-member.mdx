@@ -1,0 +1,65 @@
+---
+title: "变更成员角色"
+description: "修改某位成员的角色"
+---
+
+```
+PATCH /openapi/admin/api/v1/members/{principal_id}
+```
+
+修改某位成员的角色。保护规则：
+
+- 不能在这里指派 `tenant_owner` 角色 —— 转让所有权仍然只能在控制台完成（`400`）
+- 不能修改 Owner 自己的角色（`409`）
+- 调用方密钥不能修改**其创建者**的角色 —— 自我降权会在运行途中切断自动化任务自身的授权（`409`）
+
+<Note>
+**所需权限：** `member:change_role`
+</Note>
+
+### 路径参数
+
+<ParamField path="principal_id" type="string" required>
+来自[成员列表](/features/management-api/members/list-members)的成员标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。用相同的值重试会重放第一次的结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="role" type="string" required>
+新角色：`tenant_admin`、`tenant_member`，或本团队的某个自定义角色标识
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/admin/api/v1/members/9f2c1a7b3d5e4f60a1b2c3d4e5f60718' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{"role": "tenant_admin"}'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+
+```json Changing the owner's role (409)
+{
+  "success": false,
+  "message": "cannot change the owner's role",
+  "error_code": "STATE_NOT_READY"
+}
+```
+</ResponseExample>

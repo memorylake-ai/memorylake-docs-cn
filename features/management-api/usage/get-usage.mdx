@@ -1,0 +1,70 @@
+---
+title: "获取用量"
+description: "配额快照与指定时间段内按模型的消耗明细"
+---
+
+```
+GET /openapi/admin/api/v1/usage
+```
+
+返回团队的配额与消耗。同一个响应里包含两种不同的时间语义：
+
+- `quota` 是**当下这一刻的账户级快照** —— 表示团队还能用多少
+- `totals` 和 `by_model` 是**所查询时间段内的汇总**
+
+<Note>
+**所需权限：** `usage:view_all`
+</Note>
+
+### 查询参数
+
+<ParamField query="start_date" type="string">
+起始日期（含），格式 `YYYY-MM-DD`。默认为 `end_date` 前 6 天。
+</ParamField>
+
+<ParamField query="end_date" type="string">
+结束日期（含），格式 `YYYY-MM-DD`。默认为今天。时间窗口最长不超过 92 天。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl 'https://app.memorylake.cn/openapi/admin/api/v1/usage?start_date=2026-08-01&end_date=2026-08-26' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="用量对象">
+  <ResponseField name="period" type="object">汇总数据所覆盖的时间段（`start_date`、`end_date`）</ResponseField>
+  <ResponseField name="quota" type="object">
+  <Expandable title="配额快照">
+    <ResponseField name="available_tokens" type="integer">当前可用的 token 数。这是账户级快照，与查询的时间段无关。</ResponseField>
+    <ResponseField name="unlimited" type="boolean">为 true 时，`available_tokens` 没有实际意义</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="totals" type="object">该时间段内 `requests`、`prompt_tokens`、`completion_tokens` 的汇总</ResponseField>
+  <ResponseField name="by_model" type="array">
+  按模型拆分的明细。其中的条目可能不是 LLM，而是平台计量的操作（`files_process`、`memory_input`、`retrieval_call`、`search_call`）—— 这些同样是真实计费的操作。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "period": { "start_date": "2026-08-01", "end_date": "2026-08-26" },
+    "quota": { "available_tokens": 8421000, "unlimited": false },
+    "totals": { "requests": 1204, "prompt_tokens": 3210000, "completion_tokens": 1150000 },
+    "by_model": [
+      { "model": "claude-sonnet-5", "requests": 800, "prompt_tokens": 2400000, "completion_tokens": 900000 },
+      { "model": "memory_input", "requests": 404, "prompt_tokens": 810000, "completion_tokens": 250000 }
+    ]
+  }
+}
+```
+</ResponseExample>

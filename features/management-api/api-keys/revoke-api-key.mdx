@@ -1,0 +1,55 @@
+---
+title: "吊销 API 密钥"
+description: "永久删除一把 API 密钥"
+---
+
+```
+DELETE /openapi/admin/api/v1/api-keys/{id}
+```
+
+删除一把密钥。它会立即无法再通过认证，且无法恢复。
+
+发起本次请求所用的密钥不能吊销自己 —— 自动化任务如果在运行途中掐断了自己的凭证，就再也没有回来的路了。吊销调用方自身的密钥会返回 `409 STATE_NOT_READY`。
+
+<Note>
+**所需权限：** `service_account:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+密钥标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。用相同的值重试会重放第一次的结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+
+```json Revoking the calling key (409)
+{
+  "success": false,
+  "message": "cannot revoke the key used for this request",
+  "error_code": "STATE_NOT_READY"
+}
+```
+</ResponseExample>

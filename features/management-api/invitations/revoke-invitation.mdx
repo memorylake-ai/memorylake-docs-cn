@@ -1,0 +1,55 @@
+---
+title: "撤销邀请"
+description: "撤销一条待接受的邀请 —— 邮件里的链接随即失效"
+---
+
+```
+DELETE /openapi/admin/api/v1/invitations/{id}
+```
+
+撤销一条**待接受**的邀请；邮件中的接受链接会立即失效。该邀请仍会以 `revoked` 状态保留在列表中作为历史记录，之后同一邮箱可以被重新邀请。
+
+已接受的邀请无法撤销 —— 此时成员已经存在，请改为[移除成员](/features/management-api/members/remove-member)。已过期和已拒绝的邀请本身就已失效。以上情况都会返回 `409`。
+
+<Note>
+**所需权限：** `member:invite`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+邀请标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。用相同的值重试会重放第一次的结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/admin/api/v1/invitations/88' \
+  -H 'Authorization: Bearer sk-admin-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+
+```json Not pending (409)
+{
+  "success": false,
+  "message": "only a pending invitation can be revoked",
+  "error_code": "STATE_NOT_READY"
+}
+```
+</ResponseExample>
