@@ -4,7 +4,7 @@ description: "配额快照与指定时间段内按模型的消耗明细"
 ---
 
 ```
-GET /openapi/admin/api/v1/usage
+GET /openapi/memorylake/admin/v1/usage
 ```
 
 返回团队的配额与消耗。同一个响应里包含两种不同的时间语义：
@@ -28,8 +28,8 @@ GET /openapi/admin/api/v1/usage
 
 <RequestExample>
 ```bash cURL
-curl 'https://app.memorylake.cn/openapi/admin/api/v1/usage?start_date=2026-08-01&end_date=2026-08-26' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl 'https://app.memorylake.cn/openapi/memorylake/admin/v1/usage?start_date=2026-08-01&end_date=2026-08-26' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 

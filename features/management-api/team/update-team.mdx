@@ -4,7 +4,7 @@ description: "更新团队的显示名称 —— 仅 Owner 可用"
 ---
 
 ```
-PATCH /openapi/admin/api/v1/team
+PATCH /openapi/memorylake/admin/v1/team
 ```
 
 更新团队的显示名称。只有**团队 Owner** 可以执行此操作 —— 与控制台的规则一致。转让所有权和解散团队无法通过本 API 完成。
@@ -21,8 +21,8 @@ PATCH /openapi/admin/api/v1/team
 
 <RequestExample>
 ```bash cURL
-curl -X PATCH 'https://app.memorylake.cn/openapi/admin/api/v1/team' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/team' \
+  -H 'Authorization: Bearer sk-xxxxxx' \
   -H 'Content-Type: application/json' \
   -d '{"name": "Acme Research EU"}'
 ```

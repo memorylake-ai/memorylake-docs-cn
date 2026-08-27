@@ -4,7 +4,7 @@ description: "返回单把 API 密钥的元数据"
 ---
 
 ```
-GET /openapi/admin/api/v1/api-keys/{id}
+GET /openapi/memorylake/admin/v1/api-keys/{id}
 ```
 
 返回单把密钥的元数据。属于其他团队的密钥，以及并不存在的标识符，都会返回同样的 `404`。
@@ -21,8 +21,8 @@ GET /openapi/admin/api/v1/api-keys/{id}
 
 <RequestExample>
 ```bash cURL
-curl 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/312' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 
@@ -39,7 +39,6 @@ curl 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312' \
     "id": "312",
     "name": "ci-pipeline",
     "key_prefix": "a1b2c3d4",
-    "key_type": "data",
     "status": "enabled",
     "created_at": 1755000000
   }

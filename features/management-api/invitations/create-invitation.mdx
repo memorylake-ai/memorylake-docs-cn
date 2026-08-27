@@ -4,7 +4,7 @@ description: "创建一条邀请，并向被邀请人发送邮件"
 ---
 
 ```
-POST /openapi/admin/api/v1/invitations
+POST /openapi/memorylake/admin/v1/invitations
 ```
 
 创建一条邀请，并给被邀请人发送一封带接受链接的邮件。链接在 7 天后失效。
@@ -35,8 +35,8 @@ POST /openapi/admin/api/v1/invitations
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/invitations' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/invitations' \
+  -H 'Authorization: Bearer sk-xxxxxx' \
   -H 'Content-Type: application/json' \
   -d '{"email": "bob@example.com", "role": "tenant_member"}'
 ```

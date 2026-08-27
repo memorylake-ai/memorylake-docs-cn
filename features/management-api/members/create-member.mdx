@@ -4,7 +4,7 @@ description: "创建虚拟成员 —— 一种无法登录的受管身份"
 ---
 
 ```
-POST /openapi/admin/api/v1/members
+POST /openapi/memorylake/admin/v1/members
 ```
 
 创建一个**虚拟成员**：没有邮箱、也无法访问控制台的受管身份。它会出现在成员名单里、持有角色，并且只能通过为它签发的 API 密钥来行动（用[创建 API 密钥](/features/management-api/api-keys/create-api-key)并带上 `member_principal_id`）。通过这些密钥产生的记忆和会话都会归属到该虚拟成员。
@@ -33,8 +33,8 @@ POST /openapi/admin/api/v1/members
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/members' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members' \
+  -H 'Authorization: Bearer sk-xxxxxx' \
   -H 'Content-Type: application/json' \
   -d '{"display_name": "Support Bot", "role": "tenant_member"}'
 ```
@@ -65,8 +65,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/members' \
 ### 为虚拟成员签发密钥
 
 ```bash cURL
-curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys' \
+  -H 'Authorization: Bearer sk-xxxxxx' \
   -H 'Content-Type: application/json' \
   -d '{"name": "support-bot-key", "member_principal_id": "9f2c1a7b3d5e4f60a1b2c3d4e5f60718"}'
 ```

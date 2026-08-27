@@ -4,7 +4,7 @@ description: "把某位成员移出团队"
 ---
 
 ```
-DELETE /openapi/admin/api/v1/members/{principal_id}
+DELETE /openapi/memorylake/admin/v1/members/{principal_id}
 ```
 
 移除一位成员。该成员在本团队中的 API 密钥会被**禁用**（而非删除），管理员因此可以在控制台复核或重新签发。
@@ -29,8 +29,8 @@ DELETE /openapi/admin/api/v1/members/{principal_id}
 
 <RequestExample>
 ```bash cURL
-curl -X DELETE 'https://app.memorylake.cn/openapi/admin/api/v1/members/9f2c1a7b3d5e4f60a1b2c3d4e5f60718' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members/9f2c1a7b3d5e4f60a1b2c3d4e5f60718' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 

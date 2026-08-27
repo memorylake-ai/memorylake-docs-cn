@@ -1,18 +1,18 @@
 ---
 title: "获取团队信息"
-description: "返回该管理密钥所属的团队"
+description: "返回该密钥所属的团队"
 ---
 
 ```
-GET /openapi/admin/api/v1/team
+GET /openapi/memorylake/admin/v1/team
 ```
 
 返回调用方密钥所绑定的团队。这里没有团队参数 —— 团队由密钥决定。任何成员的密钥都可以读取。
 
 <RequestExample>
 ```bash cURL
-curl 'https://app.memorylake.cn/openapi/admin/api/v1/team' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl 'https://app.memorylake.cn/openapi/memorylake/admin/v1/team' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 

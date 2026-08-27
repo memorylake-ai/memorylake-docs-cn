@@ -4,7 +4,7 @@ description: "永久删除一把 API 密钥"
 ---
 
 ```
-DELETE /openapi/admin/api/v1/api-keys/{id}
+DELETE /openapi/memorylake/admin/v1/api-keys/{id}
 ```
 
 删除一把密钥。它会立即无法再通过认证，且无法恢复。
@@ -29,8 +29,8 @@ DELETE /openapi/admin/api/v1/api-keys/{id}
 
 <RequestExample>
 ```bash cURL
-curl -X DELETE 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/312' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 
