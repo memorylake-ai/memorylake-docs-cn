@@ -4,7 +4,7 @@ description: "返回团队的成员名单"
 ---
 
 ```
-GET /openapi/admin/api/v1/members
+GET /openapi/memorylake/admin/v1/members
 ```
 
 列出团队的成员。任何成员的密钥都可以读取成员名单；但只有当密钥的创建者是团队 Owner 或 Admin 时，才会返回联系方式（`email`、`username`）。
@@ -25,8 +25,8 @@ GET /openapi/admin/api/v1/members
 
 <RequestExample>
 ```bash cURL
-curl 'https://app.memorylake.cn/openapi/admin/api/v1/members' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 

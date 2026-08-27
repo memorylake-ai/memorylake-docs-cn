@@ -4,7 +4,7 @@ description: "撤销一条待接受的邀请 —— 邮件里的链接随即失�
 ---
 
 ```
-DELETE /openapi/admin/api/v1/invitations/{id}
+DELETE /openapi/memorylake/admin/v1/invitations/{id}
 ```
 
 撤销一条**待接受**的邀请；邮件中的接受链接会立即失效。该邀请仍会以 `revoked` 状态保留在列表中作为历史记录，之后同一邮箱可以被重新邀请。
@@ -29,8 +29,8 @@ DELETE /openapi/admin/api/v1/invitations/{id}
 
 <RequestExample>
 ```bash cURL
-curl -X DELETE 'https://app.memorylake.cn/openapi/admin/api/v1/invitations/88' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/invitations/88' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 

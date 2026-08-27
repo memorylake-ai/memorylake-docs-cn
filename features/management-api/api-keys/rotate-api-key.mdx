@@ -4,10 +4,10 @@ description: "替换密钥内容，并一次性返回新值"
 ---
 
 ```
-POST /openapi/admin/api/v1/api-keys/{id}/rotate
+POST /openapi/memorylake/admin/v1/api-keys/{id}/rotate
 ```
 
-替换密钥内容。旧值立即失效，新值只返回一次。轮换会保留密钥的类型 —— 管理密钥轮换后仍是一把 `sk-admin-` 密钥。
+替换密钥内容。旧值立即失效，新值只返回一次。
 
 <Warning>
 轮换天然不具备幂等性：每调用一次都会签发一把新密钥并作废上一把。在网络不稳定的情况下重试时，请务必带上 `Idempotency-Key` —— 盲目重试会让您刚刚拿到的密钥失效。
@@ -31,8 +31,8 @@ POST /openapi/admin/api/v1/api-keys/{id}/rotate
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312/rotate' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx' \
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/312/rotate' \
+  -H 'Authorization: Bearer sk-xxxxxx' \
   -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
 ```
 </RequestExample>
@@ -48,7 +48,6 @@ curl -X POST 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys/312/rotate
     "id": "312",
     "name": "ci-pipeline",
     "key_prefix": "f6e5d4c3",
-    "key_type": "data",
     "key": "sk-f6e5d4c3...redacted...b2a1"
   }
 }

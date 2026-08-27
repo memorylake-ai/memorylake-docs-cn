@@ -4,7 +4,7 @@ description: "返回团队的 API 密钥 —— 只有元数据，永远不含�
 ---
 
 ```
-GET /openapi/admin/api/v1/api-keys
+GET /openapi/memorylake/admin/v1/api-keys
 ```
 
 列出团队的 API 密钥。如果调用方只拥有"仅限自己"范围的读取权限，则只能看到自己创建的密钥。读取类接口永远不会返回密钥值，只返回一段用于展示的前缀。
@@ -29,8 +29,8 @@ GET /openapi/admin/api/v1/api-keys
 
 <RequestExample>
 ```bash cURL
-curl 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys?page_size=20' \
-  -H 'Authorization: Bearer sk-admin-xxxxxx'
+curl 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys?page_size=20' \
+  -H 'Authorization: Bearer sk-xxxxxx'
 ```
 </RequestExample>
 
@@ -43,7 +43,6 @@ curl 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys?page_size=20' \
     <ResponseField name="id" type="string">稳定的密钥标识符</ResponseField>
     <ResponseField name="name" type="string">显示名称</ResponseField>
     <ResponseField name="key_prefix" type="string">密钥主体的开头几个字符 —— 读取类接口永远不会返回完整密钥</ResponseField>
-    <ResponseField name="key_type" type="string">`data`（产品 API）或 `admin`（本管理 API）</ResponseField>
     <ResponseField name="status" type="string">`enabled`、`disabled` 或 `expired`</ResponseField>
     <ResponseField name="created_at" type="integer">创建时间，Unix 秒</ResponseField>
     <ResponseField name="expires_at" type="integer">过期时间，Unix 秒。密钥永不过期时不返回该字段。</ResponseField>
@@ -66,7 +65,6 @@ curl 'https://app.memorylake.cn/openapi/admin/api/v1/api-keys?page_size=20' \
         "id": "312",
         "name": "ci-pipeline",
         "key_prefix": "a1b2c3d4",
-        "key_type": "data",
         "status": "enabled",
         "created_at": 1755000000,
         "last_used_at": 1755600000
