@@ -363,7 +363,7 @@
               {
                 "group": "成员",
                 "pages": [
-                  "features/management-api/members/list-members",
+                  "features/management-api/members/list-members", "features/management-api/members/list-roles",
                   "features/management-api/members/create-member",
                   "features/management-api/members/update-member",
                   "features/management-api/members/remove-member"

@@ -1,0 +1,80 @@
+---
+title: "列出角色"
+description: "返回成员和被邀请人可持有的角色"
+---
+
+```
+GET /openapi/memorylake/admin/v1/roles
+```
+
+列出团队的角色目录：三个内建角色在前（Owner、Admin、Member），本团队的自定义角色按创建时间在后。`key` 就是[创建虚拟成员](/features/management-api/members/create-member)、[更新成员角色](/features/management-api/members/update-member)、[创建邀请](/features/management-api/invitations/create-invitation)的 `role` 字段接受的值。任何成员的密钥都可以读取。
+
+没有任何参数——角色目录小而固定，因此不分页。
+
+<RequestExample>
+```bash cURL
+curl 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles' \
+  -H 'Authorization: Bearer sk-xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="角色目录">
+  <ResponseField name="roles" type="array">
+  <Expandable title="角色对象">
+    <ResponseField name="key" type="string">成员和邀请写接口的 `role` 字段接受的值</ResponseField>
+    <ResponseField name="label" type="string">显示名：内建角色为固定英文，自定义角色为管理员设置的名称</ResponseField>
+    <ResponseField name="description" type="string">管理员填写的描述，仅自定义角色有</ResponseField>
+    <ResponseField name="built_in" type="boolean">`true` 表示每个团队都有的三个内建角色；`false` 表示本团队自定义的角色</ResponseField>
+    <ResponseField name="assignable" type="boolean">成员和邀请写接口是否接受该角色。Owner 角色永远不接受——所有权转移只能在控制台完成。</ResponseField>
+    <ResponseField name="admin_grant_only" type="boolean">为 `true` 时，只有自身角色为 Owner 或 Admin 的调用方才能授予。适用于 `tenant_admin` 及继承自它的自定义角色。</ResponseField>
+    <ResponseField name="parent_role_key" type="string">自定义角色创建时复制策略的来源角色。内建角色无此字段。</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 成功（200）
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "roles": [
+      {
+        "key": "tenant_owner",
+        "label": "Owner",
+        "built_in": true,
+        "assignable": false,
+        "admin_grant_only": false
+      },
+      {
+        "key": "tenant_admin",
+        "label": "Admin",
+        "built_in": true,
+        "assignable": true,
+        "admin_grant_only": true
+      },
+      {
+        "key": "tenant_member",
+        "label": "Member",
+        "built_in": true,
+        "assignable": true,
+        "admin_grant_only": false
+      },
+      {
+        "key": "tenant_custom_a1b2c3d4",
+        "label": "账单管理员",
+        "description": "只读用量并导出账单",
+        "built_in": false,
+        "assignable": true,
+        "admin_grant_only": false,
+        "parent_role_key": "tenant_member"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
