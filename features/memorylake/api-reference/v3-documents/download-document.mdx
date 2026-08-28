@@ -1,0 +1,56 @@
+---
+title: "下载文档"
+description: "下载项目文档背后的原始文件"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/documents/{documentId}/download
+```
+
+下载文档导入时使用的原始文件。可用于把源文件交还给用户，或拿到 MemoryLake 之外再处理 —— 返回的是您上传的原始字节，不是抽取出来的记忆。若只需要文档元数据，请使用[获取文档](/features/memorylake/api-reference/v3-documents/get-document)。
+
+响应通常是 `303` 重定向到一个预签名的存储地址，而不是文件本身，因此**必须跟随重定向** —— `curl -L`，或您所用 HTTP 客户端的等价选项。不跟随重定向的客户端会拿到一个空响应体，且不会报错。
+
+<Note>
+**所需权限（全部需要）：**
+
+- [`project:doc_read`](/features/team-collaboration/permission-reference#读取单个文档) · `instance`
+- [`drive:item_read`](/features/team-collaboration/permission-reference#读取文件) · `service`
+
+服务器会把文档解析为其底层的文件库文件并转发到文件库下载处理程序 —— 每次调用都会检查这两个权限。
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+拥有该项目的工作空间 ID。
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+文档所属的项目。
+</ParamField>
+
+<ParamField path="documentId" type="string" required>
+要下载的文档 ID。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -L -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a1b2c3d4e5f6/projects/proj-7g8h9i0j1k2l/memories/documents/doc-3m4n5o6p7q8r/download' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -o downloaded_file.pdf
+```
+</RequestExample>
+
+### 响应
+
+返回 `303`，存储下载地址在 `Location` 响应头中；当下载需要服务端才能提供的额外请求头时，返回 `200` 及流式二进制内容（`application/octet-stream`）。
+
+`303` 指向的预签名地址有效期很短，请立即下载，不要保存下来以后再用。
+
+<ResponseExample>
+```
+HTTP/1.1 303 See Other
+Location: https://storage.example.com/download/document.pdf?signature=...
+```
+</ResponseExample>

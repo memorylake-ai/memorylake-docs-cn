@@ -271,6 +271,7 @@
                     "pages": [
                       "features/memorylake/api-reference/v3-documents/list-documents",
                       "features/memorylake/api-reference/v3-documents/get-document",
+                      "features/memorylake/api-reference/v3-documents/download-document",
                       "features/memorylake/api-reference/v3-documents/delete-documents"
                     ]
                   },
