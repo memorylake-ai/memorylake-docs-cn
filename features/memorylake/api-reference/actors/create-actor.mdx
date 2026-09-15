@@ -16,12 +16,9 @@ POST /openapi/memorylake/api/v3/actors
 ### 请求体
 
 <ParamField body="custom_id" type="string" required>
-调用方定义的外部标识符。在您的账户中必须唯一。使用此字段将 Actor 映射到您自己系统中的身份。
+这个Actor在**您自己系统里已有的标识符**。在您的租户内必须唯一。后续请求带上 `by_custom_id=true`，即可用它代替 `id` 来访问。参见[您自己的标识符](/zh/features/memorylake/api-reference/overview#您自己的标识符)。
 </ParamField>
 
-<ParamField body="actor_type" type="string">
-Actor 类型。可选值：`HUMAN`（默认，终端用户）或 `ASSISTANT`（AI Agent — 通常在创建 Agent 时自动生成）。
-</ParamField>
 
 <ParamField body="display_name" type="string" required>
 人类可读的名称，显示在控制台中并在 API 响应中返回。
@@ -64,7 +61,6 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors' \
 <Expandable title="Actor">
   <ResponseField name="id" type="string">Actor ID</ResponseField>
   <ResponseField name="custom_id" type="string">调用方定义的外部标识符</ResponseField>
-  <ResponseField name="actor_type" type="string">Actor 类型：`HUMAN` 或 `ASSISTANT`</ResponseField>
   <ResponseField name="display_name" type="string">人类可读的显示名称</ResponseField>
   <ResponseField name="description" type="string">Actor 描述</ResponseField>
   <ResponseField name="tags" type="string[]">Actor 上的标签。没有标签时为空数组</ResponseField>
@@ -79,7 +75,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/actors' \
 {
   "success": true,
   "data": {
-    "id": "act-a1b2c3d4e5f6",
+    "id": "actor-8d093c0578ffeb19f8fa10ea28ee9362",
     "custom_id": "user-ext-001",
     "actor_type": "HUMAN",
     "display_name": "Alice Chen",

@@ -12,7 +12,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memorie
 您可以按解决状态筛选，仅显示需要关注的未解决冲突，或仅显示已解决的冲突以供审计。如需查看项目知识内部的冲突，请改用[列出记忆冲突](/features/memorylake/api-reference/v3-conflicts/list-conflicts)。
 
 <Note>
-**所需权限：** `workspace:actor_fact_list`
+**所需权限：** 人的记忆需要 `workspace_actor:fact_conflict_read`，Agent 的记忆需要 `workspace_agent:fact_conflict_read`——取决于该 id 属于哪一方
 </Note>
 
 ### 路径参数
@@ -41,12 +41,12 @@ Actor ID
 
 <RequestExample>
 ```bash 未解决的冲突
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts?resolved=false&page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-8d093c0578ffeb19f8fa10ea28ee9362/memories/conflicts?resolved=false&page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 
 ```bash 全部冲突
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/actors/act-a1b2c3d4e5f6/memories/conflicts?page_size=50' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-8d093c0578ffeb19f8fa10ea28ee9362/memories/conflicts?page_size=50' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -105,14 +105,14 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
         "resolve": null,
         "stale": false,
         "conflict_type": "logical",
-        "fact_ids": ["fact-101", "fact-102"],
+        "fact_ids": ["fact-4d89ead72a591e8c6abbf68f99edf5e2", "fact-91263517847b3371a69814787441263f"],
         "fact_snapshots": [
           {
-            "fact_id": "fact-101",
+            "fact_id": "fact-4d89ead72a591e8c6abbf68f99edf5e2",
             "fact_text": "User is vegetarian"
           },
           {
-            "fact_id": "fact-102",
+            "fact_id": "fact-91263517847b3371a69814787441263f",
             "fact_text": "User's favorite dish is steak"
           }
         ],

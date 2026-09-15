@@ -10,7 +10,7 @@ DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}
 移除 Agent 与工作空间之间的绑定。解绑后，Agent 将不再可在该工作空间内进行 A2A 通信。Agent 定义本身不会被删除。
 
 <Note>
-**所需权限：** `workspace:agent_unbind`
+**所需权限：** `workspace_agent:delete`
 </Note>
 
 ### 路径参数
@@ -25,7 +25,7 @@ DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}
 
 <RequestExample>
 ```bash cURL
-curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents/agt_r8k2m1n3' \
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents/agt_r8k2m1n3' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>

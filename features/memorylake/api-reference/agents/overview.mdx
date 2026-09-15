@@ -3,6 +3,17 @@ title: "概述"
 description: "Agent 是可配置的 AI Agent 定义，支持版本管理、工作空间绑定和 A2A 协议"
 ---
 
+### Agent 记忆
+
+Agent 会积累自己的事实——它学到了什么、应当如何表现。这些事实挂在 Agent 上，在工作空间内用它的 agent id 读取：
+
+```
+/api/v3/workspaces/{workspaceId}/agents/{agentId}/facts
+```
+
+可用操作与人的事实完全一致——列出、读取、添加、更新、遗忘、处理冲突——因此结构文档见 [Actor 事实](/zh/features/memorylake/api-reference/facts/list-actor-facts)，两边共用。Agent 事实与其他范围的关系见[记忆](/zh/features/memorylake/memories/overview)。
+
+
 **Agent** 是 MemoryLake 中可配置的 AI Agent 定义。每个 agent 包含模型、系统提示词、能力和执行策略。创建 agent 时，MemoryLake 会自动为其生成一个 [Actor](/features/memorylake/api-reference/actors/overview) 身份 — 因为 actor 是记忆的主体，agent 也需要像人类用户一样积累知识。
 
 ## 核心概念

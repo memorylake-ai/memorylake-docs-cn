@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/agents/{id}/versions
 返回指定 Agent 所有版本的分页列表，按版本号排序。每个版本捕获了创建时 Agent 配置的快照。
 
 <Note>
-**所需权限：** `agent:version_list`
+**所需权限：** `agent:read`
 </Note>
 
 ### 路径参数
@@ -31,7 +31,7 @@ Agent 标识符
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2m1n3/versions?page_size=10' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agent-f8bf71ab17ed8eccad8c0e8ae708273f/versions?page_size=10' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -127,7 +127,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2
             "skill_version": 2
           }
         ],
-        "agent_id": "agt_r8k2m1n3",
+        "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
         "system_prompt": "You are a helpful support assistant. Use the knowledge base to answer questions accurately.",
         "model_settings": {
           "temperature": 0.7,
@@ -161,7 +161,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2
             "skill_version": 1
           }
         ],
-        "agent_id": "agt_r8k2m1n3",
+        "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
         "system_prompt": "You are a helpful support assistant.",
         "model_settings": {
           "temperature": 0.7,

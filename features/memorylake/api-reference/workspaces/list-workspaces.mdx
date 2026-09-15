@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/workspaces
 返回已认证用户可访问的工作空间分页列表。您可以通过名称模糊搜索筛选结果，并使用延续令牌控制分页。
 
 <Note>
-**所需权限：** `workspace:list`
+**所需权限：** `workspace:read` —— 您打不开的行不会出现在列表里，列表本身不会被拒绝
 </Note>
 
 ### 查询参数
@@ -63,7 +63,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces?page
   "data": {
     "items": [
       {
-        "id": "ws_abc123def456",
+        "id": "ws-fe314186ccd18cde04d6af48a5afd79f",
         "name": "My Research Workspace",
         "description": "Central workspace for research documents and notes",
         "metadata": {

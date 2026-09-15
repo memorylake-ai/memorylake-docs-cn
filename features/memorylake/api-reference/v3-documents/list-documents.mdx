@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/mem
 返回已导入项目的文档。使用游标分页：如果响应中返回了 `continuation_token`，将其传入下一次请求以获取下一页。当响应中不包含该 token 时，表示已到达最后一页。
 
 <Note>
-**所需权限：** `project:doc_list`
+**所需权限：** `project:doc_read`
 </Note>
 
 ### 路径参数
@@ -81,7 +81,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a
   "data": {
     "items": [
       {
-        "id": "doc-3m4n5o6p7q8r",
+        "id": "doc-3451335835b6cda07544335dc13e6183",
         "name": "quarterly-report.pdf",
         "status": "okay",
         "error": null,
@@ -92,7 +92,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a
         "created_at": "2025-03-10T14:22:00Z"
       },
       {
-        "id": "doc-8s9t0u1v2w3x",
+        "id": "doc-06f59fb06590915cc2df05ce4e8b70e1",
         "name": "product-spec.docx",
         "status": "running",
         "error": null,

@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/mem
 返回单个冲突的完整记录，包括检测时捕获的事实快照、涉及的文档摘录，以及冲突已解决时的解决记录。
 
 <Note>
-**所需权限：** `project:mem_read`
+**所需权限：** `project:mem_conflict_read`
 </Note>
 
 ### 路径参数
@@ -29,7 +29,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/mem
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects/proj_def456/memories/conflicts/conf-abc123' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/memories/conflicts/conf-abc123' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -89,20 +89,20 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
     "resolve": {
       "id": "res-9f8e7d6c",
       "strategy": "keep_fact",
-      "keep_fact_id": "fact-002",
-      "forgotten_fact_ids": ["fact-001"],
+      "keep_fact_id": "fact-b21e7865a355b52582356646e793d79d",
+      "forgotten_fact_ids": ["fact-4d5d087022dac9318b1abbfacbc4340c"],
       "created_at": "2025-01-21T09:15:00Z"
     },
     "stale": false,
     "conflict_type": "logical",
-    "fact_ids": ["fact-001", "fact-002"],
+    "fact_ids": ["fact-4d5d087022dac9318b1abbfacbc4340c", "fact-b21e7865a355b52582356646e793d79d"],
     "fact_snapshots": [
       {
-        "fact_id": "fact-001",
+        "fact_id": "fact-4d5d087022dac9318b1abbfacbc4340c",
         "fact_text": "Project deadline is March 2025"
       },
       {
-        "fact_id": "fact-002",
+        "fact_id": "fact-b21e7865a355b52582356646e793d79d",
         "fact_text": "Project deadline was moved to June 2025"
       }
     ],

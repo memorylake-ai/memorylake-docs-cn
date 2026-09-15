@@ -84,7 +84,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{
   -H "Content-Type: application/json" \
   -d '{
     "custom_id": "msg-001",
-    "actor_id": "act_jane456",
+    "actor_id": "actor-7b5470549febfaca2acc5a3ebcaa2138",
     "parent_message_id": null,
     "content": [{"block_type": "TEXT", "text": "We decided to use React for the frontend. Launch target is March."}]
   }'
@@ -94,7 +94,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/{
   -H "Content-Type: application/json" \
   -d '{
     "custom_id": "msg-002",
-    "actor_id": "act_assistant",
+    "actor_id": "actor-7ffb42d393202e284c930ec756806f4f",
     "parent_message_id": "{id_returned_for_msg_001}",
     "content": [{"block_type": "TEXT", "text": "Got it. I will note that the frontend uses React with a March launch target."}]
   }'
@@ -143,7 +143,7 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{wor
   "data": {
     "documents": [
       {
-        "document_id": "doc_xyz",
+        "document_id": "doc-0b86666c0e4be4be1ee456ea63509310",
         "document_name": "Tech Stack Overview",
         "items": [
           {"text": "...our backend runs on Node.js with PostgreSQL..."}
@@ -152,12 +152,12 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{wor
     ],
     "facts": [
       {
-        "id": "fact_001",
+        "id": "fact-18b616c73c16f87fb84561b0a3f2bc17",
         "fact": "The frontend uses React",
         "score": 0.95
       },
       {
-        "id": "fact_002",
+        "id": "fact-190ec75793105e8f5cb3f1b2fe3042a6",
         "fact": "The team chose PostgreSQL for the database",
         "score": 0.88
       }
