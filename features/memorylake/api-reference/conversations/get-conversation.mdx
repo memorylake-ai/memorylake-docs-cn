@@ -31,12 +31,12 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations/{
 
 <RequestExample>
 ```bash By ID
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations/conv_7d2e3f4a5b6c7d8e' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/memories/conversations/conv_7d2e3f4a5b6c7d8e' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 
 ```bash By custom_id
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations/session-20250601-042?by_custom_id=true' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/memories/conversations/session-20250601-042?by_custom_id=true' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -63,7 +63,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
 {
   "success": true,
   "data": {
-    "id": "conv_7d2e3f4a5b6c7d8e",
+    "id": "conv-4f42addb6cb69d6ee7de2451cb590e06",
     "name": "Product Feedback Call",
     "kind": "DIRECT",
     "metadata": {
@@ -71,8 +71,8 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
       "language": "en"
     },
     "custom_id": "session-20250601-042",
-    "rw_project_ids": ["proj_def456"],
-    "actor_ids": ["actor_user_jane", "actor_interviewer_alex"],
+    "rw_project_ids": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"],
+    "actor_ids": ["actor-93688d5ec8d2e98701be3d5554cbc455", "actor_interviewer_alex"],
     "current_message_id": "msg_9e4b2c3d5f6a7b8c",
     "created_at": "2025-06-01T14:00:00Z",
     "updated_at": "2025-06-01T14:32:00Z"

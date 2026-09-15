@@ -3,6 +3,25 @@ title: "MemoryLake API 参考"
 description: "MemoryLake 完整 API 文档 — 将文档和对话转化为可搜索的结构化记忆"
 ---
 
+### 您自己的标识符
+
+您创建的每个资源都有两个标识符。`id` 由平台铸造——前缀加 32 位十六进制，形如 `actor-7b5470549febfaca2acc5a3ebcaa2138`。`custom_id` 则是您带来的：这个东西在**您自己系统里已有的标识符**。
+
+设置它，意味着您不必在自己的记录旁边再存一份我们的 id。用您应用里已有的用户 ID 创建 Actor，此后就能直接用它寻址：
+
+```bash
+# 用您系统里已有的 ID 创建
+curl -X POST .../api/v3/actors \
+  -d '{"custom_id": "user-4471", "display_name": "Jane"}'
+
+# 之后带 by_custom_id=true 即可用它访问
+curl .../api/v3/actors/user-4471?by_custom_id=true
+```
+
+<Note>
+  **`custom_id` 在您的租户内必须唯一**，按资源种类计——两个 Actor 不能共用一个，但一个 Actor 和一个项目可以。删除资源后，它的 `custom_id` 可以重新使用。
+</Note>
+
 ## API 概览
 
 MemoryLake API 让你将文档和对话导入项目，自动提取结构化事实，并使用自然语言搜索所有记忆来源。用它来构建具有长期记忆的 AI 应用。

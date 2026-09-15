@@ -10,7 +10,7 @@ POST /openapi/memorylake/api/v2/projects/{id}/memories/conflicts/{conflictId}/re
 记录用户对冲突的决策。根据策略的不同，一个或多个冲突记忆可能会被遗忘 —— 这些 ID 会在 `forgotten_memory_ids` 中返回，以便你的 UI 可以更新相应的记忆行。
 
 <Note>
-**所需权限：** [`project:mem_conflict_resolve`](/features/team-collaboration/permission-reference#解决事实冲突) · `instance`
+**所需权限：** [`project:mem_modify`](/features/team-collaboration/permission-reference#解决事实冲突) · `instance`
 </Note>
 
 ### 路径参数

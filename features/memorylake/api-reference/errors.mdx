@@ -3,6 +3,46 @@ title: "错误代码与处理"
 description: "理解和处理 API 错误"
 ---
 
+## 403 会告诉您什么
+
+权限拒绝带的信息不止一个错误码。除了 `error_code: ACCESS_DENIED`，`data` 里还会写明**缺的是哪个权限**、以及**授予什么就能通过**，您不必靠猜：
+
+```json
+{
+  "success": false,
+  "message": "You don't have the \"Modify Library Item\" permission. Ask a team owner or admin to grant it.",
+  "error_code": "ACCESS_DENIED",
+  "data": {
+    "denied": [
+      {
+        "permission": "drive:item_modify",
+        "permission_level": "service",
+        "resource_type": "drive"
+      }
+    ],
+    "stage": "capability",
+    "required_any_of": [
+      { "key": "pkg:library:write", "resource_type": "library" }
+    ]
+  }
+}
+```
+
+<ResponseField name="data.denied" type="array">
+  被检查且未持有的权限。`permission` 就是需要授予的标识符；`permission_level` 说明它是整个服务授予一次，还是按资源实例逐个授予。
+</ResponseField>
+
+<ResponseField name="data.stage" type="string">
+  决定您该向管理员提哪种请求。`capability` —— 去要这项权限本身；您在任何地方都没有它，只放开这一个资源是不够的。`instance` —— 去要这个资源的访问范围；这项权限您在别处已经有了。
+</ResponseField>
+
+<ResponseField name="data.required_any_of" type="array">
+  其中**任意一项**授予了就能通过。把它交给管理团队权限的人，这是「我需要什么」最短的答案。
+</ResponseField>
+
+<Note>
+  拒绝不会告诉您资源是否存在——读取时的 `403` 只表示「不给您」，不含别的信息。删除是例外：无论资源是被删掉了还是本来就不存在，它都返回 `200`，所以重复删除可以安全重试。
+</Note>
 ## HTTP 状态码
 
 | 状态码 | 含义 | 常见原因 |

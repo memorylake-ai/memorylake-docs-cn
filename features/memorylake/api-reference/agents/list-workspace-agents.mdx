@@ -3,6 +3,14 @@ title: "列出工作空间 Agent"
 description: "返回绑定到工作空间的 Agent 分页列表"
 ---
 
+<ParamField query="agent_type" type="string">
+按平台是否托管该 Agent 的运行时过滤：`INTERNAL` 或 `EXTERNAL`。
+</ParamField>
+
+<ParamField query="status" type="string">
+按绑定状态过滤：`ACTIVE`（可读写）或 `INACTIVE`（绑定还在，但它指向的 Agent 已被删除）。
+</ParamField>
+
 ```
 GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents
 ```
@@ -10,7 +18,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents
 返回绑定到指定工作空间的所有 Agent 的分页列表。已绑定的 Agent 可在工作空间内进行 A2A 通信和任务执行。
 
 <Note>
-**所需权限：** `workspace:agent_list`
+**所需权限：** `workspace_agent:read` —— 您打不开的行不会出现在列表里，列表本身不会被拒绝
 </Note>
 
 ### 路径参数
@@ -35,7 +43,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/agents?page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents?page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -66,14 +74,14 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
     "items": [
       {
         "name": "Support Assistant",
-        "agent_id": "agt_r8k2m1n3",
+        "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
         "custom_id": "support-assistant-v1",
         "latest_version": 3,
         "bound_at": "2025-04-01T08:00:00Z"
       },
       {
         "name": "Research Agent",
-        "agent_id": "agt_t5v9w3y7",
+        "agent_id": "agent-e86c40e11be2c2024ebfc9e19d8fe371",
         "custom_id": "research-agent-v1",
         "latest_version": 1,
         "bound_at": "2025-04-10T15:30:00Z"

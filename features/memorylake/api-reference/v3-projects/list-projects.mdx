@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects
 返回指定工作空间中项目的分页列表。您可以通过名称模糊匹配筛选结果，并使用 `page_size` 和 `continuation_token` 控制分页。
 
 <Note>
-**所需权限：** `project:list`
+**所需权限：** `project:read` —— 您打不开的行不会出现在列表里，列表本身不会被拒绝
 </Note>
 
 ### 路径参数
@@ -35,7 +35,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/projects?page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects?page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -66,7 +66,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
   "data": {
     "items": [
       {
-        "id": "proj_def456",
+        "id": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
         "name": "Customer Research",
         "description": "Interview transcripts and survey analysis",
         "custom_id": "research-2024-q1",

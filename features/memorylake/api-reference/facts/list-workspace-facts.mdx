@@ -3,6 +3,10 @@ title: "列出工作空间事实"
 description: "返回工作空间中跨项目和 Actor 的事实"
 ---
 
+<ParamField query="agent_ids" type="array of strings">
+要返回其事实的 Agent ID，以逗号分隔。
+</ParamField>
+
 ```
 GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/facts
 ```
@@ -12,7 +16,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/facts
 `project_ids` 或 `actor_ids` 至少需要提供一项，且两者合计最多只能引用 50 个不同的项目/Actor。
 
 <Note>
-**所需权限：** `project:mem_list`
+**所需权限：** 按您指名的 id 种类分别要求——`project_ids` 里的每个项目需要 `project:mem_read`，`actor_ids` 里的每个 Actor 需要 `workspace_actor:fact_read`，`agent_ids` 里的每个 Agent 需要 `workspace_agent:fact_read`。只要指名了您无权读取的对象，**整个请求会被拒绝**，而不是把列表过滤成您能看到的部分。
 </Note>
 
 ### 路径参数
@@ -45,17 +49,17 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/facts
 
 <RequestExample>
 ```bash 两个项目的事实
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/facts?project_ids=proj_def456,proj_ghi789' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/memories/facts?project_ids=proj_def456,proj_ghi789' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 
 ```bash 一个项目和一个 Actor 的事实
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/facts?project_ids=proj_def456&actor_ids=act-a1b2c3d4e5f6' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/memories/facts?project_ids=proj_def456&actor_ids=act-a1b2c3d4e5f6' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 
 ```bash 按内容筛选
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123/memories/facts?project_ids=proj_def456&fact_fuzzy=deadline' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/memories/facts?project_ids=proj_def456&fact_fuzzy=deadline' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -96,7 +100,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
   "data": {
     "items": [
       {
-        "id": "fact_8f3a1b2c4d5e",
+        "id": "fact-2fe07aee0058d141c744685a2d7272be",
         "fact": "Project deadline was moved to June 2025",
         "metadata": {
           "category": "planning"
@@ -104,14 +108,14 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
         "expired": false,
         "owner": {
           "type": "project",
-          "id": "proj_def456"
+          "id": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"
         },
         "expiration_date": null,
         "created_at": "2025-06-10T14:30:00Z",
         "updated_at": "2025-06-10T14:30:00Z"
       },
       {
-        "id": "fact_2d4e6f8a0b1c",
+        "id": "fact-044bdc2ffcf8c7915aa9e79d5a10efd4",
         "fact": "User prefers dark mode in all applications",
         "metadata": {
           "category": "preferences"
@@ -119,7 +123,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
         "expired": false,
         "owner": {
           "type": "actor",
-          "id": "act-a1b2c3d4e5f6"
+          "id": "actor-8d093c0578ffeb19f8fa10ea28ee9362"
         },
         "expiration_date": null,
         "created_at": "2025-06-12T09:15:00Z",

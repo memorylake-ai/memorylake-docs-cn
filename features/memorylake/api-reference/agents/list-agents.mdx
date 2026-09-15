@@ -7,10 +7,10 @@ description: "返回 Agent 的分页列表，支持按名称搜索"
 GET /openapi/memorylake/api/v3/agents
 ```
 
-返回你账户中所有 Agent 的分页列表。你可以通过 `name_fuzzy` 按名称搜索，并使用 `page_size` 和 `continuation_token` 控制分页。
+返回您账户中所有 Agent 的分页列表。您可以通过 `name_fuzzy` 按名称搜索，并使用 `page_size` 和 `continuation_token` 控制分页。
 
 <Note>
-**所需权限：** `agent:list`
+**所需权限：** `agent:read` —— 您打不开的行不会出现在列表里，列表本身不会被拒绝
 </Note>
 
 ### 查询参数
@@ -103,7 +103,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents?page_siz
   "data": {
     "items": [
       {
-        "id": "agt_r8k2m1n3",
+        "id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
         "name": "Support Assistant",
         "description": "Handles customer support inquiries using knowledge base",
         "metadata": {
@@ -140,7 +140,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents?page_siz
           }
         ],
         "custom_id": "support-assistant-v1",
-        "actor_id": "act_p4q7w2x9",
+        "actor_id": "actor-9ad7a492416c6a8197f42a64b0a4a2d2",
         "latest_version": 3,
         "system_prompt": "You are a helpful support assistant...",
         "model_settings": {

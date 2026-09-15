@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/mem
 返回项目中存储的事实分页列表。事实是从会话中自动提取的结构化知识片段。您可以使用 `fact_fuzzy` 按内容筛选事实。
 
 <Note>
-**所需权限：** `project:mem_list`
+**所需权限：** `project:mem_read`
 </Note>
 
 ### 路径参数
@@ -39,7 +39,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/mem
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/projects/proj_a1b2c3d4e5f6/memories/facts?page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/projects/proj_a1b2c3d4e5f6/memories/facts?page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -74,7 +74,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
   "data": {
     "items": [
       {
-        "id": "fact_8f3a1b2c4d5e",
+        "id": "fact-2fe07aee0058d141c744685a2d7272be",
         "fact": "User prefers dark mode in all applications",
         "metadata": {
           "category": "preferences",
@@ -87,7 +87,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
         "updated_at": "2025-06-10T14:30:00Z"
       },
       {
-        "id": "fact_2d4e6f8a0b1c",
+        "id": "fact-044bdc2ffcf8c7915aa9e79d5a10efd4",
         "fact": "User is based in San Francisco timezone (PST/PDT)",
         "metadata": {
           "category": "location"

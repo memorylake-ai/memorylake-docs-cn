@@ -10,7 +10,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations
 返回工作空间中会话的分页列表。使用分页令牌遍历大型结果集。
 
 <Note>
-**所需权限：** `workspace:conv_list`
+**所需权限：** `workspace:conv_read`
 </Note>
 
 ### 路径参数
@@ -31,7 +31,7 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/conversations
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/memories/conversations?page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/memories/conversations?page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -68,7 +68,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
   "data": {
     "items": [
       {
-        "id": "conv_8f3a1b2c4d5e6f7a",
+        "id": "conv-b03d4e0bf663000c7bafdc724a11eb3f",
         "name": "Onboarding Session",
         "kind": "DIRECT",
         "metadata": {
@@ -76,8 +76,8 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
           "language": "en"
         },
         "custom_id": "session-20250601-001",
-        "rw_project_ids": ["proj_def456"],
-        "actor_ids": ["actor_user_jane", "actor_assistant_v2"],
+        "rw_project_ids": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"],
+        "actor_ids": ["actor-93688d5ec8d2e98701be3d5554cbc455", "actor-9831773f1353358f4196b22505d879e0"],
         "current_message_id": "msg_9e4b2c3d5f6a7b8c",
         "created_at": "2025-06-01T09:15:00Z",
         "updated_at": "2025-06-01T09:42:00Z"

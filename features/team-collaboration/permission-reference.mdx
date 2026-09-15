@@ -30,24 +30,40 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
     - **直接打开 URL** 会将您重定向回去，或显示"无权限"页面。
   </Card>
   <Card title="调用 API 时" icon="code">
-    - 请求被拒绝，返回 **HTTP 403** 和 `INSUFFICIENT_PERMISSION` 错误码。
+    - 请求被拒绝，返回 **HTTP 403** 和 `ACCESS_DENIED` 错误码。
     - 错误响应会告诉您缺少哪项权限。
     - 完整的错误信封请参阅[错误处理](/features/memorylake/api-reference/errors)。
   </Card>
 </CardGroup>
 
+### 列表是过滤出来的，不是靠权限放行的
+
+**没有"查看列表"这种权限。** 每个列表端点只返回您能打开的那些行，其余的不出现——所以列表不会因为缺权限而被拒绝，它只会变短。工作空间列表给出您持有 `workspace:read` 的那些，项目列表给出您持有 `project:read` 的那些，其余资源同理。
+
+这取代了此前的一组 `*_list` 能力。那组能力可以在没有对应 `*_read` 的情况下单独持有，于是产生"看得见却打不开"的行。如果您在找 `project:read`、`workspace:read`、`actor:read`、`agent:read` 或它们的同族，它们消失的原因就在这里：**持有 `*_read` 就是持有列表**。
+
+<Note>
+  空列表和缺失的行，与"您无权打开它"是同一个答复。两者都不是错误，也都不告诉您那个东西是否存在。
+</Note>
+
 <Tip>如果控制台中的某个按钮变灰且您不知道原因，请将鼠标悬停在上面。工具提示始终会显示您所需的确切权限名称。</Tip>
 
 ## 权限如何分组
 
-权限存在于五种资源上。以下所有能力都属于其中之一：
+权限存在于七种资源上。以下所有能力都属于其中之一：
 
 <CardGroup cols={3}>
   <Card title="工作空间" icon="building">
-    您的租户级数据边界 -- 会话、Actor 和 Agent 绑定、Actor 事实、A2A 操作以及工作空间范围的搜索。所有 `workspace:*` 能力都属于此类。
+    租户级的数据边界 —— 会话、工作空间范围内的搜索，以及把 Actor 与 Agent 引入其中的权利。所有 `workspace:*` 能力都在这里。
+  </Card>
+  <Card title="工作空间中的 Actor" icon="user-check">
+    某个 Actor 在某个工作空间里能做什么，以及它在那里积累的事实。授予范围是「这个 Actor 在这个工作空间」——不是整个工作空间。所有 `workspace_actor:*` 能力都在这里。
+  </Card>
+  <Card title="工作空间中的 Agent" icon="robot">
+    某个 Agent 在某个工作空间里能做什么 —— 它在那里的事实，以及以它的身份发起的 A2A 操作。授予范围同样是「这个 Agent 在这个工作空间」。所有 `workspace_agent:*` 能力都在这里。
   </Card>
   <Card title="Actor" icon="user">
-    独立的记忆载体 -- 跨项目积累事实的人和助手。所有 `actor:*` 能力都属于此类。
+    独立的记忆载体 -- 跨项目积累事实的人。Agent 的记忆挂在 Agent 上，不在这里。所有 `actor:*` 能力都属于此类。
   </Card>
   <Card title="Agent" icon="robot">
     AI Agent 定义 -- 模型、系统提示词、能力和版本化配置。所有 `agent:*` 能力都属于此类。
@@ -95,11 +111,8 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
     | Identifier | Level | 用途 |
     |---|---|---|
     | `workspace:read` | `instance` | 打开项目所在的工作空间 |
-    | `project:list` | `service` | 在列表和切换器中看到项目 |
     | `project:read` | `instance` | 打开项目主页和各标签页 |
-    | `project:doc_list` | `instance` | 查看"文件"标签页 |
     | `project:doc_read` | `instance` | 阅读单个文档 |
-    | `project:mem_list` | `instance` | 查看"事实"标签页 |
     | `project:mem_read` | `instance` | 阅读单条事实 |
     | `project:mcp_read` | `instance` | 查看"集成"标签页 |
     | `project:mcp_list` | `instance` | 查看已有的 MCP 服务器（只读） |
@@ -144,22 +157,18 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
 
     | Identifier | Level | 用途 |
     |---|---|---|
-    | `workspace:list` | `service` | 浏览可用的工作空间 |
     | `workspace:create` | `service` | 创建新工作空间 |
     | `workspace:read` | `instance` | 打开工作空间 |
     | `workspace:modify` | `instance` | 编辑工作空间设置 |
     | `workspace:delete` | `instance` | 删除工作空间 |
-    | `workspace:conv_list` | `instance` | 列出会话 |
     | `workspace:conv_read` | `instance` | 阅读会话历史 |
     | `workspace:conv_append` | `instance` | 发送消息 |
     | `workspace:conv_delete` | `instance` | 删除会话 |
-    | `workspace:actor_list` | `instance` | 查看绑定了哪些 Actor |
-    | `workspace:actor_bind` | `instance` | 向工作空间添加 Actor |
-    | `workspace:actor_unbind` | `instance` | 从工作空间移除 Actor |
-    | `workspace:agent_list` | `instance` | 查看绑定了哪些 Agent |
-    | `workspace:agent_bind` | `instance` | 向工作空间添加 Agent |
-    | `workspace:agent_unbind` | `instance` | 从工作空间移除 Agent |
-    | `workspace:a2a` | `instance` | 执行 A2A 协议操作 |
+    | `workspace_actor:create` | `instance` | 向工作空间添加 Actor |
+    | `workspace_actor:delete` | `instance` | 从工作空间移除 Actor |
+    | `workspace_agent:create` | `instance` | 向工作空间添加 Agent |
+    | `workspace_agent:delete` | `instance` | 从工作空间移除 Agent |
+    | `workspace_agent:a2a` | `instance` | 执行 A2A 协议操作 |
 
     将 `instance` 权限授予管理员应该管理的**特定工作空间**。
   </Accordion>
@@ -170,7 +179,6 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
     | Identifier | Level | 用途 |
     |---|---|---|
     | `workspace:read` | `instance` | 打开工作空间 |
-    | `workspace:conv_list` | `instance` | 列出会话 |
     | `workspace:conv_read` | `instance` | 阅读会话消息 |
     | `workspace:conv_append` | `instance` | 向会话发送消息 |
 
@@ -182,17 +190,15 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
 
     | Identifier | Level | 用途 |
     |---|---|---|
-    | `agent:list` | `service` | 浏览可用的 Agent |
     | `agent:create` | `service` | 创建新 Agent |
     | `agent:read` | `instance` | 查看 Agent 配置 |
     | `agent:modify` | `instance` | 更新 Agent 身份信息 |
-    | `agent:version_list` | `instance` | 查看版本历史 |
-    | `agent:version_create` | `instance` | 发布新版本 |
-    | `agent:version_read` | `instance` | 查看特定版本详情 |
+    | `agent:read` | `instance` | 查看版本历史 |
+    | `agent:modify` | `instance` | 发布新版本 |
+    | `agent:read` | `instance` | 查看特定版本详情 |
     | `workspace:read` | `instance` | 打开工作空间 |
-    | `workspace:agent_list` | `instance` | 查看绑定了哪些 Agent |
-    | `workspace:agent_bind` | `instance` | 将 Agent 绑定到工作空间 |
-    | `workspace:agent_unbind` | `instance` | 从工作空间移除 Agent |
+    | `workspace_agent:create` | `instance` | 将 Agent 绑定到工作空间 |
+    | `workspace_agent:delete` | `instance` | 从工作空间移除 Agent |
 
     如果运维者还需要管理 Agent 交互的 Actor，请添加 `actor:*` 权限。
   </Accordion>
@@ -204,10 +210,8 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
     |---|---|---|
     | `workspace:read` | `instance` | 打开项目所在的工作空间 |
     | `project:read` | `instance` | 打开项目 |
-    | `project:doc_list` | `instance` | 枚举文档 |
     | `project:doc_read` | `instance` | 获取文档详情 |
     | `project:doc_search` | `instance` | 对文档进行语义搜索 |
-    | `project:mem_list` | `instance` | 枚举事实 |
     | `project:mem_read` | `instance` | 获取事实详情 |
     | `project:mem_search` | `instance` | 搜索事实 |
     | `project:search` | `instance` | 文档 + 事实组合搜索 |
@@ -222,19 +226,6 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
 
 ## 工作空间操作
 
-### 浏览工作空间
-
-允许您在列表页面和工作空间切换器中查看团队的工作空间。
-
-**缺少时：** 即使您有权访问特定工作空间，工作空间列表也会显示为空。
-
-**Identifier：** `workspace:list`
-
-**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
-
-<Note>仅有此权限不能让您打开任何工作空间。打开工作空间需要下一项权限。</Note>
-
----
 
 ### 创建新工作空间
 
@@ -290,17 +281,6 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
 
 会话属于工作空间范围 -- 它们存在于工作空间中，并关联到一个或多个用于存储提取事实的项目。
 
-### 列出会话
-
-允许您查看工作空间中的会话列表。
-
-**缺少时：** 即使会话存在，会话区域也显示为空状态。
-
-**Identifier：** `workspace:conv_list`
-
-**Level：** `instance` -- 授予到特定工作空间。
-
----
 
 ### 阅读会话
 
@@ -344,17 +324,6 @@ API Key 是程序化身份（**Service Account**）-- 每个 API Key 继承创�
 
 Actor 是全局创建的，然后**绑定**到工作空间中运行。这些权限控制哪些 Actor 可以参与工作空间。
 
-### 列出工作空间的 Actor
-
-允许您查看哪些 Actor 绑定到了工作空间。
-
-**缺少时：** 已绑定 Actor 列表显示为空。
-
-**Identifier：** `workspace:actor_list`
-
-**Level：** `instance` -- 授予到特定工作空间。
-
----
 
 ### 将 Actor 绑定到工作空间
 
@@ -362,7 +331,7 @@ Actor 是全局创建的，然后**绑定**到工作空间中运行。这些权�
 
 **缺少时：** "添加 Actor"操作变灰。
 
-**Identifier：** `workspace:actor_bind`
+**Identifier：** `workspace_actor:create`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -374,7 +343,7 @@ Actor 是全局创建的，然后**绑定**到工作空间中运行。这些权�
 
 **缺少时：** 每个 Actor 的"移除"操作变灰。
 
-**Identifier：** `workspace:actor_unbind`
+**Identifier：** `workspace_actor:delete`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -384,17 +353,6 @@ Actor 是全局创建的，然后**绑定**到工作空间中运行。这些权�
 
 Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目积累。这些权限控制对该 Actor 专属知识的访问。
 
-### 列出 Actor 的事实
-
-允许您查看工作空间中某个 Actor 积累的事实列表。
-
-**缺少时：** Actor 的事实区域显示为空。
-
-**Identifier：** `workspace:actor_fact_list`
-
-**Level：** `instance` -- 授予到特定工作空间。
-
----
 
 ### 阅读 Actor 事实
 
@@ -402,7 +360,7 @@ Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目�
 
 **缺少时：** 事实行显示为淡化状态；点击无反应。
 
-**Identifier：** `workspace:actor_fact_read`
+**Identifier：** `workspace_actor:fact_read`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -414,7 +372,7 @@ Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目�
 
 **缺少时：** Actor 事实上的"编辑"操作变灰。
 
-**Identifier：** `workspace:actor_fact_modify`
+**Identifier：** `workspace_actor:fact_modify`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -426,7 +384,7 @@ Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目�
 
 **缺少时：** Actor 事实上的"遗忘"操作变灰。
 
-**Identifier：** `workspace:actor_fact_delete`
+**Identifier：** `workspace_actor:fact_delete`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -436,17 +394,6 @@ Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目�
 
 Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这些权限控制哪些 Agent 可以在工作空间中运行。
 
-### 列出工作空间的 Agent
-
-允许您查看哪些 Agent 绑定到了工作空间。
-
-**缺少时：** 已绑定 Agent 列表显示为空。
-
-**Identifier：** `workspace:agent_list`
-
-**Level：** `instance` -- 授予到特定工作空间。
-
----
 
 ### 将 Agent 绑定到工作空间
 
@@ -454,7 +401,7 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 **缺少时：** "添加 Agent"操作变灰。
 
-**Identifier：** `workspace:agent_bind`
+**Identifier：** `workspace_agent:create`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -466,7 +413,7 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 **缺少时：** 每个 Agent 的"移除"操作变灰。
 
-**Identifier：** `workspace:agent_unbind`
+**Identifier：** `workspace_agent:delete`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -480,7 +427,7 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 **缺少时：** 对此工作空间的 A2A 请求返回 403。
 
-**Identifier：** `workspace:a2a`
+**Identifier：** `workspace_agent:a2a`
 
 **Level：** `instance` -- 授予到特定工作空间。
 
@@ -488,19 +435,6 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ## Actor 操作
 
-### 浏览 Actor
-
-允许您查看团队中可用的 Actor 列表。
-
-**缺少时：** 即使 Actor 存在，Actor 列表也显示为空。
-
-**Identifier：** `actor:list`
-
-**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
-
-<Note>仅有此权限不能让您查看 Actor 的详情。查看 Actor 需要创建之后的下一项权限。</Note>
-
----
 
 ### 创建 Actor
 
@@ -554,17 +488,6 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ## Agent 操作
 
-### 浏览 Agent
-
-允许您查看团队中可用的 Agent 列表。
-
-**缺少时：** 即使 Agent 存在，Agent 列表也显示为空。
-
-**Identifier：** `agent:list`
-
-**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
-
----
 
 ### 创建 Agent
 
@@ -580,7 +503,7 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ### 查看 Agent
 
-允许您打开 Agent 并查看其配置 -- 模型、系统提示词、能力和策略。
+允许您打开 Agent 并查看其配置 -- 模型、系统提示词、能力和策略。**版本历史随之而来**：列出历史版本、打开其中任意一个，都属于「读这个 Agent」，不是单独的权限。
 
 **缺少时：** Agent 行显示为淡化状态；点击无反应。
 
@@ -592,7 +515,7 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ### 编辑 Agent 身份信息
 
-允许您更新 Agent 的身份字段 -- 名称、描述以及其他跨所有版本生效的顶层设置。
+允许您更新 Agent 的身份字段 -- 名称、描述以及其他跨所有版本生效的顶层设置。**发布新版本是同一个权限**：版本是 Agent 的快照，改它下一个版本是什么，就是在改这个 Agent。
 
 **缺少时：** Agent 身份信息上的"编辑"选项变灰。
 
@@ -618,57 +541,10 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ---
 
-### 列出 Agent 版本
 
-允许您查看 Agent 的版本历史 -- 每个过去的配置快照。
-
-**缺少时：** 版本区域显示为空。
-
-**Identifier：** `agent:version_list`
-
-**Level：** `instance` -- 授予到特定 Agent。
-
----
-
-### 创建 Agent 版本
-
-允许您发布 Agent 的新版本 -- 更新后的模型、提示词或能力设置的快照。
-
-**缺少时：** "发布版本"操作变灰。
-
-**Identifier：** `agent:version_create`
-
-**Level：** `instance` -- 授予到特定 Agent。
-
----
-
-### 查看 Agent 版本
-
-允许您查看特定 Agent 版本的详情 -- 该时间点的模型、提示词和能力配置。
-
-**缺少时：** 版本行显示为淡化状态；点击无反应。
-
-**Identifier：** `agent:version_read`
-
-**Level：** `instance` -- 授予到特定 Agent。
-
----
 
 ## 项目操作
 
-### 浏览项目列表
-
-允许您查看团队的项目 -- 在列表页面、项目切换器下拉菜单和主页卡片中。
-
-**缺少时：** 即使您有权访问特定项目，项目列表也会显示为空。项目切换器同样为空。
-
-**Identifier：** `project:list`
-
-**Level：** `service` -- 团队范围生效（不绑定到特定资源实例）。
-
-<Note>仅有此权限不能让您打开任何项目。打开项目需要下一项权限。</Note>
-
----
 
 ### 打开项目
 
@@ -734,17 +610,6 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ## 项目内的文档操作
 
-### 查看"文件"标签页
-
-允许您打开项目的**文件**标签页并浏览其关联的文档。
-
-**缺少时：** 整个"文件"标签页从项目侧边菜单中消失。直接输入文件页面的 URL 只会将您重定向到默认标签页。
-
-**Identifier：** `project:doc_list`
-
-**Level：** `instance` -- 授予到特定项目。
-
----
 
 ### 读取单个文档
 
@@ -806,19 +671,6 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 ## 项目内的事实操作
 
-### 查看"事实"标签页
-
-允许您打开**事实**标签页并查看事实列表以及顶部的关键词云。
-
-**缺少时：** 整个"事实"标签页从项目侧边菜单中消失。关键词云、冲突列表和原始变更历史都无法访问。
-
-**Identifier：** `project:mem_list`
-
-**Level：** `instance` -- 授予到特定项目。
-
-<Note>仅有此权限只能让您看到事实的存在，但看不到其内容。您还需要下一项权限才能阅读每条事实的完整内容。</Note>
-
----
 
 ### 阅读事实内容
 
@@ -1021,14 +873,16 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
     您有**浏览工作空间**权限但没有**打开工作空间**权限。请联系管理员在特定工作空间上授予 `workspace:read`。
   </Accordion>
 
-  <Accordion title="我能看到项目列表，但无法打开任何项目">
-    您有**浏览项目列表**权限但没有**打开项目**权限。请联系管理员在特定项目上授予 `project:read`。同时检查您是否拥有项目所在工作空间的 `workspace:read` 权限。
+  <Accordion title="项目列表是空的，或者我预期的某个项目不在里面">
+
+    列表只给出您能打开的项目，此外没有别的——"看见列表"本身不是一种权限，打不开的项目根本不会出现在里面。请联系管理员，在您要找的那个项目上授予 `project:read`，并确认您在它所属的工作空间上也有 `workspace:read`。
+
   </Accordion>
 
   <Accordion title="我能打开的项目在侧边菜单中缺少某些标签页">
     每个标签页依赖其对应的权限：
-    - **文件**标签页需要 `project:doc_list`
-    - **事实**标签页需要 `project:mem_list`
+    - **文件**标签页需要 `project:doc_read`
+    - **事实**标签页需要 `project:mem_read`
     - **集成**标签页需要 `project:mcp_read`
     - **冲突**标签页需要 `project:mem_conflict_resolve`
   </Accordion>
@@ -1037,24 +891,19 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
     将鼠标悬停在按钮上 -- 工具提示会准确告诉您需要哪项权限。截图工具提示并转发给管理员。
   </Accordion>
 
-  <Accordion title="我能看到事实列表，但点击行没有反应">
-    您可以**看到**事实存在（`mem_list`）但不能**阅读**它们（`mem_read`）。请联系管理员授予 `project:mem_read`。
-  </Accordion>
-
-  <Accordion title="我能看到会话列表，但无法阅读它们">
-    您有 `workspace:conv_list` 但没有 `workspace:conv_read`。请联系管理员在此工作空间上授予 `workspace:conv_read`。
-  </Accordion>
-
   <Accordion title="我能阅读会话但消息输入框被禁用">
     您有 `workspace:conv_read` 但没有 `workspace:conv_append`。请联系管理员在此工作空间上授予 `workspace:conv_append`。
   </Accordion>
 
   <Accordion title="我无法将 Agent 绑定到工作空间">
-    您需要同时拥有 Agent 上的 `agent:read` **和**工作空间上的 `workspace:agent_bind`。请检查您是否同时拥有这两项权限。
+    您需要同时拥有 Agent 上的 `agent:read` **和**工作空间上的 `workspace_agent:create`。请检查您是否同时拥有这两项权限。
   </Accordion>
 
-  <Accordion title="我的 API 调用返回了 403 INSUFFICIENT_PERMISSION">
-    错误响应会指出您的凭证缺少哪项权限。在上方相关部分中找到它，然后请管理员将该权限授予绑定到您 API Key 的角色。
+  <Accordion title="我的 API 调用返回了 403 ACCESS_DENIED">
+    响应体里就写着缺哪个权限，不用自己推。`data.denied[].permission` 是权限标识符；`data.required_any_of`
+    列出「授予其中任意一项即可通过」的选项。`data.stage` 告诉您该提哪种请求：`capability` —— 去要这项权限本身；
+  `instance` —— 去要把这个工作空间或项目加进您的访问范围。完整报文见
+    [错误处理](/zh/features/memorylake/api-reference/errors)。
   </Accordion>
 
   <Accordion title="我已向管理员申请了权限 -- 他们具体如何授予？">

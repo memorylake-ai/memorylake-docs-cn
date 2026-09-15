@@ -7,10 +7,10 @@ description: "返回特定 Actor 的事实分页列表"
 GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts
 ```
 
-返回特定 Actor 范围内的事实分页列表。Actor 事实代表关于用户的知识，可在工作空间内的所有项目中访问。
+返回特定 Actor 范围内的事实分页列表。Actor 事实是该主体在工作空间内所有项目中积累下来的内容。这个 id 可能属于人，也可能属于 Agent；两种情况下读到的事实形态相同，可在工作空间内的所有项目中访问。
 
 <Note>
-**所需权限：** `workspace:actor_fact_list`
+**所需权限：** 人的记忆需要 `workspace_actor:fact_read`，Agent 的记忆需要 `workspace_agent:fact_read`——取决于该 id 属于哪一方
 </Note>
 
 ### 路径参数
@@ -39,7 +39,7 @@ Actor ID
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_abc123def456/actors/actor_5e4d3c2b1a0f/facts?page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/actors/actor_5e4d3c2b1a0f/facts?page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -74,7 +74,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
   "data": {
     "items": [
       {
-        "id": "fact_4c5d6e7f8a9b",
+        "id": "fact-11a0e057d09877c9c492633fd60424fc",
         "fact": "User's primary programming language is Python",
         "metadata": {
           "category": "skills",
@@ -87,7 +87,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws_a
         "updated_at": "2025-05-20T10:00:00Z"
       },
       {
-        "id": "fact_1a2b3c4d5e6f",
+        "id": "fact-9e6e9b323824eb264c1165994af65c1e",
         "fact": "User works at a fintech startup with 50 employees",
         "metadata": {
           "category": "work"

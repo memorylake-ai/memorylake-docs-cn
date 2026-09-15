@@ -10,7 +10,7 @@ DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}
 移除 Actor 与工作空间的绑定关系。Actor 本身不会被删除，之后可以重新绑定。解绑后，Actor 将无法再参与此工作空间中的新会话。
 
 <Note>
-**所需权限：** `workspace:actor_unbind`
+**所需权限：** `workspace_actor:delete`
 </Note>
 
 ### 路径参数

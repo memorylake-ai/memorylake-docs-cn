@@ -20,11 +20,15 @@ Agent 名称
 </ParamField>
 
 <ParamField body="custom_id" type="string" required>
-用于外部系统集成的自定义标识符。在你的 Agent 中必须唯一。
+这个Agent在**您自己系统里已有的标识符**。在您的租户内必须唯一。后续请求带上 `by_custom_id=true`，即可用它代替 `id` 来访问。参见[您自己的标识符](/zh/features/memorylake/api-reference/overview#您自己的标识符)。
 </ParamField>
 
 <ParamField body="description" type="string">
 Agent 描述
+</ParamField>
+
+<ParamField body="agent_type" type="string">
+平台是否托管这个 Agent 的运行时。`INTERNAL`（默认）在平台内运行，支持版本、fork 与 A2A；`EXTERNAL` 只登记记忆——Agent 运行在您那边，因此下面所有运行时字段都不适用。
 </ParamField>
 
 <ParamField body="metadata" type="object">
@@ -187,7 +191,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents' \
 {
   "success": true,
   "data": {
-    "id": "agt_r8k2m1n3",
+    "id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
     "name": "Support Assistant",
     "description": "Handles customer support inquiries using knowledge base",
     "metadata": {
@@ -219,7 +223,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents' \
     ],
     "skills": [],
     "custom_id": "support-assistant-v1",
-    "actor_id": "act_p4q7w2x9",
+    "actor_id": "actor-9ad7a492416c6a8197f42a64b0a4a2d2",
     "latest_version": 1,
     "system_prompt": "You are a helpful support assistant. Use the knowledge base to answer questions accurately.",
     "model_settings": {
