@@ -1,0 +1,203 @@
+---
+title: "添加知识条目"
+description: "向分析模型添加背景知识、业务规则、示例问答或指标"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models/{modelId}/entries
+```
+
+向分析模型添加一条知识条目。每个条目都有一个类型 `entity_type`，它决定 `embedding` 里放什么，以及 `payload` 的结构：
+
+| `entity_type` | 内容 | `embedding` 中放的是 |
+|---|---|---|
+| `general` | 关于数据的背景知识，作为上下文使用 | 这段背景知识的归档名称 |
+| `biz_rule` | 一条业务规则或口径定义 | 这条规则所针对的术语 |
+| `few_shot` | 一个问题，以及回答它的 SQL | 这个问题 |
+| `drilldown_entity` | 一个指标，以及它的口径和阈值 | 指标名称 |
+
+模型只接受其模板列出的类型。调用[列出分析模型模板](/features/memorylake/api-reference/database/analysis-models/list-analysis-model-templates)查看每种模型接受哪些类型。
+
+<Note>
+**所需权限：** `analysis_model:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="modelId" type="string" required>
+分析模型 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="entity_type" type="string" required>
+知识类型：`general`、`biz_rule`、`few_shot` 或 `drilldown_entity`。它决定 `payload` 的结构。模型也可能接受这里没有描述的类型；模板接口会列出它接受的类型，这类条目的 `payload` 会原样转交。
+</ParamField>
+
+<ParamField body="embedding" type="string">
+条目的归档文本。`general`、`few_shot` 和 `drilldown_entity` 必填；`biz_rule` 可选。
+
+- `general`：用于命名条目。它不会与问题匹配，因为通用知识是作为上下文读取的，而不是被检索的。
+- `biz_rule`：这条规则所针对的术语，会与收到的问题匹配。不传时由模型根据规则推导出术语；两者都传时各自按原样保存。
+- `few_shot`：这个案例回答的问题。收到的问题会与它匹配，选中这个案例后才会用到其中的 SQL。
+- `drilldown_entity`：指标名称，会与收到的问题匹配。
+</ParamField>
+
+<ParamField body="payload" type="object" required>
+条目的内容。结构随 `entity_type` 而定：内容放在 `artifact` 下的具名槽位中，每个槽位都是一个槽位对象。这里没有列出的键会按原样保存并返回。
+
+<Expandable title="general · 通用知识">
+  <ParamField body="artifact.general" type="object">背景知识本身，通常是纯文本或 Markdown</ParamField>
+</Expandable>
+<Expandable title="biz_rule · 业务知识">
+  <ParamField body="artifact.biz_rule" type="object">规则本身</ParamField>
+  <ParamField body="source_spec" type="array">只读。读取条目时会返回；传入它不会产生任何效果。</ParamField>
+</Expandable>
+<Expandable title="few_shot · 优化案例">
+  <ParamField body="artifact.question" type="object">这个案例回答的问题</ParamField>
+  <ParamField body="artifact.few_shot" type="object">回答该问题的 SQL，`type` 设为 `SQL`。保存条目时会检查它：不仅要能解析，其中引用的每张表都必须存在于模型所基于的数据源中。针对其他 schema 编写的语句会被拒绝，而不会被保存。</ParamField>
+</Expandable>
+<Expandable title="drilldown_entity · 业务模型">
+  <ParamField body="artifact.busi_caliber" type="object">业务口径：这个指标对业务意味着什么</ParamField>
+  <ParamField body="artifact.tech_caliber" type="object">技术口径：这个指标如何计算</ParamField>
+  <ParamField body="artifact.threshold" type="object">什么样的值对这个指标来说算异常</ParamField>
+  <ParamField body="artifact.analysis_hint" type="object">这个指标变动时首先要看什么</ParamField>
+</Expandable>
+<Expandable title="槽位对象">
+  <ParamField body="type" type="string">`content` 的读取方式：`LIST`、`DICT`、`MARKDOWN`、`TEXT`、`SQL` 或 `FILE`。它表示值的格式，而不是条目的类型：优化案例里的 SQL 是 `SQL`，一段文字是 `TEXT`。</ParamField>
+  <ParamField body="desc" type="string">槽位的显示名称，供渲染方使用</ParamField>
+  <ParamField body="content" type="string">值本身</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="disabled" type="boolean" default="false">
+设为 `true` 时，条目在添加后即处于不参与回答的状态。对不能停用的类型（例如通用知识）无效。
+</ParamField>
+
+<ParamField body="extra" type="object">
+您希望随条目一起保存的任意内容。它会原样保存和返回，不参与匹配。基于文档库的模型上的业务规则需要在这里提供 `doc_id`，指明规则所属的文档。
+</ParamField>
+
+<RequestExample>
+```bash Few-shot case
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models/am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e/entries' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  --data-binary @- <<'EOF'
+{
+  "entity_type": "few_shot",
+  "embedding": "What was total revenue last month?",
+  "payload": {
+    "artifact": {
+      "question": {
+        "type": "TEXT",
+        "content": "What was total revenue last month?"
+      },
+      "few_shot": {
+        "type": "SQL",
+        "content": "SELECT SUM(total_amount) FROM sales.orders WHERE created_at >= date_trunc('month', now()) - interval '1 month' AND created_at < date_trunc('month', now())"
+      }
+    }
+  }
+}
+EOF
+```
+
+```bash General knowledge
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models/am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e/entries' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "entity_type": "general",
+    "embedding": "Sales data overview",
+    "payload": {
+      "artifact": {
+        "general": {
+          "type": "MARKDOWN",
+          "content": "## Sales data overview\n`sales.orders` holds one row per customer order. All amounts are in USD."
+        }
+      }
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回新条目，格式与[获取知识条目](/features/memorylake/api-reference/database/analysis-models/get-knowledge-entry)返回的相同。
+
+<ResponseField name="data" type="object">
+<Expandable title="知识条目对象">
+  <ResponseField name="id" type="string">知识条目标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="entity_type" type="string">知识类型，例如 `general` 或 `few_shot`。它决定 `payload` 的结构。</ResponseField>
+  <ResponseField name="embedding" type="string">条目用于匹配的文本：问题要与它相似，条目才会被使用。对通用知识条目，它只用于命名条目；对业务规则，它可能是根据规则本身推导出来的。</ResponseField>
+  <ResponseField name="disabled" type="boolean">条目当前是否被排除在回答之外</ResponseField>
+  <ResponseField name="score" type="number">条目与检索时 `keyword` 的接近程度，取值 0 到 1。不在检索中时它不携带任何信息，通常为 0 或不返回，请不要把它当作条目的质量分。</ResponseField>
+  <ResponseField name="payload" type="object">
+  条目的内容。结构随 `entity_type` 而定：内容放在 `artifact` 下的具名槽位中，每个槽位都是一个槽位对象。这里没有列出的键按保存时的原样返回。
+  <Expandable title="general · 通用知识">
+    <ResponseField name="artifact.general" type="object">背景知识本身，通常是纯文本或 Markdown</ResponseField>
+  </Expandable>
+  <Expandable title="biz_rule · 业务知识">
+    <ResponseField name="artifact.biz_rule" type="object">规则本身</ResponseField>
+    <ResponseField name="source_spec" type="array">这条规则所属的数据实体，每项带有其匹配文本。只读：它由条目之间的关联推导而来，本 API 不提供设置关联的方式。</ResponseField>
+  </Expandable>
+  <Expandable title="few_shot · 优化案例">
+    <ResponseField name="artifact.question" type="object">这个案例回答的问题</ResponseField>
+    <ResponseField name="artifact.few_shot" type="object">回答该问题的 SQL</ResponseField>
+  </Expandable>
+  <Expandable title="drilldown_entity · 业务模型">
+    <ResponseField name="artifact.busi_caliber" type="object">业务口径：这个指标对业务意味着什么</ResponseField>
+    <ResponseField name="artifact.tech_caliber" type="object">技术口径：这个指标如何计算</ResponseField>
+    <ResponseField name="artifact.threshold" type="object">什么样的值对这个指标来说算异常</ResponseField>
+    <ResponseField name="artifact.analysis_hint" type="object">这个指标变动时首先要看什么</ResponseField>
+  </Expandable>
+  <Expandable title="槽位对象">
+    <ResponseField name="type" type="string">`content` 的读取方式：`LIST`、`DICT`、`MARKDOWN`、`TEXT`、`SQL` 或 `FILE`</ResponseField>
+    <ResponseField name="desc" type="string">槽位的显示名称，供渲染方使用</ResponseField>
+    <ResponseField name="content" type="string">值本身</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="extra" type="object">您随条目一起保存的内容，原样返回。没有保存时不返回该字段。</ResponseField>
+  <ResponseField name="source_count" type="integer">指向这个条目的条目数量</ResponseField>
+  <ResponseField name="target_count" type="integer">这个条目指向的条目数量</ResponseField>
+  <ResponseField name="created_at" type="string">条目的添加时间</ResponseField>
+  <ResponseField name="updated_at" type="string">条目的最后修改时间。停用或恢复也算一次修改。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "5d2e7b9cb31d11f1a7c35e9b2d4f6a81",
+    "embedding": "What was total revenue last month?",
+    "disabled": false,
+    "score": 0.0,
+    "payload": {
+      "artifact": {
+        "question": {
+          "type": "TEXT",
+          "content": "What was total revenue last month?"
+        },
+        "few_shot": {
+          "type": "SQL",
+          "content": "SELECT SUM(total_amount) FROM sales.orders WHERE created_at >= date_trunc('month', now()) - interval '1 month' AND created_at < date_trunc('month', now())"
+        }
+      }
+    },
+    "entity_type": "few_shot",
+    "source_count": 0,
+    "target_count": 0,
+    "created_at": "2026-09-21T09:26:38.417Z",
+    "updated_at": "2026-09-21T09:26:38.417Z"
+  }
+}
+```
+</ResponseExample>

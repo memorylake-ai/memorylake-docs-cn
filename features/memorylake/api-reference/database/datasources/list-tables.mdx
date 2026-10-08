@@ -1,0 +1,78 @@
+---
+title: "列出数据表"
+description: "列出数据源覆盖的数据表及其注释"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datasourceId}/tables
+```
+
+列出这个数据源所覆盖 schema 中的数据表，以及每张表的注释。一次响应即返回完整列表。把表名传给[列出字段](/features/memorylake/api-reference/database/datasources/list-columns)即可查看它的字段；如需修改注释，请调用[编辑 Schema 元数据](/features/memorylake/api-reference/database/datasources/edit-schema-metadata)。
+
+<Note>
+**所需权限：** `db_datasource:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="datasourceId" type="string" required>
+数据源 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="name_fuzzy" type="string">
+只返回名称包含该文本的数据表（不区分大小写）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c/tables' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="数据表列表">
+  <ResponseField name="items" type="array">
+  数据表对象数组
+  <Expandable title="数据表对象">
+    <ResponseField name="comment" type="string">描述这张表内容的注释。未设置时为空。</ResponseField>
+    <ResponseField name="schema_name" type="string">数据表所属的 schema</ResponseField>
+    <ResponseField name="table_name" type="string">表名</ResponseField>
+    <ResponseField name="table_type" type="string">数据库报告的关系类型，例如 `table`</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "comment": "Registered customers",
+        "schema_name": "sales",
+        "table_name": "customers",
+        "table_type": "table"
+      },
+      {
+        "comment": "One row per customer order",
+        "schema_name": "sales",
+        "table_name": "orders",
+        "table_type": "table"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

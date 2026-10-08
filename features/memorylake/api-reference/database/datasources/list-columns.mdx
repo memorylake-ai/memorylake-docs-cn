@@ -1,0 +1,107 @@
+---
+title: "列出字段"
+description: "列出数据源中某张数据表的字段，以及它们的注释和索引设置"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datasourceId}/columns
+```
+
+列出这个数据源所覆盖 schema 中某张数据表的字段，以及每个字段的注释和是否为其值建立语义匹配索引。一次响应即返回完整列表。表名可以通过[列出数据表](/features/memorylake/api-reference/database/datasources/list-tables)查到。如果传入的表名不在这个数据源的覆盖范围内，返回空列表。
+
+如需修改字段的注释或索引开关，请调用[编辑 Schema 元数据](/features/memorylake/api-reference/database/datasources/edit-schema-metadata)。
+
+<Note>
+**所需权限：** `db_datasource:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="datasourceId" type="string" required>
+数据源 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="table_name" type="string" required>
+要列出字段的数据表名
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c/columns?table_name=orders' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="字段列表">
+  <ResponseField name="items" type="array">
+  字段对象数组
+  <Expandable title="字段对象">
+    <ResponseField name="comment" type="string">描述这个字段内容的注释。未设置时为空。</ResponseField>
+    <ResponseField name="schema_name" type="string">字段所属的 schema</ResponseField>
+    <ResponseField name="table_name" type="string">字段所属的数据表</ResponseField>
+    <ResponseField name="column_name" type="string">字段名</ResponseField>
+    <ResponseField name="data_type" type="string">数据库报告的字段类型，例如 `bigint` 或 `varchar`</ResponseField>
+    <ResponseField name="embedding_enabled" type="boolean">是否为这个字段的值建立语义匹配索引</ResponseField>
+    <ResponseField name="max_embedding_rows" type="integer">这个字段最多有多少个值会进入索引。无法通过 API 修改。</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "comment": "Order identifier",
+        "schema_name": "sales",
+        "table_name": "orders",
+        "column_name": "order_id",
+        "data_type": "bigint",
+        "embedding_enabled": false,
+        "max_embedding_rows": 1000
+      },
+      {
+        "comment": "Customer who placed the order",
+        "schema_name": "sales",
+        "table_name": "orders",
+        "column_name": "customer_id",
+        "data_type": "bigint",
+        "embedding_enabled": false,
+        "max_embedding_rows": 1000
+      },
+      {
+        "comment": "Order total, including tax",
+        "schema_name": "sales",
+        "table_name": "orders",
+        "column_name": "total_amount",
+        "data_type": "numeric",
+        "embedding_enabled": false,
+        "max_embedding_rows": 1000
+      },
+      {
+        "comment": "",
+        "schema_name": "sales",
+        "table_name": "orders",
+        "column_name": "created_at",
+        "data_type": "timestamp",
+        "embedding_enabled": false,
+        "max_embedding_rows": 1000
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

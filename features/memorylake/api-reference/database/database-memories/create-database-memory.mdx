@@ -1,0 +1,94 @@
+---
+title: "创建数据库记忆"
+description: "把数据源作为记忆来源添加到项目中"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/databases
+```
+
+把一个数据源作为记忆来源添加到项目中，使项目里的问题可以基于该数据库来回答。您还可以绑定一个建在同一数据源上的分析模型，并提供一段回答问题时遵循的指引。
+
+记忆是异步处理的。它的 `status` 初始为 `pending`；请轮询[获取数据库记忆](/features/memorylake/api-reference/database/database-memories/get-database-memory)，直到它变为 `okay`，或在处理失败时变为 `error`。
+
+如果数据源不在该项目所属的工作空间中，或者分析模型建在其他数据源上，请求会被拒绝。
+
+<Note>
+**所需权限：** 项目上的 `project:dbset_add`，以及数据源上的 `db_datasource:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+项目所属的工作空间 ID
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+显示名称
+</ParamField>
+
+<ParamField body="db_datasource_id" type="string" required>
+该记忆读取的数据源 ID。它必须属于该项目所在的工作空间，且您需要对它有 `db_datasource:read` 权限。
+</ParamField>
+
+<ParamField body="analysis_model_id" type="string">
+该记忆从中获取知识的分析模型 ID。它必须建在同一个数据源上，且您需要对它有 `analysis_model:read` 权限。不传则创建不绑定分析模型的记忆。
+</ParamField>
+
+<ParamField body="instruction" type="string">
+回答针对这个数据库的问题时遵循的指引：数据的含义、哪些表重要、内部惯例等。不传则记忆创建时没有指引。之后可以用[更新数据库记忆](/features/memorylake/api-reference/database/database-memories/update-database-memory)修改，或用[生成数据库记忆指引](/features/memorylake/api-reference/database/database-memories/generate-database-memory-instruction)自动起草。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/memories/databases' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales database",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "analysis_model_id": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e",
+    "instruction": "All amounts are in US dollars. Answer revenue questions from sales.orders.total_amount and treat created_at as UTC."
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回新建的数据库记忆。
+
+<ResponseField name="data" type="object">
+<Expandable title="数据库记忆对象">
+  <ResponseField name="id" type="string">数据库记忆标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="instruction" type="string">您传入的指引。未传时不返回该字段。</ResponseField>
+  <ResponseField name="status" type="string">处理状态。新建的记忆初始为 `pending`。</ResponseField>
+  <ResponseField name="project_id" type="string">记忆所属项目的 ID</ResponseField>
+  <ResponseField name="db_datasource_id" type="string">该记忆读取的数据源</ResponseField>
+  <ResponseField name="analysis_model_id" type="string">该记忆从中获取知识的分析模型。未绑定时不返回该字段。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "doc-2e6a9c4f8b1d4a7e9c3b5d8f0a2c4e6b",
+    "name": "Sales database",
+    "instruction": "All amounts are in US dollars. Answer revenue questions from sales.orders.total_amount and treat created_at as UTC.",
+    "status": "pending",
+    "project_id": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "analysis_model_id": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e"
+  }
+}
+```
+</ResponseExample>

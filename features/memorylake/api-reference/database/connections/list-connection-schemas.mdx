@@ -1,0 +1,47 @@
+---
+title: "列出连接可读的 Schema"
+description: "列出已保存的数据库连接能读取的 schema"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/db-connections/{connectionId}/schemas
+```
+
+列出已保存的连接能读取的 schema。[创建数据源](/features/memorylake/api-reference/database/datasources/create-datasource)时，从结果中选择 schema。与[测试数据库连通性](/features/memorylake/api-reference/database/connections/test-database-connectivity)不同，这个接口不需要密码。
+
+<Note>
+**所需权限：** `dbconn:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="connectionId" type="string" required>
+数据库连接 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d/schemas' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="可读的 schema">
+  <ResponseField name="schemas" type="array">这个连接能读取的 schema。创建数据源时从中选择一个。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "schemas": ["public", "sales"]
+  }
+}
+```
+</ResponseExample>

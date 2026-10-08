@@ -1,0 +1,73 @@
+---
+title: "测试数据库连通性"
+description: "在保存凭据之前检查它们，并列出它们能读取的 schema"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/db-connections/connectivity-test
+```
+
+检查尚未保存的数据库凭据，并返回这组凭据能读取的 schema。在[创建连接](/features/memorylake/api-reference/database/connections/create-database-connection)之前，可以用它校验表单。这个接口不保存任何内容。
+
+连接创建之后，请改用[列出连接可读的 Schema](/features/memorylake/api-reference/database/connections/list-connection-schemas)，它不需要密码。
+
+<Note>
+**所需权限：** `dbconn:add`
+</Note>
+
+### 请求体
+
+<ParamField body="host" type="string" required>
+服务器主机名或地址
+</ParamField>
+
+<ParamField body="port" type="integer" default="5432">
+服务器端口，取值 1 到 65535
+</ParamField>
+
+<ParamField body="database" type="string" required>
+要读取的数据库名
+</ParamField>
+
+<ParamField body="username" type="string" required>
+用于认证的用户名
+</ParamField>
+
+<ParamField body="password" type="string" required>
+用于认证的密码
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/connectivity-test' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "host": "pg.internal.example.com",
+    "port": 5432,
+    "database": "sales",
+    "username": "analytics_ro",
+    "password": "your-database-password"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="可读的 schema">
+  <ResponseField name="schemas" type="array">这组凭据能读取的 schema。创建数据源时从中选择一个。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "schemas": ["public", "sales"]
+  }
+}
+```
+</ResponseExample>

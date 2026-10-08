@@ -1,0 +1,69 @@
+---
+title: "数据库 API 概览"
+description: "连接关系型数据库、为其 schema 建立索引、整理分析知识，并把它作为项目记忆使用"
+noindex: true
+---
+
+数据库 API 让 MemoryLake 能够基于您自己的关系型数据库回答问题。您先登记如何访问数据库，再选择一个 schema 建立索引，可选地整理关于这些数据的知识，最后把数据库作为记忆来源添加到项目中。
+
+<Note>
+团队需要先开通数据库功能，才能使用这些接口。开通之前，下文列出的数据库权限无法授予团队成员。
+</Note>
+
+## 资源
+
+数据库 API 由四种资源组成。每种资源所在的层级不同，这决定了谁能看到它，以及它的接口挂在哪个路径下。
+
+| 资源 | 层级 | 包含的内容 | 路径前缀 |
+|---|---|---|---|
+| [连接](/features/memorylake/api-reference/database/connections/list-database-connections) | 团队 | 主机、端口、数据库名和访问凭据。密码只写不读，任何接口都不会返回。 | `/api/v3/db-connections` |
+| [数据源](/features/memorylake/api-reference/database/datasources/list-datasources) | 工作空间 | 一个连接加上它覆盖的 schema，以及表和字段的注释、在其上构建的检索索引。 | `/api/v3/workspaces/{workspaceId}/db-datasources` |
+| [分析模型](/features/memorylake/api-reference/database/analysis-models/list-analysis-models) | 工作空间 | 针对某个数据源整理的知识：通用背景、业务规则，以及「问题 + SQL」示例。 | `/api/v3/workspaces/{workspaceId}/analysis-models` |
+| [数据库记忆](/features/memorylake/api-reference/database/database-memories/list-database-memories) | 项目 | 作为记忆来源添加到项目中的数据源，可选地绑定一个分析模型和一段回答指引。 | `/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/databases` |
+
+它们之间的关系：
+
+- 一个连接可以服务多个数据源。只要还有数据源通过它读取数据，连接就不能删除。
+- 一个数据源只覆盖其连接下的一个 schema，且创建后不能更换；要读取另一个 schema，请另建一个数据源。
+- 一个数据源可以有多个分析模型，也可以被多个数据库记忆使用。
+- 一个数据库记忆最多绑定一个分析模型，且该分析模型必须建在同一个数据源上。
+
+## 典型流程
+
+<Steps>
+<Step title="检查凭据">
+调用[测试数据库连通性](/features/memorylake/api-reference/database/connections/test-database-connectivity)，传入主机、端口、数据库名、用户名和密码。响应会列出这组凭据能读取的 schema。
+</Step>
+<Step title="创建连接">
+用同一组凭据调用[创建数据库连接](/features/memorylake/api-reference/database/connections/create-database-connection)。之后的调用只需要连接 ID。
+</Step>
+<Step title="创建数据源">
+在工作空间中调用[创建数据源](/features/memorylake/api-reference/database/datasources/create-datasource)，传入连接 ID 和一个 schema。创建时会同时开始首次索引构建，构建是异步的：轮询[获取数据源](/features/memorylake/api-reference/database/datasources/get-datasource)，直到 `building_version` 变为空。之后如需重建（例如数据发生变化后），调用[构建数据源索引](/features/memorylake/api-reference/database/datasources/build-datasource-index)。
+</Step>
+<Step title="描述数据（可选）">
+用[编辑 Schema 元数据](/features/memorylake/api-reference/database/datasources/edit-schema-metadata)补充表和字段的注释。如需整理更深入的知识，在数据源上[创建分析模型](/features/memorylake/api-reference/database/analysis-models/create-analysis-model)，并向其中[添加知识条目](/features/memorylake/api-reference/database/analysis-models/add-knowledge-entry)。
+</Step>
+<Step title="把数据库添加到项目">
+调用[创建数据库记忆](/features/memorylake/api-reference/database/database-memories/create-database-memory)，传入数据源 ID，可选地传入分析模型 ID 和回答指引。轮询[获取数据库记忆](/features/memorylake/api-reference/database/database-memories/get-database-memory)，直到 `status` 变为 `okay`。
+</Step>
+</Steps>
+
+## 权限
+
+| 资源 | 权限 |
+|---|---|
+| 连接 | `dbconn:add`、`dbconn:read`、`dbconn:modify`、`dbconn:delete` |
+| 数据源 | `db_datasource:add`（授予在工作空间上）、`db_datasource:read`、`db_datasource:modify`、`db_datasource:delete` |
+| 分析模型 | `analysis_model:add`（授予在工作空间上）、`analysis_model:read`、`analysis_model:modify`、`analysis_model:delete` |
+| 数据库记忆 | `project:dbset_add`、`project:dbset_read`、`project:dbset_modify`、`project:dbset_delete`（授予在项目上） |
+
+在一个资源之上创建另一个资源时，还需要对前者有读权限：创建数据源需要对连接有 `dbconn:read`，创建分析模型或数据库记忆需要对数据源有 `db_datasource:read`。连接、数据源和分析模型的列表会略去您打不开的行，列表本身不会被拒绝。
+
+## 约定
+
+数据库 API 与 MemoryLake API 的其他部分遵循相同的约定：
+
+- 响应使用标准的 `success` / `data` 信封。参见[响应格式](/features/memorylake/api-reference/overview#响应格式)。
+- 连接、数据源和分析模型支持 `custom_id`，并可以带上 `by_custom_id=true` 用它来查找。参见[您自己的标识符](/features/memorylake/api-reference/overview#您自己的标识符)。
+- 列表接口使用延续令牌分页。参见[分页](/features/memorylake/api-reference/overview#分页)。
+- 错误使用标准错误码。参见[错误](/features/memorylake/api-reference/errors)。

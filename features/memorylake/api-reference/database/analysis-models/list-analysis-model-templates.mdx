@@ -1,0 +1,167 @@
+---
+title: "列出分析模型模板"
+description: "列出可以创建的分析模型类型，以及每种类型接受的知识类型"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models/templates
+```
+
+列出可以创建的分析模型类型，以及每种类型接受的知识类型。[创建分析模型](/features/memorylake/api-reference/database/analysis-models/create-analysis-model)时传入模板的 `type`；[添加知识条目](/features/memorylake/api-reference/database/analysis-models/add-knowledge-entry)时把条目类型的 `code` 作为 `entity_type` 传入。
+
+模板是静态配置，对所有调用方都相同。撰写本文时，接口返回以下模板：
+
+| 模型 `type` | 名称 | 接受的 `entity_type` |
+|---|---|---|
+| `ASK_DATA` | 智能分析 | `general`、`biz_rule`、`few_shot` |
+| `DRILLDOWN` | 归因分析 | `drilldown_entity`、`general`、`biz_rule`、`few_shot` |
+| `INDICATOR_EXTRACT` | 指标取数 | `general`、`biz_rule` |
+
+| `entity_type` | 名称 | 语义匹配 | 能否删除 |
+|---|---|---|---|
+| `general` | 通用知识 | 否 | 总是可以 |
+| `biz_rule` | 业务知识 | 是 | 总是可以 |
+| `few_shot` | 优化案例 | 是 | 总是可以 |
+| `drilldown_entity` | 业务模型 | 是 | 只有没有其他条目挂在它下面时才可以 |
+
+<Tip>
+请从这个接口读取模板，不要把上面的表格写死在代码里。模板属于配置，模板和条目类型都可能增加或变化。
+</Tip>
+
+<Note>
+**所需权限：** 无。模板对所有调用方都相同。
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="type" type="string">
+只返回该类型的模板，例如 `ASK_DATA`
+</ParamField>
+
+<RequestExample>
+```bash All templates
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models/templates' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash One template
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models/templates?type=ASK_DATA' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="array">
+模板对象数组
+<Expandable title="模板对象">
+  <ResponseField name="type" type="string">模板类型。创建分析模型时作为 `type` 传入。</ResponseField>
+  <ResponseField name="name" type="object">按语言标签给出的显示名称，例如 `{"en": "Smart Data Query", "zh": "智能分析"}`</ResponseField>
+  <ResponseField name="entity_types" type="array">
+  这种类型的模型接受的知识类型
+  <Expandable title="条目类型对象">
+    <ResponseField name="code" type="string">添加、列出、编辑或删除知识条目时作为 `entity_type` 传入的值</ResponseField>
+    <ResponseField name="name" type="object">按语言标签给出的显示名称</ResponseField>
+    <ResponseField name="vectorized" type="boolean">这类条目是否按语义匹配，而不只是精确查找</ResponseField>
+    <ResponseField name="delete_validation" type="string">
+    这类条目什么时候可以删除：
+
+    - `ANYWAY`：总是可以
+    - `LEAF`：只有没有其他条目挂在它下面时才可以
+    - `ISLAND`：只有它与任何条目都没有关联时才可以
+
+    可以用它在提供删除操作之前先排除不能删的条目。[删除知识条目](/features/memorylake/api-reference/database/analysis-models/delete-knowledge-entry)会再次检查该条件，不满足时自行拒绝请求。
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": [
+    {
+      "type": "ASK_DATA",
+      "name": { "en": "Smart Data Query", "zh": "智能分析" },
+      "entity_types": [
+        {
+          "code": "general",
+          "name": { "en": "General Knowledge", "zh": "通用知识" },
+          "vectorized": false,
+          "delete_validation": "ANYWAY"
+        },
+        {
+          "code": "biz_rule",
+          "name": { "en": "Business Knowledge", "zh": "业务知识" },
+          "vectorized": true,
+          "delete_validation": "ANYWAY"
+        },
+        {
+          "code": "few_shot",
+          "name": { "en": "Few-shot Case", "zh": "优化案例" },
+          "vectorized": true,
+          "delete_validation": "ANYWAY"
+        }
+      ]
+    },
+    {
+      "type": "DRILLDOWN",
+      "name": { "en": "Attribution Analysis", "zh": "归因分析" },
+      "entity_types": [
+        {
+          "code": "drilldown_entity",
+          "name": { "en": "Drilldown Entity", "zh": "业务模型" },
+          "vectorized": true,
+          "delete_validation": "LEAF"
+        },
+        {
+          "code": "general",
+          "name": { "en": "General Knowledge", "zh": "通用知识" },
+          "vectorized": false,
+          "delete_validation": "ANYWAY"
+        },
+        {
+          "code": "biz_rule",
+          "name": { "en": "Business Knowledge", "zh": "业务知识" },
+          "vectorized": true,
+          "delete_validation": "ANYWAY"
+        },
+        {
+          "code": "few_shot",
+          "name": { "en": "Few-shot Case", "zh": "优化案例" },
+          "vectorized": true,
+          "delete_validation": "ANYWAY"
+        }
+      ]
+    },
+    {
+      "type": "INDICATOR_EXTRACT",
+      "name": { "en": "Indicator Extraction", "zh": "指标取数" },
+      "entity_types": [
+        {
+          "code": "general",
+          "name": { "en": "General Knowledge", "zh": "通用知识" },
+          "vectorized": false,
+          "delete_validation": "ANYWAY"
+        },
+        {
+          "code": "biz_rule",
+          "name": { "en": "Business Knowledge", "zh": "业务知识" },
+          "vectorized": true,
+          "delete_validation": "ANYWAY"
+        }
+      ]
+    }
+  ]
+}
+```
+</ResponseExample>

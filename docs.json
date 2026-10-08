@@ -295,6 +295,68 @@
                 ]
               },
               {
+                "group": "数据库",
+                "tag": "预览",
+                "pages": [
+                  "features/memorylake/api-reference/database/overview",
+                  {
+                    "group": "数据库连接",
+                    "pages": [
+                      "features/memorylake/api-reference/database/connections/list-database-connections",
+                      "features/memorylake/api-reference/database/connections/test-database-connectivity",
+                      "features/memorylake/api-reference/database/connections/create-database-connection",
+                      "features/memorylake/api-reference/database/connections/get-database-connection",
+                      "features/memorylake/api-reference/database/connections/update-database-connection",
+                      "features/memorylake/api-reference/database/connections/delete-database-connection",
+                      "features/memorylake/api-reference/database/connections/list-connection-schemas"
+                    ]
+                  },
+                  {
+                    "group": "数据源",
+                    "pages": [
+                      "features/memorylake/api-reference/database/datasources/list-datasources",
+                      "features/memorylake/api-reference/database/datasources/create-datasource",
+                      "features/memorylake/api-reference/database/datasources/get-datasource",
+                      "features/memorylake/api-reference/database/datasources/update-datasource",
+                      "features/memorylake/api-reference/database/datasources/delete-datasource",
+                      "features/memorylake/api-reference/database/datasources/build-datasource-index",
+                      "features/memorylake/api-reference/database/datasources/list-tables",
+                      "features/memorylake/api-reference/database/datasources/list-columns",
+                      "features/memorylake/api-reference/database/datasources/edit-schema-metadata"
+                    ]
+                  },
+                  {
+                    "group": "分析模型",
+                    "pages": [
+                      "features/memorylake/api-reference/database/analysis-models/list-analysis-model-templates",
+                      "features/memorylake/api-reference/database/analysis-models/list-analysis-models",
+                      "features/memorylake/api-reference/database/analysis-models/create-analysis-model",
+                      "features/memorylake/api-reference/database/analysis-models/get-analysis-model",
+                      "features/memorylake/api-reference/database/analysis-models/update-analysis-model",
+                      "features/memorylake/api-reference/database/analysis-models/delete-analysis-model",
+                      "features/memorylake/api-reference/database/analysis-models/list-knowledge-entries",
+                      "features/memorylake/api-reference/database/analysis-models/add-knowledge-entry",
+                      "features/memorylake/api-reference/database/analysis-models/get-knowledge-entry",
+                      "features/memorylake/api-reference/database/analysis-models/edit-knowledge-entry",
+                      "features/memorylake/api-reference/database/analysis-models/disable-knowledge-entry",
+                      "features/memorylake/api-reference/database/analysis-models/delete-knowledge-entry"
+                    ]
+                  },
+                  {
+                    "group": "数据库记忆",
+                    "pages": [
+                      "features/memorylake/api-reference/database/database-memories/list-database-memories",
+                      "features/memorylake/api-reference/database/database-memories/create-database-memory",
+                      "features/memorylake/api-reference/database/database-memories/get-database-memory",
+                      "features/memorylake/api-reference/database/database-memories/update-database-memory",
+                      "features/memorylake/api-reference/database/database-memories/delete-database-memory",
+                      "features/memorylake/api-reference/database/database-memories/reload-database-memory",
+                      "features/memorylake/api-reference/database/database-memories/generate-database-memory-instruction"
+                    ]
+                  }
+                ]
+              },
+              {
                 "group": "已弃用",
                 "pages": [
                   {

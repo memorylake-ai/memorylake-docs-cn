@@ -1,0 +1,54 @@
+---
+title: "重新加载数据库记忆"
+description: "重新处理数据库记忆，刷新它的 schema 和表元数据"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/databases/{databaseId}/reload
+```
+
+重新处理数据库记忆，刷新它回答问题时所依据的 schema 和表元数据。您可以用它重试 `status` 为 `error` 的记忆，或在数据库的表发生变化后让记忆跟上这些变化。
+
+重新加载是异步的。记忆的 `status` 会回到 `pending`；请轮询[获取数据库记忆](/features/memorylake/api-reference/database/database-memories/get-database-memory)，直到它再次变为 `okay` 或 `error`。
+
+只有 `status` 为 `okay` 或 `error` 的记忆才能重新加载。记忆处于 `pending` 或 `running` 时，请求会以 `STATE_NOT_READY` 被拒绝；请等当前处理结束后再试。
+
+<Note>
+**所需权限：** 项目上的 `project:dbset_modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+项目所属的工作空间 ID
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="databaseId" type="string" required>
+数据库记忆 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/memories/databases/doc-2e6a9c4f8b1d4a7e9c3b5d8f0a2c4e6b/reload' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示重新加载是否已开始</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

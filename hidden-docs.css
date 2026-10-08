@@ -1,0 +1,10 @@
+/* Hidden API docs: sidebar groups tagged "Preview" / "预览" stay hidden until the reader unlocks
+   them with hidden-docs.js. A group that contains the current page stays visible, so a direct
+   link still shows its sidebar. Nested groups carry data-group-tag; top-level groups only render
+   the tag as a pill in their header. Keep the tag values in sync with scripts/check_hidden_docs.py. */
+html:not([data-show-hidden-docs]) [data-group-tag="Preview"]:not([data-active]),
+html:not([data-show-hidden-docs]) [data-group-tag="预览"]:not([data-active]),
+html:not([data-show-hidden-docs]) div:has(> .sidebar-group-header [data-nav-tag="Preview"]):not(:has([data-active])),
+html:not([data-show-hidden-docs]) div:has(> .sidebar-group-header [data-nav-tag="预览"]):not(:has([data-active])) {
+  display: none;
+}

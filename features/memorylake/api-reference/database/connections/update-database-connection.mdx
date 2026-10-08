@@ -1,0 +1,115 @@
+---
+title: "更新数据库连接"
+description: "修改数据库连接的名称、地址或凭据"
+noindex: true
+---
+
+```
+PATCH /openapi/memorylake/api/v3/db-connections/{connectionId}
+```
+
+部分更新数据库连接。未传入的字段保持不变。
+
+由于密码永远不会返回，只要修改任何凭据字段（`host`、`port`、`database` 或 `username`），就必须同时重新传入 `password`。
+
+<Note>
+**所需权限：** `dbconn:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="connectionId" type="string" required>
+数据库连接 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string">
+显示名称
+</ParamField>
+
+<ParamField body="description" type="string">
+自由格式的描述
+</ParamField>
+
+<ParamField body="host" type="string">
+服务器主机名或地址
+</ParamField>
+
+<ParamField body="port" type="integer">
+服务器端口，取值 1 到 65535
+</ParamField>
+
+<ParamField body="database" type="string">
+要读取的数据库名
+</ParamField>
+
+<ParamField body="username" type="string">
+用于认证的用户名
+</ParamField>
+
+<ParamField body="password" type="string">
+用于认证的密码。任何接口都不会返回它。
+</ParamField>
+
+<RequestExample>
+```bash Rename
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales warehouse (replica)"
+  }'
+```
+
+```bash Rotate credentials
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "username": "analytics_ro_2026",
+    "password": "your-new-database-password"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的连接。
+
+<ResponseField name="data" type="object">
+<Expandable title="连接对象">
+  <ResponseField name="id" type="string">数据库连接标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+  <ResponseField name="host" type="string">服务器主机名或地址</ResponseField>
+  <ResponseField name="port" type="integer">服务器端口</ResponseField>
+  <ResponseField name="username" type="string">连接用于认证的用户名</ResponseField>
+  <ResponseField name="database" type="string">要读取的数据库名</ResponseField>
+  <ResponseField name="custom_id" type="string">您为这个连接设置的自定义标识符（如果设置过）</ResponseField>
+  <ResponseField name="datasource_count" type="integer">当前通过这个连接读取数据的数据源数量</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+    "name": "Sales warehouse (replica)",
+    "description": "Read-only replica of the sales database",
+    "host": "pg.internal.example.com",
+    "port": 5432,
+    "username": "analytics_ro",
+    "database": "sales",
+    "custom_id": "sales-warehouse",
+    "datasource_count": 1,
+    "created_at": "2026-09-18T07:42:17.139Z",
+    "updated_at": "2026-09-20T03:15:42.508Z"
+  }
+}
+```
+</ResponseExample>
