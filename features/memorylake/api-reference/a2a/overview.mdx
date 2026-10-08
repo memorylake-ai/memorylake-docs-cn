@@ -97,6 +97,15 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
     <ParamField body="maxTurns" type="integer">覆盖最大轮次数</ParamField>
   </Expandable>
   </ParamField>
+
+  <ParamField body="runtimeOptions" type="object">
+  本次请求的运行选项。
+  <Expandable title="运行选项字段">
+    <ParamField body="language" type="string">
+    Agent 回答使用的语言，填语言名称，例如 `English`、`Chinese`、`Japanese`。不传时，Agent 用用户提问的语言回答。
+    </ParamField>
+  </Expandable>
+  </ParamField>
 </Expandable>
 </ParamField>
 
