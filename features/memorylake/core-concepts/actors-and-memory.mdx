@@ -114,13 +114,14 @@ curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{wor
 - **列表**所有事实，查看 MemoryLake 学到了什么
 - **获取**特定事实（按 ID）
 - **更新**事实，进行修正或完善
-- **遗忘**事实，永久删除
+- **获取变更历史**，包括提取出该事实的会话消息
+- **遗忘**事实，使其不再参与检索和搜索
 - **批量遗忘**多个事实
 
-这对于数据隐私（当用户请求删除时移除其事实）、修正不准确的提取结果或随时间管理知识库非常有用。
+这对于修正不准确的提取结果、停用不再成立的事实或随时间管理知识库非常有用。
 
 <Warning>
-遗忘事实是永久性的。事实将被删除且无法恢复。请谨慎使用批量遗忘。
+遗忘事实无法撤销。已遗忘的事实不再出现在检索和搜索中，也无法再按 ID 读取，但不会被抹除：它的变更历史（包括事实文本）会保留以供审计，可通过[获取事实变更历史](/features/memorylake/api-reference/facts/get-fact-trace)和[获取 Actor 事实变更历史](/features/memorylake/api-reference/facts/get-actor-fact-trace)查看。请谨慎使用批量遗忘。
 </Warning>
 
 ## 最佳实践

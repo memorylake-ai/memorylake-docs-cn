@@ -1,16 +1,16 @@
 ---
-title: "列出 Actor 事实"
-description: "返回特定 Actor 的事实分页列表"
+title: "列出 Agent 事实"
+description: "返回特定 Agent 的事实分页列表"
 ---
 
 ```
-GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}/facts
 ```
 
-返回特定 Actor 范围内的事实分页列表。Actor 事实是该主体在工作空间内所有项目中积累下来的内容。Agent 自己的事实请使用[列出 Agent 事实](/features/memorylake/api-reference/facts/list-agent-facts)。
+返回某个 Agent 在工作空间内自己的事实分页列表——它学到了什么、应当如何行事——这些事实跨工作空间内的所有项目积累。
 
 <Note>
-**所需权限：** `workspace_actor:fact_read`
+**所需权限：** `workspace_agent:fact_read`
 </Note>
 
 ### 路径参数
@@ -19,8 +19,8 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts
 工作空间 ID
 </ParamField>
 
-<ParamField path="actorId" type="string" required>
-Actor ID
+<ParamField path="agentId" type="string" required>
+Agent ID
 </ParamField>
 
 ### 查询参数
@@ -39,7 +39,7 @@ Actor ID
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/actors/actor_5e4d3c2b1a0f/facts?page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/agents/agent-f8bf71ab17ed8eccad8c0e8ae708273f/facts?page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -75,7 +75,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-f
     "items": [
       {
         "id": "fact-11a0e057d09877c9c492633fd60424fc",
-        "fact": "User's primary programming language is Python",
+        "fact": "Replies to support tickets in the customer's language",
         "metadata": {
           "category": "skills",
           "confidence": "high"
@@ -88,7 +88,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-f
       },
       {
         "id": "fact-9e6e9b323824eb264c1165994af65c1e",
-        "fact": "User works at a fintech startup with 50 employees",
+        "fact": "Reports times in UTC",
         "metadata": {
           "category": "work"
         },

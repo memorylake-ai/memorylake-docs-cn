@@ -1,0 +1,48 @@
+---
+title: "遗忘 Agent 事实"
+description: "将 Agent 的事实标记为已遗忘而不删除它"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}/facts/{factId}/forget
+```
+
+将 Agent 的事实标记为已遗忘（已过期），而不永久删除它。该事实仍可用于审计目的，但会从未来的检索和搜索中排除。要一次遗忘多个 Agent 事实，请使用[批量遗忘 Agent 事实](/features/memorylake/api-reference/facts/batch-forget-agent-facts)。
+
+<Note>
+**所需权限：** `workspace_agent:fact_delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="agentId" type="string" required>
+Agent ID
+</ParamField>
+
+<ParamField path="factId" type="string" required>
+要遗忘的事实 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-fe314186ccd18cde04d6af48a5afd79f/agents/agent-f8bf71ab17ed8eccad8c0e8ae708273f/facts/fact-11a0e057d09877c9c492633fd60424fc/forget' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+成功时返回空的 `data` 对象。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {}
+}
+```
+</ResponseExample>

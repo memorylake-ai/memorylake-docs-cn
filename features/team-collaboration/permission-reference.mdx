@@ -351,7 +351,7 @@ Actor 是全局创建的，然后**绑定**到工作空间中运行。这些权�
 
 ## 管理工作空间中的 Actor 事实
 
-Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目积累。这些权限控制对该 Actor 专属知识的访问。
+Actor 事实是关于特定人的知识，在工作空间内跨项目积累。这些权限控制对该 Actor 专属知识的访问。Agent 自己的事实由 `workspace_agent:fact_*` 权限单独管理，见下文「管理工作空间中的 Agent 事实」。
 
 
 ### 阅读 Actor 事实
@@ -363,6 +363,8 @@ Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目�
 **Identifier：** `workspace_actor:fact_read`
 
 **Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [List Actor Facts](/features/memorylake/api-reference/facts/list-actor-facts)、[Get Actor Fact](/features/memorylake/api-reference/facts/get-actor-fact)、[Get Actor Fact Change History](/features/memorylake/api-reference/facts/get-actor-fact-trace)。
 
 ---
 
@@ -376,17 +378,49 @@ Actor 事实是关于特定人或 Agent 的知识，在工作空间内跨项目�
 
 **Level：** `instance` -- 授予到特定工作空间。
 
+**涵盖的 API：** [Add Actor Facts](/features/memorylake/api-reference/facts/add-actor-facts)、[Update Actor Fact](/features/memorylake/api-reference/facts/update-actor-fact)。
+
 ---
 
 ### 遗忘 Actor 事实
 
-允许您永久移除一条 Actor 事实。
+允许您遗忘一条 Actor 事实，使其不再参与检索和搜索。其变更历史会保留。
 
 **缺少时：** Actor 事实上的"遗忘"操作变灰。
 
 **Identifier：** `workspace_actor:fact_delete`
 
 **Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [Forget Actor Fact](/features/memorylake/api-reference/facts/forget-actor-fact)、[Batch Forget Actor Facts](/features/memorylake/api-reference/facts/batch-forget-actor-facts)。
+
+---
+
+### 审查 Actor 记忆冲突
+
+允许您列出某个 Actor 的记忆冲突，并打开单个冲突查看涉及的事实。
+
+**缺少时：** 这些请求返回 403。
+
+**Identifier：** `workspace_actor:fact_conflict_read`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [List Actor Memory Conflicts](/features/memorylake/api-reference/v3-conflicts/list-actor-conflicts)、[Get Actor Memory Conflict](/features/memorylake/api-reference/v3-conflicts/get-actor-conflict)。
+
+---
+
+### 解决 Actor 记忆冲突
+
+允许您解决某个 Actor 事实之间的冲突。解决冲突可能会遗忘事实或改写事实文本。
+
+**缺少时：** 解决请求返回 403。
+
+**Identifier：** `workspace_actor:fact_conflict_resolve`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [Resolve Actor Memory Conflict](/features/memorylake/api-reference/v3-conflicts/resolve-actor-conflict)。
 
 ---
 
@@ -416,6 +450,81 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 **Identifier：** `workspace_agent:delete`
 
 **Level：** `instance` -- 授予到特定工作空间。
+
+---
+
+## 管理工作空间中的 Agent 事实
+
+Agent 自己的事实——它学到了什么、应当如何行事——在工作空间内跨项目积累，与任何人的事实分开。这些权限控制对它们的访问，按 Agent、按工作空间授予，并且独立于 `workspace_actor:fact_*` 权限：能访问人的记忆不代表能访问 Agent 的记忆，反之亦然。
+
+
+### 阅读 Agent 事实
+
+允许您列出某个 Agent 的事实、读取单条事实及其变更历史。
+
+**缺少时：** 这些请求返回 403。
+
+**Identifier：** `workspace_agent:fact_read`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [List Agent Facts](/features/memorylake/api-reference/facts/list-agent-facts)、[Get Agent Fact](/features/memorylake/api-reference/facts/get-agent-fact)、[Get Agent Fact Change History](/features/memorylake/api-reference/facts/get-agent-fact-trace)。
+
+---
+
+### 添加或更新 Agent 事实
+
+允许您为 Agent 添加事实并编辑已有事实。
+
+**缺少时：** 这些请求返回 403。
+
+**Identifier：** `workspace_agent:fact_modify`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [Add Agent Facts](/features/memorylake/api-reference/facts/add-agent-facts)、[Update Agent Fact](/features/memorylake/api-reference/facts/update-agent-fact)。
+
+---
+
+### 遗忘 Agent 事实
+
+允许您遗忘一条 Agent 事实，使其不再参与检索和搜索。其变更历史会保留。
+
+**缺少时：** 这些请求返回 403。
+
+**Identifier：** `workspace_agent:fact_delete`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [Forget Agent Fact](/features/memorylake/api-reference/facts/forget-agent-fact)、[Batch Forget Agent Facts](/features/memorylake/api-reference/facts/batch-forget-agent-facts)。
+
+---
+
+### 审查 Agent 记忆冲突
+
+允许您列出某个 Agent 的记忆冲突，并打开单个冲突查看涉及的事实。
+
+**缺少时：** 这些请求返回 403。
+
+**Identifier：** `workspace_agent:fact_conflict_read`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [List Agent Memory Conflicts](/features/memorylake/api-reference/v3-conflicts/list-agent-conflicts)、[Get Agent Memory Conflict](/features/memorylake/api-reference/v3-conflicts/get-agent-conflict)。
+
+---
+
+### 解决 Agent 记忆冲突
+
+允许您解决某个 Agent 事实之间的冲突。解决冲突可能会遗忘事实或改写事实文本。
+
+**缺少时：** 解决请求返回 403。
+
+**Identifier：** `workspace_agent:fact_conflict_resolve`
+
+**Level：** `instance` -- 授予到特定工作空间。
+
+**涵盖的 API：** [Resolve Agent Memory Conflict](/features/memorylake/api-reference/v3-conflicts/resolve-agent-conflict)。
 
 ---
 
@@ -682,7 +791,7 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 
 **Level：** `instance` -- 授予到特定项目。
 
-**涵盖的 API：** [Get Fact](/features/memorylake/api-reference/facts/get-fact)。
+**涵盖的 API：** [Get Fact](/features/memorylake/api-reference/facts/get-fact)、[Get Fact Change History](/features/memorylake/api-reference/facts/get-fact-trace)。
 
 ---
 
@@ -709,6 +818,8 @@ Agent 是全局创建的，然后**绑定**到工作空间中服务会话。这�
 **Identifier：** `project:mem_add`
 
 **Level：** `instance` -- 授予到特定项目。
+
+**涵盖的 API：** [Add Facts](/features/memorylake/api-reference/facts/add-facts)。
 
 ---
 
