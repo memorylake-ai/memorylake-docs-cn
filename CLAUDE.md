@@ -61,6 +61,27 @@ Mintlify 的标题锚点由标题文本生成，**保留 `：`、`’`、`&` 等
 
 `mint broken-links` **不检查锚点**，所以坏锚点会长期潜伏。改动标题或新增带锚点的链接后，用 `mint dev` 起服务、抓页面 HTML 里 `<h2..h4 id="...">` 作为基准来核对，不要凭推断拼 slug。
 
+## 隐藏的 API 文档
+
+部分 API 参考分组已经发布，但默认不展示。这些分组放在「API 参考」标签里它们最终的位置上，读者在顶部导航**连续点击「API 参考」标签 5 次（3 秒内）**后才能看到。再点 5 次重新隐藏，选择会记在浏览器里。
+
+- 只支持桌面端：窄屏下标签会收进菜单，手机上请直接打开隐藏页的链接。
+- 实现：`hidden-docs.js` 负责点击，`hidden-docs.css` 负责隐藏。
+- 这只是不展示，**不是保密**：仓库是公开的，隐藏页里不能放任何保密内容。
+
+隐藏一个分组：
+
+1. 在 `docs.json` 里给分组加 `"tag": "预览"`。这个值保留给隐藏分组专用（脚本也认国际站英文树用的 `"Preview"`）。
+2. 分组下每一页的 frontmatter 加 `noindex: true`，这样它不会进入站内搜索、sitemap、`llms.txt` 和 AI 助手。
+3. 在 tab 的翻页顺序里，紧挨着该分组前后的公开页加 `hideFooterPagination: true`。否则它们的上一页 / 下一页链接会直接指向隐藏页。
+4. 提 PR 前跑 `python3 scripts/check_hidden_docs.py`。它会报出漏写的 `noindex`、漏加的 `hideFooterPagination`，以及已经多余的 `hideFooterPagination`。
+
+公开一个隐藏分组：去掉它的 `tag` 和各页的 `noindex`，再跑一次脚本，按提示删掉多余的 `hideFooterPagination`。
+
+目前的隐藏分组：`MemoryLake API` 下的「数据库」。2026-10-08 中国站的 `features.memorylake.features.nl2sql` 为 `false`，数据库功能尚未开通，公开前先确认它已开通。
+
+页面以国际站 `memorylake-docs` 的 `zh/` 树为起点移植：内链去掉 `/zh` 前缀，服务地址换成 `app.memorylake.cn`。两站的数据库页需要分别维护。
+
 ## 合规
 
 - 页脚必须保留 ICP 备案号 **浙ICP备2023036353号** 及工信部备案查询链接（配置在 `docs.json` 的 `footer`）
