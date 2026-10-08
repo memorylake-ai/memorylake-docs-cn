@@ -1,0 +1,50 @@
+---
+title: "构建数据源索引"
+description: "为数据源的 schema 开始构建新的检索索引"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datasourceId}/build
+```
+
+为这个数据源覆盖的 schema 开始构建索引。构建是异步的：请求在构建被受理后立即返回，不会等待构建完成。
+
+数据源没有 `status` 字段。如需跟踪构建进度，请轮询[获取数据源](/features/memorylake/api-reference/database/datasources/get-datasource)：构建进行期间 `building_version` 非空，它重新变为空即表示构建结束。
+
+与重新加载文档不同，构建不是重试：每次构建都会产生一个新的索引版本，并且随时都可以发起。当 `data_version` 非空且与 `build_version` 不同（说明索引落后于数据）时，或者在您通过[更新数据源](/features/memorylake/api-reference/database/datasources/update-datasource)修改了 `table_filter_rule` 之后，请重新构建。
+
+<Note>
+**所需权限：** `db_datasource:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="datasourceId" type="string" required>
+数据源 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c/build' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

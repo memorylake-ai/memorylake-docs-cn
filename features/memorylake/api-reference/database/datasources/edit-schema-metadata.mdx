@@ -1,0 +1,106 @@
+---
+title: "编辑 Schema 元数据"
+description: "批量编辑数据表和字段的注释，以及字段的索引开关"
+noindex: true
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datasourceId}/schema-metadata
+```
+
+在一次批量请求中编辑数据表和字段的注释，以及字段的索引开关。每条编辑都用 `target` 指明对象：`table` 编辑修改数据表的注释；`column` 编辑修改字段的注释、是否为字段的值建立语义匹配索引，或者两者都改。
+
+- 不传 `comment` 表示保留当前注释；传空字符串表示清除注释。
+- 每条编辑都必须有实际改动。`table` 编辑必须带 `comment`；`column` 编辑必须带 `comment`、`embedding_enabled` 之一或两者。
+- 编辑按您发送的顺序逐条应用。如果某条失败，请求返回错误，而它之前的编辑仍然保留。
+
+注释只保存在这个数据源中，不会修改您数据库里的注释，也不会影响基于同一 schema 的其他数据源。当前的值可以通过[列出数据表](/features/memorylake/api-reference/database/datasources/list-tables)和[列出字段](/features/memorylake/api-reference/database/datasources/list-columns)查看。
+
+<Note>
+**所需权限：** `db_datasource:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="datasourceId" type="string" required>
+数据源 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="items" type="array" required>
+要应用的编辑，每次请求 1 到 200 条
+<Expandable title="编辑对象">
+  <ParamField body="items[].target" type="string" required>
+  编辑的对象：`table` 或 `column`
+  </ParamField>
+  <ParamField body="items[].table_name" type="string" required>
+  编辑所针对的数据表。字段编辑也需要它，因为字段是以「某张表的字段」来定位的。
+  </ParamField>
+  <ParamField body="items[].column_name" type="string">
+  要编辑的字段。`target` 为 `column` 时必填。
+  </ParamField>
+  <ParamField body="items[].schema_name" type="string">
+  编辑所针对的 schema。不传时使用这个数据源覆盖的 schema。
+  </ParamField>
+  <ParamField body="items[].comment" type="string | null">
+  新的注释。不传表示保留当前注释；传空字符串表示清除注释。`target` 为 `table` 时必填。
+  </ParamField>
+  <ParamField body="items[].embedding_enabled" type="boolean | null">
+  是否为这个字段的值建立语义匹配索引。不传表示保持现状。仅用于 `column` 编辑。
+  </ParamField>
+</Expandable>
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c/schema-metadata' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "items": [
+      {
+        "target": "table",
+        "table_name": "orders",
+        "comment": "One row per customer order"
+      },
+      {
+        "target": "column",
+        "table_name": "orders",
+        "column_name": "total_amount",
+        "comment": "Order total, including tax"
+      },
+      {
+        "target": "column",
+        "table_name": "orders",
+        "column_name": "created_at",
+        "comment": ""
+      },
+      {
+        "target": "column",
+        "table_name": "customers",
+        "column_name": "city",
+        "embedding_enabled": true
+      }
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

@@ -1,0 +1,90 @@
+---
+title: "列出数据库连接"
+description: "返回您能打开的数据库连接的分页列表"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/db-connections
+```
+
+返回团队中您能打开的数据库连接。您可以按名称筛选，并使用延续令牌翻页。
+
+<Note>
+**所需权限：** `dbconn:read` —— 您打不开的连接不会出现在列表里，列表本身不会被拒绝
+</Note>
+
+### 查询参数
+
+<ParamField query="name_fuzzy" type="string">
+只返回名称包含该文本的连接（不区分大小写）
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的连接数量，取值 1 到 100
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页。请求第一页时不传。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="连接分页列表">
+  <ResponseField name="items" type="array">
+  连接对象数组
+  <Expandable title="连接对象">
+    <ResponseField name="id" type="string">数据库连接标识符，请把它当作不透明字符串处理。</ResponseField>
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+    <ResponseField name="host" type="string">服务器主机名或地址</ResponseField>
+    <ResponseField name="port" type="integer">服务器端口</ResponseField>
+    <ResponseField name="username" type="string">连接用于认证的用户名</ResponseField>
+    <ResponseField name="database" type="string">要读取的数据库名</ResponseField>
+    <ResponseField name="custom_id" type="string">您为这个连接设置的自定义标识符（如果设置过）</ResponseField>
+    <ResponseField name="datasource_count" type="integer">当前通过这个连接读取数据的数据源数量</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">
+  用于获取下一页结果的令牌。最后一页不返回该字段。
+  </ResponseField>
+  <ResponseField name="total" type="integer">
+  所有页中符合条件的连接总数。当列表按您的权限逐行过滤时不返回该字段，此时请用 `continuation_token` 翻页。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+        "name": "Sales warehouse",
+        "description": "Read-only replica of the sales database",
+        "host": "pg.internal.example.com",
+        "port": 5432,
+        "username": "analytics_ro",
+        "database": "sales",
+        "custom_id": "sales-warehouse",
+        "datasource_count": 1,
+        "created_at": "2026-09-18T07:42:17.139Z",
+        "updated_at": "2026-09-18T07:42:17.139Z"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

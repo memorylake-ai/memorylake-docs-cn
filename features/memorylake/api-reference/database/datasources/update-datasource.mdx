@@ -1,0 +1,109 @@
+---
+title: "更新数据源"
+description: "修改数据源的名称、描述或数据表筛选规则"
+noindex: true
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datasourceId}
+```
+
+部分更新数据源。未传入的字段保持不变。连接和 schema 在创建时就已确定，这里不能修改；如需覆盖另一个 schema，请[另建一个数据源](/features/memorylake/api-reference/database/datasources/create-datasource)。
+
+`table_filter_rule` 决定构建时哪些数据表进入索引。修改它之后，请重新[构建索引](/features/memorylake/api-reference/database/datasources/build-datasource-index)，让索引按新规则生成。
+
+<Note>
+**所需权限：** `db_datasource:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="datasourceId" type="string" required>
+数据源 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string">
+显示名称
+</ParamField>
+
+<ParamField body="description" type="string">
+自由格式的描述
+</ParamField>
+
+<ParamField body="table_filter_rule" type="string">
+正则表达式，决定 schema 中哪些数据表进入索引。`.*` 表示全部数据表。
+</ParamField>
+
+<RequestExample>
+```bash Rename
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales",
+    "description": "Orders and customers, refreshed nightly"
+  }'
+```
+
+```bash Index only some tables
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "table_filter_rule": "^(orders|customers)$"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的数据源。
+
+<ResponseField name="data" type="object">
+<Expandable title="数据源对象">
+  <ResponseField name="id" type="string">数据源标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+  <ResponseField name="schemas" type="array">这个数据源覆盖的 schema。目前只包含一项，且不能修改。</ResponseField>
+  <ResponseField name="workspace_id" type="string">这个数据源所属的工作空间</ResponseField>
+  <ResponseField name="db_connection_id" type="string">这个数据源读取数据所用的连接</ResponseField>
+  <ResponseField name="custom_id" type="string">您为这个数据源设置的自定义标识符（如果设置过）</ResponseField>
+  <ResponseField name="table_filter_rule" type="string">正则表达式，决定 schema 中哪些数据表进入索引。`.*` 表示全部数据表。</ResponseField>
+  <ResponseField name="database_count" type="integer">当前使用这个数据源的数据库记忆数量</ResponseField>
+  <ResponseField name="build_version" type="string">最近一次构建完成的索引版本。首次构建完成之前为空。</ResponseField>
+  <ResponseField name="building_version" type="string">正在构建的索引版本。没有构建在进行时为空。</ResponseField>
+  <ResponseField name="data_version" type="string">数据版本，用于判断索引是否最新。当它非空且与 `build_version` 不同时，说明索引落后于数据，需要重新构建。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "name": "Sales",
+    "description": "Orders and customers, refreshed nightly",
+    "schemas": ["sales"],
+    "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+    "db_connection_id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+    "custom_id": "sales-ds",
+    "table_filter_rule": ".*",
+    "database_count": 1,
+    "build_version": "20260921082748374",
+    "building_version": "",
+    "data_version": "",
+    "created_at": "2026-09-18T07:42:43.299Z",
+    "updated_at": "2026-09-22T02:10:36.415Z"
+  }
+}
+```
+</ResponseExample>

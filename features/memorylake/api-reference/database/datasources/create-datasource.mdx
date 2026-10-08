@@ -1,0 +1,112 @@
+---
+title: "创建数据源"
+description: "在工作空间中基于已保存连接的一个 schema 创建数据源"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources
+```
+
+在工作空间中，基于一个已有[数据库连接](/features/memorylake/api-reference/database/connections/get-database-connection)的某个 schema 创建数据源。分析模型和数据库记忆都建立在数据源之上。
+
+数据源创建后，其连接和 schema 都不能再更改。如需覆盖另一个 schema，请另建一个数据源。
+
+数据源需要先构建好索引才能使用。如果响应中的 `building_version` 非空，说明构建已经开始：请轮询[获取数据源](/features/memorylake/api-reference/database/datasources/get-datasource)，直到它重新变为空。否则，请调用[构建数据源索引](/features/memorylake/api-reference/database/datasources/build-datasource-index)开始构建。
+
+<Note>
+**所需权限：** 对工作空间有 `db_datasource:add`，并对连接有 `dbconn:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+显示名称
+</ParamField>
+
+<ParamField body="db_connection_id" type="string" required>
+这个数据源读取数据所用的连接 ID。您需要对该连接有 `dbconn:read` 权限。
+</ParamField>
+
+<ParamField body="schemas" type="array" required>
+这个数据源覆盖的 schema，以只含一项的列表传入，例如 `["sales"]`。它必须是该连接能读取的 schema；可调用[列出连接可读的 Schema](/features/memorylake/api-reference/database/connections/list-connection-schemas) 查看可选项。创建后不能修改。
+</ParamField>
+
+<ParamField body="description" type="string">
+自由格式的描述
+</ParamField>
+
+<ParamField body="table_filter_rule" type="string" default=".*">
+正则表达式，决定 schema 中哪些数据表进入索引。默认值 `.*` 表示全部数据表。
+</ParamField>
+
+<ParamField body="custom_id" type="string">
+这个数据源在您自己系统里的标识符，最长 255 个字符。在您的租户内必须唯一，设置后不能修改，且不能以 `_sys_` 开头。调用[获取数据源](/features/memorylake/api-reference/database/datasources/get-datasource)时带上 `by_custom_id=true`，即可用它查找数据源。参见[您自己的标识符](/features/memorylake/api-reference/overview#您自己的标识符)。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales warehouse · sales",
+    "description": "Orders and customers from the sales schema",
+    "db_connection_id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+    "schemas": ["sales"],
+    "table_filter_rule": ".*",
+    "custom_id": "sales-ds"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="数据源对象">
+  <ResponseField name="id" type="string">数据源标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+  <ResponseField name="schemas" type="array">这个数据源覆盖的 schema。目前只包含一项，且不能修改。</ResponseField>
+  <ResponseField name="workspace_id" type="string">这个数据源所属的工作空间</ResponseField>
+  <ResponseField name="db_connection_id" type="string">这个数据源读取数据所用的连接</ResponseField>
+  <ResponseField name="custom_id" type="string">您为这个数据源设置的自定义标识符（如果设置过）</ResponseField>
+  <ResponseField name="table_filter_rule" type="string">正则表达式，决定 schema 中哪些数据表进入索引。`.*` 表示全部数据表。</ResponseField>
+  <ResponseField name="database_count" type="integer">当前使用这个数据源的数据库记忆数量</ResponseField>
+  <ResponseField name="build_version" type="string">最近一次构建完成的索引版本。首次构建完成之前为空。</ResponseField>
+  <ResponseField name="building_version" type="string">正在构建的索引版本。没有构建在进行时为空。</ResponseField>
+  <ResponseField name="data_version" type="string">数据版本，用于判断索引是否最新。当它非空且与 `build_version` 不同时，说明索引落后于数据，需要重新构建。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "name": "Sales warehouse · sales",
+    "description": "Orders and customers from the sales schema",
+    "schemas": ["sales"],
+    "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+    "db_connection_id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+    "custom_id": "sales-ds",
+    "table_filter_rule": ".*",
+    "database_count": 0,
+    "build_version": "",
+    "building_version": "20260918074243318",
+    "data_version": "",
+    "created_at": "2026-09-18T07:42:43.299Z",
+    "updated_at": "2026-09-18T07:42:43.299Z"
+  }
+}
+```
+</ResponseExample>

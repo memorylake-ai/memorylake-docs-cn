@@ -1,0 +1,89 @@
+---
+title: "更新分析模型"
+description: "修改分析模型的名称或描述"
+noindex: true
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models/{modelId}
+```
+
+部分更新分析模型。未传入的字段保持不变。
+
+只能修改名称和描述。数据源、模板类型、自定义 ID 和派生来源在创建模型时就已确定。如需修改模型包含的知识，请使用[知识条目接口](/features/memorylake/api-reference/database/analysis-models/list-knowledge-entries)。
+
+<Note>
+**所需权限：** `analysis_model:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="modelId" type="string" required>
+分析模型 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string">
+显示名称
+</ParamField>
+
+<ParamField body="description" type="string">
+自由格式的描述
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models/am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales Q&A (orders)",
+    "description": "Answers questions about orders, revenue and customers"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的分析模型。
+
+<ResponseField name="data" type="object">
+<Expandable title="分析模型对象">
+  <ResponseField name="id" type="string">分析模型标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+  <ResponseField name="type" type="string">模型遵循的模板，例如 `ASK_DATA`。它决定模型接受哪些类型的知识。</ResponseField>
+  <ResponseField name="schemas" type="array">模型覆盖的 schema，继承自其数据源</ResponseField>
+  <ResponseField name="custom_id" type="string">您为这个模型设置的自定义标识符（如果设置过）</ResponseField>
+  <ResponseField name="db_datasource_id" type="string">模型所基于的数据源</ResponseField>
+  <ResponseField name="workspace_id" type="string">模型所属的工作空间</ResponseField>
+  <ResponseField name="fork_from" type="string">这个模型派生自的源模型。从零创建的模型不返回该字段。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e",
+    "name": "Sales Q&A (orders)",
+    "description": "Answers questions about orders, revenue and customers",
+    "type": "ASK_DATA",
+    "schemas": ["sales"],
+    "custom_id": "sales-qa",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+    "created_at": "2026-09-21T09:14:05.612Z",
+    "updated_at": "2026-09-22T02:31:17.904Z"
+  }
+}
+```
+</ResponseExample>

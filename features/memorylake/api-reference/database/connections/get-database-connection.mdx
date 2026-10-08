@@ -1,0 +1,78 @@
+---
+title: "获取数据库连接"
+description: "通过 ID 或自定义 ID 获取数据库连接"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/db-connections/{connectionId}
+```
+
+通过 ID 获取数据库连接。如需用创建时设置的 `custom_id` 查找，请把 `by_custom_id` 设为 `true`，并把自定义 ID 作为路径参数传入。响应中永远不包含密码。
+
+<Note>
+**所需权限：** `dbconn:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="connectionId" type="string" required>
+数据库连接 ID；当 `by_custom_id` 为 `true` 时为连接的 `custom_id`
+</ParamField>
+
+### 查询参数
+
+<ParamField query="by_custom_id" type="boolean" default="false">
+设为 `true` 时按 `custom_id` 而不是 ID 查找连接
+</ParamField>
+
+<RequestExample>
+```bash By connection ID
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash By custom ID
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/sales-warehouse?by_custom_id=true' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="连接对象">
+  <ResponseField name="id" type="string">数据库连接标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+  <ResponseField name="host" type="string">服务器主机名或地址</ResponseField>
+  <ResponseField name="port" type="integer">服务器端口</ResponseField>
+  <ResponseField name="username" type="string">连接用于认证的用户名</ResponseField>
+  <ResponseField name="database" type="string">要读取的数据库名</ResponseField>
+  <ResponseField name="custom_id" type="string">您为这个连接设置的自定义标识符（如果设置过）</ResponseField>
+  <ResponseField name="datasource_count" type="integer">当前通过这个连接读取数据的数据源数量。大于零时不能删除该连接。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+    "name": "Sales warehouse",
+    "description": "Read-only replica of the sales database",
+    "host": "pg.internal.example.com",
+    "port": 5432,
+    "username": "analytics_ro",
+    "database": "sales",
+    "custom_id": "sales-warehouse",
+    "datasource_count": 1,
+    "created_at": "2026-09-18T07:42:17.139Z",
+    "updated_at": "2026-09-18T07:42:17.139Z"
+  }
+}
+```
+</ResponseExample>

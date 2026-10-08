@@ -1,0 +1,76 @@
+---
+title: "获取数据库记忆"
+description: "获取数据库记忆，包括它的指引和处理状态"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/databases/{databaseId}
+```
+
+通过 ID 获取数据库记忆。您可以用它读取列表结果中不包含的指引，或在创建、重新加载记忆后轮询它的 `status`。
+
+<Note>
+**所需权限：** 项目上的 `project:dbset_read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+项目所属的工作空间 ID
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="databaseId" type="string" required>
+数据库记忆 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/memories/databases/doc-2e6a9c4f8b1d4a7e9c3b5d8f0a2c4e6b' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="数据库记忆对象">
+  <ResponseField name="id" type="string">数据库记忆标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="instruction" type="string">回答针对这个数据库的问题时遵循的指引：数据的含义、哪些表重要、内部惯例等。未设置时为空字符串。</ResponseField>
+  <ResponseField name="status" type="string">处理状态：`pending`、`running`、`okay` 或 `error`。变为 `okay` 后记忆即可使用。</ResponseField>
+  <ResponseField name="error" type="object">
+  失败详情。仅当 `status` 为 `error` 且上报了失败原因时返回。
+  <Expandable title="错误详情">
+    <ResponseField name="code" type="string">错误码</ResponseField>
+    <ResponseField name="msg" type="string">错误信息</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="project_id" type="string">记忆所属项目的 ID</ResponseField>
+  <ResponseField name="db_datasource_id" type="string">该记忆读取的数据源</ResponseField>
+  <ResponseField name="analysis_model_id" type="string">该记忆从中获取知识的分析模型。未绑定时不返回该字段。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "doc-2e6a9c4f8b1d4a7e9c3b5d8f0a2c4e6b",
+    "name": "Sales database",
+    "instruction": "All amounts are in US dollars. Answer revenue questions from sales.orders.total_amount and treat created_at as UTC.",
+    "status": "okay",
+    "project_id": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "analysis_model_id": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e",
+    "created_at": "2026-09-21T09:03:17.482Z"
+  }
+}
+```
+</ResponseExample>

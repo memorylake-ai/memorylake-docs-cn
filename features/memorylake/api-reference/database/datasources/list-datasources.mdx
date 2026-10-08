@@ -1,0 +1,106 @@
+---
+title: "列出数据源"
+description: "返回工作空间中您能打开的数据源的分页列表"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources
+```
+
+返回工作空间中您能打开的数据源。您可以按连接或名称筛选，并使用延续令牌翻页。
+
+<Note>
+**所需权限：** `db_datasource:read` —— 您打不开的数据源不会出现在列表里，列表本身不会被拒绝
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="db_connection_id" type="string">
+只返回通过这个连接读取数据的数据源
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+只返回名称包含该文本的数据源（不区分大小写）
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的数据源数量，取值 1 到 100
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页。请求第一页时不传。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources?db_connection_id=dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d&page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="数据源分页列表">
+  <ResponseField name="items" type="array">
+  数据源对象数组
+  <Expandable title="数据源对象">
+    <ResponseField name="id" type="string">数据源标识符，请把它当作不透明字符串处理。</ResponseField>
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+    <ResponseField name="schemas" type="array">这个数据源覆盖的 schema。目前只包含一项，且不能修改。</ResponseField>
+    <ResponseField name="workspace_id" type="string">这个数据源所属的工作空间</ResponseField>
+    <ResponseField name="db_connection_id" type="string">这个数据源读取数据所用的连接</ResponseField>
+    <ResponseField name="custom_id" type="string">您为这个数据源设置的自定义标识符（如果设置过）</ResponseField>
+    <ResponseField name="table_filter_rule" type="string">正则表达式，决定 schema 中哪些数据表进入索引。`.*` 表示全部数据表。</ResponseField>
+    <ResponseField name="database_count" type="integer">当前使用这个数据源的数据库记忆数量</ResponseField>
+    <ResponseField name="build_version" type="string">最近一次构建完成的索引版本。首次构建完成之前为空。</ResponseField>
+    <ResponseField name="building_version" type="string">正在构建的索引版本。没有构建在进行时为空。</ResponseField>
+    <ResponseField name="data_version" type="string">数据版本，用于判断索引是否最新。当它非空且与 `build_version` 不同时，说明索引落后于数据，需要重新构建。</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">
+  用于获取下一页结果的令牌。最后一页不返回该字段。
+  </ResponseField>
+  <ResponseField name="total" type="integer">
+  所有页中符合条件的数据源总数。当列表按您的权限逐行过滤时不返回该字段，此时请用 `continuation_token` 翻页。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+        "name": "Sales warehouse · sales",
+        "description": "Orders and customers from the sales schema",
+        "schemas": ["sales"],
+        "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+        "db_connection_id": "dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d",
+        "custom_id": "sales-ds",
+        "table_filter_rule": ".*",
+        "database_count": 1,
+        "build_version": "20260921082748374",
+        "building_version": "",
+        "data_version": "",
+        "created_at": "2026-09-18T07:42:43.299Z",
+        "updated_at": "2026-09-21T08:27:57.501Z"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

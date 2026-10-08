@@ -1,0 +1,42 @@
+---
+title: "删除数据库连接"
+description: "删除一个没有数据源在使用的数据库连接"
+noindex: true
+---
+
+```
+DELETE /openapi/memorylake/api/v3/db-connections/{connectionId}
+```
+
+删除数据库连接。只要还有数据源通过这个连接读取数据（即它的 `datasource_count` 大于零），请求就会被拒绝。请先[删除这些数据源](/features/memorylake/api-reference/database/datasources/delete-datasource)。
+
+<Note>
+**所需权限：** `dbconn:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="connectionId" type="string" required>
+数据库连接 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections/dbconn-7c1e9a4b2d6f4a8e9b3c5d7f1a2b4c6d' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

@@ -1,0 +1,48 @@
+---
+title: "删除数据源"
+description: "删除一个没有分析模型或数据库记忆在使用的数据源"
+noindex: true
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datasourceId}
+```
+
+删除数据源。只要还有分析模型或数据库记忆在使用这个数据源，请求就会被拒绝。请先[删除这些分析模型](/features/memorylake/api-reference/database/analysis-models/delete-analysis-model)和[数据库记忆](/features/memorylake/api-reference/database/database-memories/delete-database-memory)。数据源的 `database_count` 显示还有多少个数据库记忆在使用它。
+
+删除数据源不会删除它所用的连接。
+
+<Note>
+**所需权限：** `db_datasource:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="datasourceId" type="string" required>
+数据源 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/db-datasources/dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>

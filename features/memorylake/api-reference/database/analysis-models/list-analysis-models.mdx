@@ -1,0 +1,99 @@
+---
+title: "列出分析模型"
+description: "返回工作空间中您能打开的分析模型的分页列表"
+noindex: true
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models
+```
+
+返回工作空间中您能打开的分析模型。您可以按数据源或模板类型筛选，并使用延续令牌翻页。
+
+<Note>
+**所需权限：** `analysis_model:read` —— 您打不开的模型不会出现在列表里，列表本身不会被拒绝
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="db_datasource_id" type="string">
+只返回基于该数据源的模型
+</ParamField>
+
+<ParamField query="type" type="string">
+只返回该模板类型的模型，例如 `ASK_DATA`。参见[列出分析模型模板](/features/memorylake/api-reference/database/analysis-models/list-analysis-model-templates)。
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的模型数量，取值 1 到 100
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次响应返回的令牌，用于获取下一页。请求第一页时不传。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models?db_datasource_id=dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c&page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分析模型分页列表">
+  <ResponseField name="items" type="array">
+  分析模型对象数组
+  <Expandable title="分析模型对象">
+    <ResponseField name="id" type="string">分析模型标识符，请把它当作不透明字符串处理。</ResponseField>
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+    <ResponseField name="type" type="string">模型遵循的模板，例如 `ASK_DATA`。它决定模型接受哪些类型的知识。</ResponseField>
+    <ResponseField name="schemas" type="array">模型覆盖的 schema，继承自其数据源</ResponseField>
+    <ResponseField name="custom_id" type="string">您为这个模型设置的自定义标识符（如果设置过）</ResponseField>
+    <ResponseField name="db_datasource_id" type="string">模型所基于的数据源</ResponseField>
+    <ResponseField name="workspace_id" type="string">模型所属的工作空间</ResponseField>
+    <ResponseField name="fork_from" type="string">这个模型派生自的源模型。从零创建的模型不返回该字段。</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">
+  用于获取下一页结果的令牌。最后一页不返回该字段。
+  </ResponseField>
+  <ResponseField name="total" type="integer">
+  所有页中符合条件的模型总数。当列表按您的权限逐行过滤时不返回该字段，此时请用 `continuation_token` 翻页。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e",
+        "name": "Sales Q&A",
+        "description": "Answers questions about orders and revenue",
+        "type": "ASK_DATA",
+        "schemas": ["sales"],
+        "custom_id": "sales-qa",
+        "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+        "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+        "created_at": "2026-09-21T09:14:05.612Z",
+        "updated_at": "2026-09-21T09:14:05.618Z"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

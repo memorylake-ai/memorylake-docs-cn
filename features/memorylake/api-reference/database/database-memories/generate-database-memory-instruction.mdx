@@ -1,0 +1,99 @@
+---
+title: "生成数据库记忆指引"
+description: "用模型为数据库记忆起草指引"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/databases/{databaseId}/instruction/generate
+```
+
+用模型起草一段回答针对这个数据库的问题时遵循的指引，并返回这份草稿。草稿不会自动保存：请审阅并按需修改，再用[更新数据库记忆](/features/memorylake/api-reference/database/database-memories/update-database-memory)把它保存为记忆的 `instruction`。在此之前，记忆当前的指引保持不变。
+
+生成需要调用模型，可能耗时较长。把 `stream` 设为 `true` 可以在等待期间保持连接：响应会变成服务器发送事件（SSE）流，在结果就绪前每 10 秒发送一次心跳注释。
+
+<Note>
+**所需权限：** 项目上的 `project:dbset_modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+项目所属的工作空间 ID
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目 ID
+</ParamField>
+
+<ParamField path="databaseId" type="string" required>
+数据库记忆 ID
+</ParamField>
+
+### 请求体
+
+请求体可以不传。
+
+<ParamField body="stream" type="boolean" default="false">
+设为 `true` 时以服务器发送事件的形式接收结果，而不是一次性的 JSON 响应
+</ParamField>
+
+<RequestExample>
+```bash Single response
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/memories/databases/doc-2e6a9c4f8b1d4a7e9c3b5d8f0a2c4e6b/instruction/generate' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash Streamed
+curl -N -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/memories/databases/doc-2e6a9c4f8b1d4a7e9c3b5d8f0a2c4e6b/instruction/generate' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -H 'Accept: text/event-stream' \
+  -d '{
+    "stream": true
+  }'
+```
+</RequestExample>
+
+### 响应
+
+不传 `stream` 时，响应是一个 JSON 对象：
+
+<ResponseField name="data" type="object">
+<Expandable title="生成的指引">
+  <ResponseField name="instruction" type="string">生成的草稿。在您用更新数据库记忆提交之前，它不会保存到记忆上。</ResponseField>
+</Expandable>
+</ResponseField>
+
+`stream` 为 `true` 时，响应的内容类型为 `text/event-stream`，包含以下事件：
+
+| 事件 | 数据 | 含义 |
+|---|---|---|
+| `data` | `{"instruction": "..."}` | 生成的草稿，只发送一次，包含完整文本。不会保存到记忆上。 |
+| `end` | 空 | 流已成功结束。 |
+| `error` | `{"error_code": "..."}` | 生成失败。之后不会再有 `end` 事件。 |
+
+以 `:` 开头的行是心跳注释，忽略即可。流一旦开始，HTTP 状态码始终是 200，因此请检查是否收到 `error` 事件。流开始之前发现的问题（例如记忆不存在或缺少权限）会以普通的 JSON 错误响应返回。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "instruction": "This database holds the sales schema. Use sales.orders for order and revenue questions: total_amount is the order value and created_at is when the order was placed. Join sales.customers on customer_id for customer details."
+  }
+}
+```
+
+```text Streamed (200)
+:keepalive
+
+:keepalive
+
+event:data
+data:{"instruction":"This database holds the sales schema. Use sales.orders for order and revenue questions: total_amount is the order value and created_at is when the order was placed. Join sales.customers on customer_id for customer details."}
+
+event:end
+data:
+```
+</ResponseExample>

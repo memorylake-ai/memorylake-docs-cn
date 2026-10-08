@@ -1,0 +1,118 @@
+---
+title: "创建分析模型"
+description: "在数据源上创建分析模型，用来存放关于数据的整理过的知识"
+noindex: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models
+```
+
+在工作空间中的某个数据源上创建分析模型。向模型[添加知识条目](/features/memorylake/api-reference/database/analysis-models/add-knowledge-entry)来描述数据，然后把它绑定到基于同一数据源的[数据库记忆](/features/memorylake/api-reference/database/database-memories/create-database-memory)。
+
+模板 `type` 决定模型接受哪些类型的知识。调用[列出分析模型模板](/features/memorylake/api-reference/database/analysis-models/list-analysis-model-templates)查看可用的类型。模型覆盖其数据源的 schema，因此无需传入 schema。
+
+<Note>
+**所需权限：** 工作空间上的 `analysis_model:add`，以及数据源上的 `db_datasource:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+显示名称
+</ParamField>
+
+<ParamField body="type" type="string" required>
+要遵循的模板，例如 `ASK_DATA`。它决定模型接受哪些类型的知识。参见[列出分析模型模板](/features/memorylake/api-reference/database/analysis-models/list-analysis-model-templates)。
+</ParamField>
+
+<ParamField body="db_datasource_id" type="string" required>
+模型所基于的数据源。它必须属于这个工作空间，且您需要对它有 `db_datasource:read`。创建后不能修改。
+</ParamField>
+
+<ParamField body="description" type="string">
+自由格式的描述
+</ParamField>
+
+<ParamField body="custom_id" type="string">
+这个模型在您自己系统里的标识符，最长 255 个字符。在您的租户内必须唯一，设置后不能修改，且不能以 `_sys_` 开头。调用[获取分析模型](/features/memorylake/api-reference/database/analysis-models/get-analysis-model)时带上 `by_custom_id=true`，即可用它查找模型。参见[您自己的标识符](/features/memorylake/api-reference/overview#您自己的标识符)。
+</ParamField>
+
+<ParamField body="fork_from" type="string">
+作为起点的已有模型 ID。新模型会在 `fork_from` 中记录它，表明自己从何而来。从零开始创建时不传。
+
+派生（fork）不会沿用源模型的名称、描述、数据源或类型：其他字段仍需您自己传入。但它会带上源模型的知识：新模型创建后，后台会启动一次构建，把源模型的知识条目复制过来。构建完成之前，新模型中的条目可能少于源模型，请[列出它的知识条目](/features/memorylake/api-reference/database/analysis-models/list-knowledge-entries)确认。如果构建未能启动，模型仍会创建成功，只是不带复制过来的知识。
+
+源模型必须是这个工作空间中 `type` 相同的模型。它可以基于另一个数据源，这样您就能把针对一个数据库整理的知识延续到另一个数据库上。本身就是派生出来的模型不能再被派生：只允许一层。设置后不能修改。
+</ParamField>
+
+<RequestExample>
+```bash Create
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales Q&A",
+    "description": "Answers questions about orders and revenue",
+    "type": "ASK_DATA",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "custom_id": "sales-qa"
+  }'
+```
+
+```bash Fork an existing model
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Sales Q&A (draft)",
+    "type": "ASK_DATA",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "fork_from": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分析模型对象">
+  <ResponseField name="id" type="string">分析模型标识符，请把它当作不透明字符串处理。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">自由格式的描述</ResponseField>
+  <ResponseField name="type" type="string">模型遵循的模板，例如 `ASK_DATA`。它决定模型接受哪些类型的知识。</ResponseField>
+  <ResponseField name="schemas" type="array">模型覆盖的 schema，继承自其数据源</ResponseField>
+  <ResponseField name="custom_id" type="string">您为这个模型设置的自定义标识符（如果设置过）</ResponseField>
+  <ResponseField name="db_datasource_id" type="string">模型所基于的数据源</ResponseField>
+  <ResponseField name="workspace_id" type="string">模型所属的工作空间</ResponseField>
+  <ResponseField name="fork_from" type="string">这个模型派生自的源模型。从零创建的模型不返回该字段。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e",
+    "name": "Sales Q&A",
+    "description": "Answers questions about orders and revenue",
+    "type": "ASK_DATA",
+    "schemas": ["sales"],
+    "custom_id": "sales-qa",
+    "db_datasource_id": "dbds-4b8e2f6a1c9d4e7b8a3f5c2d6e9b1a7c",
+    "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+    "created_at": "2026-09-21T09:14:05.612Z",
+    "updated_at": "2026-09-21T09:14:05.618Z"
+  }
+}
+```
+</ResponseExample>

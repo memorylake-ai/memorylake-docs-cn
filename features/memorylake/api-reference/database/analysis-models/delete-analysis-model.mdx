@@ -1,0 +1,48 @@
+---
+title: "删除分析模型"
+description: "删除一个没有数据库记忆在使用的分析模型"
+noindex: true
+---
+
+```
+DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models/{modelId}
+```
+
+删除分析模型。只要还有数据库记忆在使用这个模型，请求就会被拒绝。请先用[更新数据库记忆](/features/memorylake/api-reference/database/database-memories/update-database-memory)传入空的 `analysis_model_id`，把模型从这些记忆中解除，或者[删除这些记忆](/features/memorylake/api-reference/database/database-memories/delete-database-memory)。
+
+从这个模型派生出的模型不受影响，它们的 `fork_from` 仍然指向被删除的模型。
+
+<Note>
+**所需权限：** `analysis_model:delete`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="modelId" type="string" required>
+分析模型 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/analysis-models/am-9d3f7b1e5a2c4d8f6b0e3a7c9d1f5b2e' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+<ResponseField name="message" type="string">人类可读的状态消息</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully"
+}
+```
+</ResponseExample>
