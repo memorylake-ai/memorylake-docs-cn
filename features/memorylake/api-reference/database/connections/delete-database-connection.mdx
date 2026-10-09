@@ -8,7 +8,9 @@ noindex: true
 DELETE /openapi/memorylake/api/v3/db-connections/{connectionId}
 ```
 
-删除数据库连接。只要还有数据源通过这个连接读取数据（即它的 `datasource_count` 大于零），请求就会被拒绝。请先[删除这些数据源](/features/memorylake/api-reference/database/datasources/delete-datasource)。
+删除数据库连接。只要还有数据源通过这个连接读取数据（即它的 `datasource_count` 大于零），请求就会以 `409` 和 `RESOURCE_IN_USE` 被拒绝。请先[删除这些数据源](/features/memorylake/api-reference/database/datasources/delete-datasource)。
+
+删除不存在或已删除的连接会返回 `404`。
 
 <Note>
 **所需权限：** `dbconn:delete`

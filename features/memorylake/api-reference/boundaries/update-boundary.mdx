@@ -70,6 +70,8 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/bn
 
 返回更新后的 Boundary，结构与[获取 Boundary](/features/memorylake/api-reference/boundaries/get-boundary) 相同。错误与[创建 Boundary](/features/memorylake/api-reference/boundaries/create-boundary#错误) 相同。
 
+此响应中的 `updated_at` 是本次更新之前的值，新的值请通过[获取 Boundary](/features/memorylake/api-reference/boundaries/get-boundary) 读取。
+
 <ResponseExample>
 ```json Success (200)
 {
@@ -86,7 +88,7 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/bn
     "human_actor_id": "actor-8d093c0578ffeb19f8fa10ea28ee9362",
     "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
     "created_at": "2026-09-14T03:22:10Z",
-    "updated_at": "2026-09-20T07:48:36Z"
+    "updated_at": "2026-09-14T03:22:10Z"
   }
 }
 ```
