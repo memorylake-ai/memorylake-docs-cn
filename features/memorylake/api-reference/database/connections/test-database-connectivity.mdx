@@ -61,6 +61,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections
 </Expandable>
 </ResponseField>
 
+如果数据库连不上，或者拒绝了这组凭据，接口返回 `400`，`error_code` 为 `DB_CONNECTION_FAILED`。响应不会说明是哪一种情况：请检查主机、端口、数据库名、用户名和密码，并确认该数据库允许来自 MemoryLake 的连接。用同样的参数重试不会成功。
+
 <ResponseExample>
 ```json Success (200)
 {
@@ -68,6 +70,14 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/db-connections
   "data": {
     "schemas": ["public", "sales"]
   }
+}
+```
+
+```json Connection failed (400)
+{
+  "success": false,
+  "message": "[CONNECTION_FAILED] Database connection failed",
+  "error_code": "DB_CONNECTION_FAILED"
 }
 ```
 </ResponseExample>
