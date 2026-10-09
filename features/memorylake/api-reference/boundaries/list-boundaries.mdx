@@ -1,0 +1,97 @@
+---
+title: "列出 Boundary"
+description: "返回某个工作空间内 Boundary 的分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/boundaries
+```
+
+返回某个工作空间内的 Boundary，按创建时间从新到旧排列。
+
+<Note>
+**所需权限：** `boundary:read` —— 您打不开的行不会出现在列表里，列表本身不会被拒绝
+</Note>
+
+### 查询参数
+
+<ParamField query="workspace_id" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的 Boundary 数，取值 1 到 100。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次调用返回的分页令牌。首次请求时省略此参数。
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按 Boundary 名称模糊搜索。
+</ParamField>
+
+<RequestExample>
+```bash 第一页
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries?workspace_id=ws-8001856949ad4f6a5b6226f415ffa877&page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 按名称搜索
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries?workspace_id=ws-8001856949ad4f6a5b6226f415ffa877&name_fuzzy=alice' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页 Boundary 列表">
+  <ResponseField name="items" type="array">
+  Boundary 对象数组
+  <Expandable title="Boundary 对象">
+    <ResponseField name="id" type="string">Boundary ID</ResponseField>
+    <ResponseField name="custom_id" type="string">您为 Boundary 设置的自有标识符（如有）</ResponseField>
+    <ResponseField name="workspace_id" type="string">Boundary 所属的工作空间</ResponseField>
+    <ResponseField name="name" type="string">Boundary 名称</ResponseField>
+    <ResponseField name="project_ids" type="string[]">范围内的项目。不把范围收窄到特定项目时不出现。</ResponseField>
+    <ResponseField name="human_actor_id" type="string">范围内的 Actor。未设置时不出现。</ResponseField>
+    <ResponseField name="agent_id" type="string">其记忆在范围内的 Agent。未设置时不出现。</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">下一页的分页令牌。当为最后一页时，该值不存在或为 `null`。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34",
+        "custom_id": "user-ext-001",
+        "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+        "name": "Alice Chen - Support Assistant",
+        "project_ids": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"],
+        "human_actor_id": "actor-8d093c0578ffeb19f8fa10ea28ee9362",
+        "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
+        "created_at": "2026-09-14T03:22:10Z",
+        "updated_at": "2026-09-14T03:22:10Z"
+      },
+      {
+        "id": "bnd-1c7f3e9a0b2d4c6e8f1a3b5d7e9c2f40",
+        "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+        "name": "Team knowledge base",
+        "created_at": "2026-08-02T10:05:47Z",
+        "updated_at": "2026-08-02T10:05:47Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0X2lkIjoiYm5kLTFjN2YzZTlhMGIyZDRjNmU4ZjFhM2I1ZDdlOWMyZjQwIn0"
+  }
+}
+```
+</ResponseExample>

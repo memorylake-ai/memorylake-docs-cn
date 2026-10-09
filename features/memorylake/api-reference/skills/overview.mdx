@@ -1,0 +1,77 @@
+---
+title: "概览"
+description: "把一项能力打包成技能，通过安全审核后挂到您的 Agent 上"
+---
+
+**技能**（Skill）是 [Agent](/features/memorylake/api-reference/agents/overview) 可以使用的一项打包好的能力。您把它打成 ZIP 压缩包上传，MemoryLake 对其做安全审核，审核通过后，在 Agent 的 `skills` 里列出它即可挂上。
+
+技能属于您的租户，不属于某个工作空间：同一个技能可以挂到您任何工作空间里的任何 Agent 上。
+
+## 技能如何工作
+
+<Steps>
+<Step title="申请上传地址">
+  调用[申请技能包上传](/features/memorylake/api-reference/skills/create-package-upload)。它返回一个预签名的 `upload_url`、上传时要带的 `upload_headers`，以及标识这次上传的 `s3_uri`。
+</Step>
+<Step title="上传 ZIP 压缩包">
+  用一次 `PUT` 把压缩包作为请求体发到 `upload_url`，并带上 `upload_headers` 里的每一个请求头。
+</Step>
+<Step title="创建技能">
+  调用[创建技能](/features/memorylake/api-reference/skills/create-skill)，在 `package_ref` 里传入 `s3_uri`。技能创建时即带有第一个版本，`latest_security_status` 为 `pending`。
+</Step>
+<Step title="等待安全审核">
+  轮询[获取技能](/features/memorylake/api-reference/skills/get-skill)，直到 `latest_security_status` 不再是 `pending`。
+</Step>
+<Step title="挂到 Agent 上">
+  在[创建 Agent](/features/memorylake/api-reference/agents/create-agent) 或[创建 Agent 版本](/features/memorylake/api-reference/agents/create-agent-version)时，把技能的 `id` 放进 `skills`。
+</Step>
+</Steps>
+
+## 安全审核
+
+每个技能包在 Agent 能使用之前都要经过审核。审核结果按版本记录，技能的 `latest_security_status` 给出的是最新版本的结果：
+
+| 状态 | 含义 | Agent 能否引用 |
+|------|------|----------------|
+| `pending` | 审核还在进行 | 不能 |
+| `safe` | 审核通过 | 能 |
+| `blocked` | 审核拒绝了这个包 | 不能——修正后作为新版本重新发布 |
+| `error` | 审核本身出错 | 不能——把包作为新版本重新发布以重跑审核 |
+
+`latest_security_status` 也可能不出现。此时看 `latest_version` 判断含义：
+
+- `latest_version` 大于 `0`：该部署关闭了安全审核，技能可以被引用。
+- `latest_version` 为 `0`：还没有发布过技能包，技能不能被引用。
+- `latest_version` 也不出现：读不到当前状态，在能读到之前，任何对该技能的引用都会被拒绝。
+
+## 在 Agent 中引用技能
+
+Agent 用 `skill_id` 引用技能，`skill_version` 可选。不带 `skill_version` 时，引用跟随最新版本；带上时，引用固定到该版本，并按该版本自己的审核结果判断。
+
+创建 Agent 或 Agent 版本时，会逐个检查它引用的技能。只要有一个不可用，整个请求就以 `400` 失败，错误码为 `SKILL_NOT_USABLE`，消息里会逐个列出不可用的技能及原因。MemoryLake 提供的内置技能按同样的规则检查。
+
+<Warning>
+发布技能的新版本会让它重新进入审核。在新版本通过审核之前，引用跟随最新版本的 Agent 无法带着这个技能创建或发布新版本。固定到旧版本号的 Agent 版本不受影响。
+</Warning>
+
+## 名称与标识符
+
+`name` 在您的租户内必须唯一，创建后不能修改。`id`（例如 `skill-2b0f5f9f4ea54767822f51f4940c8f24`）才是其他所有接口和 Agent 引用使用的标识符。
+
+## 内置技能
+
+MemoryLake 还提供内置技能。Agent 可以按 `id` 引用它们，但它们不会出现在[列出技能](/features/memorylake/api-reference/skills/list-skills)的结果里，也不能修改或删除。
+
+## 端点
+
+| 操作 | 方法 | 路径 |
+|------|------|------|
+| [申请技能包上传](/features/memorylake/api-reference/skills/create-package-upload) | `POST` | `/api/v3/skills/package-uploads` |
+| [列出技能](/features/memorylake/api-reference/skills/list-skills) | `GET` | `/api/v3/skills` |
+| [创建技能](/features/memorylake/api-reference/skills/create-skill) | `POST` | `/api/v3/skills` |
+| [获取技能](/features/memorylake/api-reference/skills/get-skill) | `GET` | `/api/v3/skills/{id}` |
+| [更新技能](/features/memorylake/api-reference/skills/update-skill) | `PATCH` | `/api/v3/skills/{id}` |
+| [删除技能](/features/memorylake/api-reference/skills/delete-skill) | `DELETE` | `/api/v3/skills/{id}` |
+| [列出技能版本](/features/memorylake/api-reference/skills/list-skill-versions) | `GET` | `/api/v3/skills/{id}/versions` |
+| [发布技能版本](/features/memorylake/api-reference/skills/create-skill-version) | `POST` | `/api/v3/skills/{id}/versions` |
+| [获取技能版本](/features/memorylake/api-reference/skills/get-skill-version) | `GET` | `/api/v3/skills/{id}/versions/{version}` |

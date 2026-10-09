@@ -1,0 +1,58 @@
+---
+title: "获取技能版本"
+description: "获取技能的某个版本及其安全审核状态"
+---
+
+```
+GET /openapi/memorylake/api/v3/skills/{id}/versions/{version}
+```
+
+返回技能的某一个版本。可以用它检查 Agent 固定引用的那个版本：固定版本的引用只有在该版本自己的 `security_status` 允许时才会被接受。
+
+<Note>
+**所需权限：** `skill:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+技能 ID
+</ParamField>
+
+<ParamField path="version" type="integer" required>
+版本号
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills/skill-2b0f5f9f4ea54767822f51f4940c8f24/versions/2' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="技能版本">
+  <ResponseField name="skill_id" type="string">技能 ID</ResponseField>
+  <ResponseField name="version" type="integer">版本号</ResponseField>
+  <ResponseField name="changelog" type="string">该版本的发布说明</ResponseField>
+  <ResponseField name="security_status" type="string">该版本的安全审核状态：`pending`、`safe`、`blocked` 或 `error`</ResponseField>
+  <ResponseField name="created_at" type="string">该版本的发布时间</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "skill_id": "skill-2b0f5f9f4ea54767822f51f4940c8f24",
+    "version": 2,
+    "changelog": "Fetch filings over HTTPS only",
+    "security_status": "blocked",
+    "created_at": "2026-09-12T08:15:52Z"
+  }
+}
+```
+</ResponseExample>

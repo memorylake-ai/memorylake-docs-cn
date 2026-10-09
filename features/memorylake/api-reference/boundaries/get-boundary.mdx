@@ -1,0 +1,73 @@
+---
+title: "获取 Boundary"
+description: "通过 ID 或您自己的自定义 ID 获取 Boundary"
+---
+
+```
+GET /openapi/memorylake/api/v3/boundaries/{id}
+```
+
+返回单个 Boundary。默认情况下，`{id}` 被视为 Boundary ID。设置 `by_custom_id=true` 可以改为通过 `custom_id` 查找。
+
+<Note>
+**所需权限：** `boundary:read`。这里展示的是 Boundary 声明的范围，而不是范围里的内容：通过它检索时，仍会对它引用的项目、Actor 和 Agent 检查权限。
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Boundary ID，或当 `by_custom_id` 为 `true` 时为 Boundary 的 `custom_id`。
+</ParamField>
+
+### 查询参数
+
+<ParamField query="by_custom_id" type="boolean" default="false">
+当为 `true` 时，路径参数将被解释为 Boundary 的 `custom_id` 而非其 ID。
+</ParamField>
+
+<RequestExample>
+```bash 按 Boundary ID
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 按自定义 ID
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/user-ext-001?by_custom_id=true' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Boundary">
+  <ResponseField name="id" type="string">Boundary ID</ResponseField>
+  <ResponseField name="custom_id" type="string">您为 Boundary 设置的自有标识符（如有）</ResponseField>
+  <ResponseField name="workspace_id" type="string">Boundary 所属的工作空间</ResponseField>
+  <ResponseField name="name" type="string">Boundary 名称</ResponseField>
+  <ResponseField name="project_ids" type="string[]">范围内的项目。不把范围收窄到特定项目时不出现。</ResponseField>
+  <ResponseField name="human_actor_id" type="string">范围内的 Actor。未设置时不出现。</ResponseField>
+  <ResponseField name="agent_id" type="string">其记忆在范围内的 Agent。未设置时不出现。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34",
+    "custom_id": "user-ext-001",
+    "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+    "name": "Alice Chen - Support Assistant",
+    "project_ids": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"],
+    "human_actor_id": "actor-8d093c0578ffeb19f8fa10ea28ee9362",
+    "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
+    "created_at": "2026-09-14T03:22:10Z",
+    "updated_at": "2026-09-14T03:22:10Z"
+  }
+}
+```
+</ResponseExample>

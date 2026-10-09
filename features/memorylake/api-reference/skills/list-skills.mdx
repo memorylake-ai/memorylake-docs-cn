@@ -1,0 +1,94 @@
+---
+title: "列出技能"
+description: "返回您租户内技能的分页列表"
+---
+
+```
+GET /openapi/memorylake/api/v3/skills
+```
+
+返回在您租户内创建的技能，按创建时间从新到旧排列。不包含内置技能。
+
+<Note>
+**所需权限：** `skill:read` —— 您打不开的行不会出现在列表里，列表本身不会被拒绝
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页返回的技能数，取值 1 到 100。
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一次调用返回的分页令牌。首次请求时省略此参数。
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按技能名称模糊搜索。
+</ParamField>
+
+<RequestExample>
+```bash 第一页
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills?page_size=20' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 按名称搜索
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills?name_fuzzy=research' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="分页技能列表">
+  <ResponseField name="items" type="array">
+  技能对象数组
+  <Expandable title="技能对象">
+    <ResponseField name="id" type="string">技能 ID。在其他所有地方都用它来指代这个技能。</ResponseField>
+    <ResponseField name="name" type="string">技能名称，在您的租户内唯一</ResponseField>
+    <ResponseField name="display_title" type="string">控制台中显示的标题</ResponseField>
+    <ResponseField name="description" type="string">技能的用途</ResponseField>
+    <ResponseField name="latest_version" type="integer">最新发布的版本号。`0` 表示还没有发布过技能包。读不到当前状态时不出现。</ResponseField>
+    <ResponseField name="latest_security_status" type="string">最新版本的安全审核状态：`pending`、`safe`、`blocked` 或 `error`。不出现时有两种含义——参见[安全审核](/features/memorylake/api-reference/skills/overview#安全审核)。</ResponseField>
+    <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+    <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">下一页的分页令牌。当为最后一页时，该值不存在或为 `null`。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "skill-2b0f5f9f4ea54767822f51f4940c8f24",
+        "name": "equity-research",
+        "display_title": "Equity Research",
+        "description": "Pulls filings and price history and drafts an equity research note",
+        "latest_version": 3,
+        "latest_security_status": "safe",
+        "created_at": "2026-08-21T09:12:44Z",
+        "updated_at": "2026-09-02T11:20:31Z"
+      },
+      {
+        "id": "skill-7c41d0a2e9b84f6d9a3e5b1c8f2d4a60",
+        "name": "contract-review",
+        "display_title": "Contract Review",
+        "description": "Flags non-standard clauses in supplier contracts",
+        "latest_version": 1,
+        "latest_security_status": "pending",
+        "created_at": "2026-08-19T06:03:18Z",
+        "updated_at": "2026-08-19T06:03:18Z"
+      }
+    ],
+    "continuation_token": "eyJsYXN0X2lkIjoic2tpbGwtN2M0MWQwYTJlOWI4NGY2ZDlhM2U1YjFjOGYyZDRhNjAifQ"
+  }
+}
+```
+</ResponseExample>

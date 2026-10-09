@@ -1,0 +1,63 @@
+---
+title: "申请技能包上传"
+description: "在创建技能或发布版本之前，获取一个用于上传技能包的预签名 URL"
+---
+
+```
+POST /openapi/memorylake/api/v3/skills/package-uploads
+```
+
+返回一个用于上传技能包的预签名 URL，以及在[创建技能](/features/memorylake/api-reference/skills/create-skill)或[发布版本](/features/memorylake/api-reference/skills/create-skill-version)时要作为 `package_ref.s3_uri` 传入的 `s3_uri`。每上传一个包都申请一次新的地址。
+
+此端点没有请求体。
+
+<Note>
+**所需权限：** 只需有效的 API Key。权限在创建技能或发布版本时检查。
+</Note>
+
+### 技能包要求
+
+- **格式：** ZIP 压缩包，不接受其他格式。
+- **大小：** 不超过 10 MiB。上传时不检查大小：超限的包也能上传成功，随后在创建技能或发布版本时以 `400` 被拒绝。
+- **有效期：** `upload_url` 在 `expires_in_seconds` 秒后过期，过期后重新申请。
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="上传地址">
+  <ResponseField name="upload_url" type="string">预签名 URL。用一次 `PUT` 把 ZIP 压缩包作为请求体发到这里。</ResponseField>
+  <ResponseField name="upload_headers" type="object">`PUT` 必须携带的请求头（名称到值）。一定包含 `Content-Type: application/zip`，URL 就是按它签名的；视背后的存储而定，可能还有其他请求头。请原样带上每一个，不要增加或修改：漏带任何一个，上传在开始前就会被拒绝。</ResponseField>
+  <ResponseField name="s3_uri" type="string">原样作为 `package_ref.s3_uri` 传回。请把它当作不透明字符串：其协议前缀取决于服务部署所用的存储。只接受由此端点签发的 URI。</ResponseField>
+  <ResponseField name="expires_in_seconds" type="integer">`upload_url` 的剩余有效秒数</ResponseField>
+</Expandable>
+</ResponseField>
+
+<RequestExample>
+```bash 申请上传地址
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills/package-uploads' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+
+```bash 上传压缩包
+# 使用响应中的 upload_url，并带上 upload_headers 里的每一个请求头
+curl -X PUT "$UPLOAD_URL" \
+  -H 'Content-Type: application/zip' \
+  --data-binary @equity-research.zip
+```
+</RequestExample>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "upload_url": "https://storage.example.com/skill-packages/3f2a1c8e9b7d4f5a8c6b2d1e0f9a8b7c.zip?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Expires=1800&X-Amz-SignedHeaders=content-type%3Bhost&X-Amz-Signature=8b1f...",
+    "upload_headers": {
+      "Content-Type": "application/zip"
+    },
+    "s3_uri": "s3://example-bucket/skill-packages/3f2a1c8e9b7d4f5a8c6b2d1e0f9a8b7c.zip",
+    "expires_in_seconds": 1800
+  }
+}
+```
+</ResponseExample>

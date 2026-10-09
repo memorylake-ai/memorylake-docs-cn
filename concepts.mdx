@@ -71,6 +71,8 @@ Workspace                    ← 顶层容器与隔离边界
 - 使用 [Memory Router](/features/memory-router/overview) 时，您在 LLM 调用上以 `?boundary_id=` 传入它——通常每个终端用户对应一个 Boundary，这样每个用户的会话只读写自己的记忆。
 - 使用 [MCP](/features/memorylake/mcp-servers/creating-api-keys) 时，客户端连接时在 OAuth 授权页面上选择工作空间和 Boundary。
 
+您可以在控制台创建 Boundary，也可以用 [Boundary API](/features/memorylake/api-reference/boundaries/overview) 管理。
+
 ## API Key
 
 **API Key**（`sk-…`）是您进行一切编程访问的凭证：REST API、Model Router 和 Agent 插件。在控制台的 **API Keys** 下创建 Key——每个 Key 有名称和有效期，其权限与创建它的成员保持一致。可随时轮换或吊销。参见[认证](/authentication)。

@@ -1,0 +1,45 @@
+---
+title: "删除 Boundary"
+description: "删除一个 Boundary"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/boundaries/{id}
+```
+
+删除一个 Boundary。只删除 Boundary 本身：它覆盖的项目、Actor、Agent 和记忆都不受影响。
+
+删除不存在或已删除的 Boundary 同样返回 `200`，所以重复删除可以放心重试。
+
+<Note>
+**所需权限：** `boundary:delete`
+</Note>
+
+<Warning>
+授权到这个 Boundary 的 MCP 客户端将再也找不到它。
+</Warning>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Boundary ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true
+}
+```
+</ResponseExample>

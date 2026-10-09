@@ -1,0 +1,51 @@
+---
+title: "概览"
+description: "Boundary 是一个有名字的记忆范围——工作空间、其中的项目、一个人和一个 Agent——用一个 ID 来引用"
+---
+
+**Boundary**（记忆边界）是一个工作空间内有名字的记忆范围。它记下某类流量涉及哪些项目、哪个人、哪个 Agent，使用它的一方就只读写这部分记忆。您不必在每次调用时都传这四类引用，只需传 Boundary 的 ID。
+
+在中国站，[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)使用 Boundary：客户端连接时，用户在 OAuth 授权页面上选择工作空间和 Boundary。
+
+<Note>
+国际站的 Memory Router 也通过 `?boundary_id=` 使用 Boundary，但中国站尚未开放 Memory Router，参见 [Memory Router 常见问题](/features/memory-router/faq)。
+</Note>
+
+您可以在控制台创建 Boundary，也可以用下面的端点管理。
+
+## Boundary 包含什么
+
+| 字段 | 含义 |
+|------|------|
+| `workspace_id` | Boundary 所属的工作空间。创建时设定，之后不能修改。 |
+| `project_ids` | 范围内的项目。不传或为空表示不把范围收窄到特定项目。 |
+| `human_actor_id` | 范围内的 [Actor](/features/memorylake/api-reference/actors/overview)，即那个人。可选。 |
+| `agent_id` | 其记忆在范围内的 [Agent](/features/memorylake/api-reference/agents/overview)。可选。 |
+| `name` | 显示名称 |
+| `custom_id` | 您自己的标识符，可配合 `by_custom_id=true` 查找 Boundary。创建时设定，之后不能修改。 |
+
+Boundary 引用的每个项目、Actor 和 Agent 都必须属于它的工作空间：项目必须在该工作空间内，Actor 和 Agent 必须已绑定到该工作空间且未被删除。
+
+## 权限
+
+读取 Boundary 只需 `boundary:read`。它展示的是声明了什么范围，而不是范围里有什么：通过 Boundary 检索时，仍会对内容本身检查权限。
+
+创建或更新 Boundary 时，还需要对请求中引用的每个对象有检索权限，因为 Boundary 就是检索这些内容的一种方式：
+
+| 请求中引用了 | 需要对它有的权限 |
+|--------------|------------------|
+| `project_ids` 中的项目 | `project:mem_search` 和 `project:doc_search` |
+| `human_actor_id` | `workspace_actor:fact_search` |
+| `agent_id` | `workspace_agent:fact_search` |
+
+缺少任何一项，整个请求都会以 `403` 被拒绝。
+
+## 端点
+
+| 操作 | 方法 | 路径 |
+|------|------|------|
+| [列出 Boundary](/features/memorylake/api-reference/boundaries/list-boundaries) | `GET` | `/api/v3/boundaries` |
+| [创建 Boundary](/features/memorylake/api-reference/boundaries/create-boundary) | `POST` | `/api/v3/boundaries` |
+| [获取 Boundary](/features/memorylake/api-reference/boundaries/get-boundary) | `GET` | `/api/v3/boundaries/{id}` |
+| [更新 Boundary](/features/memorylake/api-reference/boundaries/update-boundary) | `PATCH` | `/api/v3/boundaries/{id}` |
+| [删除 Boundary](/features/memorylake/api-reference/boundaries/delete-boundary) | `DELETE` | `/api/v3/boundaries/{id}` |
