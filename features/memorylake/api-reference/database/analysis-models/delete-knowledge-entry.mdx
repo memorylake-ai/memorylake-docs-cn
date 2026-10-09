@@ -16,6 +16,8 @@ DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models/{mode
 - `LEAF`：只有没有其他条目挂在它下面时才可以。
 - `ISLAND`：只有它与任何条目都没有关联时才可以。
 
+删除不存在或已删除的条目目前会返回 `400`。
+
 <Note>
 **所需权限：** `analysis_model:modify`
 </Note>
