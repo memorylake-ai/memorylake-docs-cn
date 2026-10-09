@@ -12,7 +12,7 @@ DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/analysis-models/{mode
 
 从这个模型派生出的模型不受影响，它们的 `fork_from` 仍然指向被删除的模型。
 
-删除不存在或已删除的分析模型会返回 `404`。
+删除不存在或已删除的分析模型同样返回 `200`，所以重复删除可以放心重试。
 
 <Note>
 **所需权限：** `analysis_model:delete`

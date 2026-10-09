@@ -10,7 +10,7 @@ DELETE /openapi/memorylake/api/v3/workspaces/{workspaceId}/db-datasources/{datas
 
 删除数据源。只要还有分析模型或数据库记忆在使用这个数据源，请求就会以 `409` 和 `RESOURCE_IN_USE` 被拒绝。请先[删除这些分析模型](/features/memorylake/api-reference/database/analysis-models/delete-analysis-model)和[数据库记忆](/features/memorylake/api-reference/database/database-memories/delete-database-memory)。数据源的 `database_count` 显示还有多少个数据库记忆在使用它。
 
-删除数据源不会删除它所用的连接。删除不存在或已删除的数据源会返回 `404`。
+删除数据源不会删除它所用的连接。删除不存在或已删除的数据源同样返回 `200`，所以重复删除可以放心重试。
 
 <Note>
 **所需权限：** `db_datasource:delete`
