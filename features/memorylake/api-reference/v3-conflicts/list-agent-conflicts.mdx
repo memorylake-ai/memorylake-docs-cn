@@ -1,18 +1,18 @@
 ---
-title: "列出 Actor 记忆冲突"
-description: "返回某个 Actor 事实之间的记忆冲突分页列表"
+title: "列出 Agent 记忆冲突"
+description: "返回某个 Agent 事实之间的记忆冲突分页列表"
 ---
 
 ```
-GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memories/conflicts
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}/memories/conflicts
 ```
 
-当 MemoryLake 提取关于某个 Actor 的事实时，会将新事实与该 Actor 已有的事实进行对比。如果检测到矛盾，该矛盾会被记录为**记忆冲突**。使用此端点可按时间倒序列出该 Actor 的冲突，以便呈现给用户审查。
+当 MemoryLake 为某个 Agent 提取事实时，会将新事实与该 Agent 已有的事实进行对比。如果检测到矛盾，该矛盾会被记录为**记忆冲突**。使用此端点可按时间倒序列出该 Agent 的冲突，以便呈现给用户审查。
 
 您可以按解决状态筛选，仅显示需要关注的未解决冲突，或仅显示已解决的冲突以供审计。如需查看项目知识内部的冲突，请改用[列出记忆冲突](/features/memorylake/api-reference/v3-conflicts/list-conflicts)。
 
 <Note>
-**所需权限：** `workspace_actor:fact_conflict_read`
+**所需权限：** `workspace_agent:fact_conflict_read`
 </Note>
 
 ### 路径参数
@@ -21,8 +21,8 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memorie
 工作空间 ID
 </ParamField>
 
-<ParamField path="actorId" type="string" required>
-Actor ID
+<ParamField path="agentId" type="string" required>
+Agent ID
 </ParamField>
 
 ### 查询参数
@@ -41,12 +41,12 @@ Actor ID
 
 <RequestExample>
 ```bash 未解决的冲突
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-8d093c0578ffeb19f8fa10ea28ee9362/memories/conflicts?resolved=false&page_size=20' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents/agent-f8bf71ab17ed8eccad8c0e8ae708273f/memories/conflicts?resolved=false&page_size=20' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 
 ```bash 全部冲突
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-8d093c0578ffeb19f8fa10ea28ee9362/memories/conflicts?page_size=50' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents/agent-f8bf71ab17ed8eccad8c0e8ae708273f/memories/conflicts?page_size=50' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -63,7 +63,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
     <ResponseField name="description" type="string">矛盾的详细说明</ResponseField>
     <ResponseField name="category" type="string">冲突类别：`m2m`（事实与事实）或 `m2d`（事实与文档）</ResponseField>
     <ResponseField name="resolved" type="boolean">冲突是否已解决</ResponseField>
-    <ResponseField name="resolve" type="object">解决记录。仅在冲突已解决时存在，否则为 `null`。完整结构请参见[获取 Actor 记忆冲突](/features/memorylake/api-reference/v3-conflicts/get-actor-conflict)。</ResponseField>
+    <ResponseField name="resolve" type="object">解决记录。仅在冲突已解决时存在，否则为 `null`。完整结构请参见[获取 Agent 记忆冲突](/features/memorylake/api-reference/v3-conflicts/get-agent-conflict)。</ResponseField>
     <ResponseField name="stale" type="boolean">冲突检测之后，涉及的事实是否已发生变化。过时的冲突可能不再准确。</ResponseField>
     <ResponseField name="conflict_type" type="string">冲突类型：`logical` 或 `knowledge`</ResponseField>
     <ResponseField name="fact_ids" type="array">冲突涉及的事实 ID</ResponseField>
@@ -98,8 +98,8 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
     "items": [
       {
         "id": "conf-def456",
-        "name": "Contradicting dietary preference",
-        "description": "One fact states the user is vegetarian; another says their favorite dish is steak.",
+        "name": "Contradicting time zone rule",
+        "description": "One fact says to report times in UTC; another says to report them in the customer's local time.",
         "category": "m2m",
         "resolved": false,
         "resolve": null,
@@ -109,11 +109,11 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
         "fact_snapshots": [
           {
             "fact_id": "fact-4d89ead72a591e8c6abbf68f99edf5e2",
-            "fact_text": "User is vegetarian"
+            "fact_text": "Reports times in UTC"
           },
           {
             "fact_id": "fact-91263517847b3371a69814787441263f",
-            "fact_text": "User's favorite dish is steak"
+            "fact_text": "Reports times in the customer's local time"
           }
         ],
         "file_chunks": [],

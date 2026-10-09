@@ -10,7 +10,7 @@ POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/facts/
 在单个请求中将多个 Actor 级别的事实标记为已遗忘（已过期）。与[遗忘 Actor 事实](/features/memorylake/api-reference/facts/forget-actor-fact)类似，这是一种软删除——事实仍可用于审计目的，但会从未来的检索和搜索中排除。
 
 <Note>
-**所需权限：** 人的记忆需要 `workspace_actor:fact_delete`，Agent 的记忆需要 `workspace_agent:fact_delete`——取决于该 id 属于哪一方
+**所需权限：** `workspace_actor:fact_delete`
 </Note>
 
 ### 路径参数

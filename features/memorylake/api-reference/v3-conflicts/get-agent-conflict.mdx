@@ -1,16 +1,16 @@
 ---
-title: "获取 Actor 记忆冲突"
-description: "获取某个 Actor 事实之间单个记忆冲突的完整详情"
+title: "获取 Agent 记忆冲突"
+description: "获取某个 Agent 事实之间单个记忆冲突的完整详情"
 ---
 
 ```
-GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memories/conflicts/{conflictId}
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}/memories/conflicts/{conflictId}
 ```
 
 返回单个冲突的完整记录，包括检测时捕获的事实快照、涉及的文档摘录，以及冲突已解决时的解决记录。
 
 <Note>
-**所需权限：** `workspace_actor:fact_conflict_read`
+**所需权限：** `workspace_agent:fact_conflict_read`
 </Note>
 
 ### 路径参数
@@ -19,8 +19,8 @@ GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/memorie
 工作空间 ID
 </ParamField>
 
-<ParamField path="actorId" type="string" required>
-Actor ID
+<ParamField path="agentId" type="string" required>
+Agent ID
 </ParamField>
 
 <ParamField path="conflictId" type="string" required>
@@ -29,7 +29,7 @@ Actor ID
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-8d093c0578ffeb19f8fa10ea28ee9362/memories/conflicts/conf-def456' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents/agent-f8bf71ab17ed8eccad8c0e8ae708273f/memories/conflicts/conf-def456' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -82,8 +82,8 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
   "success": true,
   "data": {
     "id": "conf-def456",
-    "name": "Contradicting dietary preference",
-    "description": "One fact states the user is vegetarian; another says their favorite dish is steak.",
+    "name": "Contradicting time zone rule",
+    "description": "One fact says to report times in UTC; another says to report them in the customer's local time.",
     "category": "m2m",
     "resolved": true,
     "resolve": {
@@ -99,11 +99,11 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
     "fact_snapshots": [
       {
         "fact_id": "fact-4d89ead72a591e8c6abbf68f99edf5e2",
-        "fact_text": "User is vegetarian"
+        "fact_text": "Reports times in UTC"
       },
       {
         "fact_id": "fact-91263517847b3371a69814787441263f",
-        "fact_text": "User's favorite dish is steak"
+        "fact_text": "Reports times in the customer's local time"
       }
     ],
     "file_chunks": [],
@@ -115,5 +115,5 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
 </ResponseExample>
 
 <Tip>
-如需解决该冲突，请调用[解决 Actor 记忆冲突](/features/memorylake/api-reference/v3-conflicts/resolve-actor-conflict)并传入您想要应用的策略。
+如需解决该冲突，请调用[解决 Agent 记忆冲突](/features/memorylake/api-reference/v3-conflicts/resolve-agent-conflict)并传入您想要应用的策略。
 </Tip>

@@ -218,7 +218,9 @@
                     "group": "Actor 事实",
                     "pages": [
                       "features/memorylake/api-reference/facts/list-actor-facts",
+                      "features/memorylake/api-reference/facts/add-actor-facts",
                       "features/memorylake/api-reference/facts/get-actor-fact",
+                      "features/memorylake/api-reference/facts/get-actor-fact-trace",
                       "features/memorylake/api-reference/facts/update-actor-fact",
                       "features/memorylake/api-reference/facts/forget-actor-fact",
                       "features/memorylake/api-reference/facts/batch-forget-actor-facts"
@@ -265,6 +267,26 @@
                   "features/memorylake/api-reference/agents/bind-agent",
                   "features/memorylake/api-reference/agents/unbind-agent",
                   {
+                    "group": "Agent 事实",
+                    "pages": [
+                      "features/memorylake/api-reference/facts/list-agent-facts",
+                      "features/memorylake/api-reference/facts/add-agent-facts",
+                      "features/memorylake/api-reference/facts/get-agent-fact",
+                      "features/memorylake/api-reference/facts/get-agent-fact-trace",
+                      "features/memorylake/api-reference/facts/update-agent-fact",
+                      "features/memorylake/api-reference/facts/forget-agent-fact",
+                      "features/memorylake/api-reference/facts/batch-forget-agent-facts"
+                    ]
+                  },
+                  {
+                    "group": "记忆冲突",
+                    "pages": [
+                      "features/memorylake/api-reference/v3-conflicts/list-agent-conflicts",
+                      "features/memorylake/api-reference/v3-conflicts/get-agent-conflict",
+                      "features/memorylake/api-reference/v3-conflicts/resolve-agent-conflict"
+                    ]
+                  },
+                  {
                     "group": "记忆设置",
                     "pages": [
                       "features/memorylake/api-reference/memory-settings/get-agent-memory-settings",
@@ -295,7 +317,9 @@
                     "group": "项目事实",
                     "pages": [
                       "features/memorylake/api-reference/facts/list-facts",
+                      "features/memorylake/api-reference/facts/add-facts",
                       "features/memorylake/api-reference/facts/get-fact",
+                      "features/memorylake/api-reference/facts/get-fact-trace",
                       "features/memorylake/api-reference/facts/update-fact",
                       "features/memorylake/api-reference/facts/forget-fact",
                       "features/memorylake/api-reference/facts/batch-forget-facts"
