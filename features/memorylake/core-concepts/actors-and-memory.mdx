@@ -97,8 +97,10 @@ Actor 事实是 MemoryLake 每用户记忆机制的核心。无论 Jane 与哪�
 要让 Actor 的事实在工作空间内可访问，Actor 必须被**绑定**到该工作空间。绑定操作告诉 MemoryLake 该 Actor 参与了此工作空间的项目。
 
 ```bash
-curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspace_id}/actors/{actor_id}/bind \
-  -H "Authorization: Bearer $MEMORYLAKE_API_KEY"
+curl -X POST https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/{workspace_id}/actors \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"actor_id": "{actor_id}"}'
 ```
 
 <Tip>
