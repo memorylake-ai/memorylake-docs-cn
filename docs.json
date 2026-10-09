@@ -247,6 +247,7 @@
                 "pages": [
                   "features/memorylake/api-reference/agents/overview",
                   "features/memorylake/api-reference/a2a/overview",
+                  "features/memorylake/api-reference/a2a/list-open-data-collections",
                   "features/memorylake/api-reference/agents/list-agents",
                   "features/memorylake/api-reference/agents/create-agent",
                   "features/memorylake/api-reference/agents/get-agent",
