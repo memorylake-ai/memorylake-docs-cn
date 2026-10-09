@@ -1,0 +1,95 @@
+---
+title: "更新 Boundary"
+description: "重命名 Boundary，或修改它覆盖的项目、Actor 和 Agent"
+---
+
+```
+PATCH /openapi/memorylake/api/v3/boundaries/{id}
+```
+
+更新一个 Boundary。每个字段有三种状态：
+
+- **不传**——保持不变。
+- **传入值**——替换为新值。
+- **清空**——`human_actor_id` 或 `agent_id` 传 `""` 即移除；`project_ids` 传 `[]` 即不再把范围收窄到特定项目。
+
+`workspace_id` 和 `custom_id` 不能修改。
+
+<Note>
+**所需权限：** `boundary:modify`，以及对请求中引用的每个项目、Actor 和 Agent 的检索权限——参见[权限](/features/memorylake/api-reference/boundaries/overview#权限)。只检查请求中引用的对象，所以只改名不需要对 Boundary 已覆盖的内容有权限。
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+Boundary ID
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string">
+新的显示名称，1 到 255 个字符。
+</ParamField>
+
+<ParamField body="project_ids" type="string[]">
+范围内的项目，整体替换原列表；传 `[]` 即不再把范围收窄到特定项目。
+</ParamField>
+
+<ParamField body="human_actor_id" type="string">
+范围内的 Actor 的 ID。传 `""` 即移除。
+</ParamField>
+
+<ParamField body="agent_id" type="string">
+其记忆在范围内的 Agent 的 ID。传 `""` 即移除。
+</ParamField>
+
+<RequestExample>
+```bash 修改项目
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "project_ids": [
+      "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
+      "proj-e7b262987be4589fabc60257ec2a2230"
+    ]
+  }'
+```
+
+```bash 移除 Agent
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/boundaries/bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "agent_id": ""
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的 Boundary，结构与[获取 Boundary](/features/memorylake/api-reference/boundaries/get-boundary) 相同。错误与[创建 Boundary](/features/memorylake/api-reference/boundaries/create-boundary#错误) 相同。
+
+此响应中的 `updated_at` 是本次更新之前的值，新的值请通过[获取 Boundary](/features/memorylake/api-reference/boundaries/get-boundary) 读取。
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "bnd-5e8a2c71d94f4b3a8e6d0c2b7f1a9e34",
+    "custom_id": "user-ext-001",
+    "workspace_id": "ws-8001856949ad4f6a5b6226f415ffa877",
+    "name": "Alice Chen - Support Assistant",
+    "project_ids": [
+      "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
+      "proj-e7b262987be4589fabc60257ec2a2230"
+    ],
+    "human_actor_id": "actor-8d093c0578ffeb19f8fa10ea28ee9362",
+    "agent_id": "agent-f8bf71ab17ed8eccad8c0e8ae708273f",
+    "created_at": "2026-09-14T03:22:10Z",
+    "updated_at": "2026-09-14T03:22:10Z"
+  }
+}
+```
+</ResponseExample>

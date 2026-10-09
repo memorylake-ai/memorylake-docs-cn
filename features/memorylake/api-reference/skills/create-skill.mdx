@@ -1,0 +1,103 @@
+---
+title: "创建技能"
+description: "用已上传的技能包创建一个技能"
+---
+
+```
+POST /openapi/memorylake/api/v3/skills
+```
+
+用您已通过[申请技能包上传](/features/memorylake/api-reference/skills/create-package-upload)上传的包创建一个技能。技能创建时即带有第一个版本，安全审核在后台开始。
+
+响应立即返回，`latest_security_status` 为 `pending`。审核通过之前 Agent 不能引用这个技能，所以挂上之前请先轮询[获取技能](/features/memorylake/api-reference/skills/get-skill)。
+
+<Note>
+**所需权限：** `skill:create`
+</Note>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+技能名称，最多 255 个字符。在您的租户内必须唯一，创建后不能修改。
+</ParamField>
+
+<ParamField body="display_title" type="string" required>
+控制台中显示的标题，最多 500 个字符。
+</ParamField>
+
+<ParamField body="description" type="string">
+技能的用途。
+</ParamField>
+
+<ParamField body="package_ref" type="object" required>
+已上传的技能包。
+<Expandable title="技能包引用">
+  <ParamField body="package_ref.s3_uri" type="string" required>
+  [申请技能包上传](/features/memorylake/api-reference/skills/create-package-upload)返回的 `s3_uri`，原样传入。请先把压缩包上传到对应的 `upload_url`。
+  </ParamField>
+</Expandable>
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "equity-research",
+    "display_title": "Equity Research",
+    "description": "Pulls filings and price history and drafts an equity research note",
+    "package_ref": {
+      "s3_uri": "s3://example-bucket/skill-packages/3f2a1c8e9b7d4f5a8c6b2d1e0f9a8b7c.zip"
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="技能">
+  <ResponseField name="id" type="string">技能 ID。在其他所有地方都用它来指代这个技能。</ResponseField>
+  <ResponseField name="name" type="string">技能名称</ResponseField>
+  <ResponseField name="display_title" type="string">控制台中显示的标题</ResponseField>
+  <ResponseField name="description" type="string">技能的用途</ResponseField>
+  <ResponseField name="latest_version" type="integer">最新发布的版本号</ResponseField>
+  <ResponseField name="latest_security_status" type="string">最新版本的安全审核状态。刚创建时为 `pending`。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+### 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|--------|--------|----------|
+| `400` | `INVALID_ARGUMENT` | `package_ref.s3_uri` 不是由申请技能包上传签发的、该地址上没有上传内容，或技能包为空或超过 10 MiB |
+| `409` | `SKILL_NAME_CONFLICT` | 您的租户内已有同 `name` 的技能 |
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "skill-2b0f5f9f4ea54767822f51f4940c8f24",
+    "name": "equity-research",
+    "display_title": "Equity Research",
+    "description": "Pulls filings and price history and drafts an equity research note",
+    "latest_version": 1,
+    "latest_security_status": "pending",
+    "created_at": "2026-08-21T09:12:44Z",
+    "updated_at": "2026-08-21T09:12:44Z"
+  }
+}
+```
+
+```json Name taken (409)
+{
+  "success": false,
+  "message": "A skill named 'equity-research' already exists.",
+  "error_code": "SKILL_NAME_CONFLICT"
+}
+```
+</ResponseExample>

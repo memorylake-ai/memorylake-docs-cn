@@ -1,0 +1,45 @@
+---
+title: "删除技能"
+description: "从您的租户中删除一个技能"
+---
+
+```
+DELETE /openapi/memorylake/api/v3/skills/{id}
+```
+
+删除一个技能。内置技能不能删除。
+
+<Note>
+**所需权限：** `skill:delete`
+</Note>
+
+<Warning>
+已经引用这个技能的 Agent 版本不会被改写；之后新建的 Agent 和 Agent 版本不能再引用它。
+</Warning>
+
+与多数删除端点不同，此端点对不存在或已删除的技能返回 `404`，所以重复删除得到的是 `404` 而不是 `200`。
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+技能 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills/skill-2b0f5f9f4ea54767822f51f4940c8f24' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="success" type="boolean">表示请求是否成功</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true
+}
+```
+</ResponseExample>

@@ -297,6 +297,37 @@
                 ]
               },
               {
+                "group": "技能",
+                "pages": [
+                  "features/memorylake/api-reference/skills/overview",
+                  "features/memorylake/api-reference/skills/create-package-upload",
+                  "features/memorylake/api-reference/skills/list-skills",
+                  "features/memorylake/api-reference/skills/create-skill",
+                  "features/memorylake/api-reference/skills/get-skill",
+                  "features/memorylake/api-reference/skills/update-skill",
+                  "features/memorylake/api-reference/skills/delete-skill",
+                  {
+                    "group": "版本",
+                    "pages": [
+                      "features/memorylake/api-reference/skills/list-skill-versions",
+                      "features/memorylake/api-reference/skills/create-skill-version",
+                      "features/memorylake/api-reference/skills/get-skill-version"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "Boundary",
+                "pages": [
+                  "features/memorylake/api-reference/boundaries/overview",
+                  "features/memorylake/api-reference/boundaries/list-boundaries",
+                  "features/memorylake/api-reference/boundaries/create-boundary",
+                  "features/memorylake/api-reference/boundaries/get-boundary",
+                  "features/memorylake/api-reference/boundaries/update-boundary",
+                  "features/memorylake/api-reference/boundaries/delete-boundary"
+                ]
+              },
+              {
                 "group": "项目",
                 "pages": [
                   "features/memorylake/api-reference/v3-projects/overview",

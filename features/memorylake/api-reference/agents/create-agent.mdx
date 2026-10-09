@@ -73,6 +73,14 @@ Agent 的输出配置
 </Expandable>
 </ParamField>
 
+<ParamField body="skills" type="array">
+要挂到这个 Agent 上的[技能](/features/memorylake/api-reference/skills/overview)。所有技能都必须可用：只要有一个未通过安全审核、不存在或还没有技能包，请求就以 `400` 和 `SKILL_NOT_USABLE` 失败，并逐个列出技能及原因。
+<Expandable title="Skill 引用">
+  <ParamField body="skills[].skill_id" type="string">技能 ID</ParamField>
+  <ParamField body="skills[].skill_version" type="integer">把引用固定到这个版本。不传则跟随最新版本。固定版本的引用按该版本自己的审核结果判断。</ParamField>
+</Expandable>
+</ParamField>
+
 <ParamField body="system_prompt" type="string">
 用于指示 Agent 的系统提示词
 </ParamField>

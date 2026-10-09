@@ -1,0 +1,60 @@
+---
+title: "获取技能"
+description: "获取一个技能及其最新版本的安全审核状态"
+---
+
+```
+GET /openapi/memorylake/api/v3/skills/{id}
+```
+
+返回单个技能。在[创建技能](/features/memorylake/api-reference/skills/create-skill)或[发布版本](/features/memorylake/api-reference/skills/create-skill-version)之后轮询此端点，看安全审核是否结束：`latest_security_status` 不再是 `pending` 即表示结束。
+
+<Note>
+**所需权限：** `skill:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+技能 ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/skills/skill-2b0f5f9f4ea54767822f51f4940c8f24' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="技能">
+  <ResponseField name="id" type="string">技能 ID</ResponseField>
+  <ResponseField name="name" type="string">技能名称</ResponseField>
+  <ResponseField name="display_title" type="string">控制台中显示的标题</ResponseField>
+  <ResponseField name="description" type="string">技能的用途</ResponseField>
+  <ResponseField name="latest_version" type="integer">最新发布的版本号。`0` 表示还没有发布过技能包。读不到当前状态时不出现。</ResponseField>
+  <ResponseField name="latest_security_status" type="string">最新版本的安全审核状态：`pending`、`safe`、`blocked` 或 `error`。不出现时有两种含义——参见[安全审核](/features/memorylake/api-reference/skills/overview#安全审核)。</ResponseField>
+  <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
+  <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "id": "skill-2b0f5f9f4ea54767822f51f4940c8f24",
+    "name": "equity-research",
+    "display_title": "Equity Research",
+    "description": "Pulls filings and price history and drafts an equity research note",
+    "latest_version": 1,
+    "latest_security_status": "safe",
+    "created_at": "2026-08-21T09:12:44Z",
+    "updated_at": "2026-08-21T09:12:44Z"
+  }
+}
+```
+</ResponseExample>
