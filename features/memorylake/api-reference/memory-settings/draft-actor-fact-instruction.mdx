@@ -1,0 +1,72 @@
+---
+title: "起草 Actor 事实提取说明"
+description: "用模型为 Actor 在工作空间中的记忆起草一份事实提取说明"
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/settings/fact-instruction/draft
+```
+
+用模型为 Actor 在工作空间中的记忆起草一份候选的 `fact_instruction`，并返回这份草稿。草稿不会自动保存：请审阅并按需修改，再用[更新 Actor 记忆设置](/features/memorylake/api-reference/memory-settings/update-actor-memory-settings)保存。在此之前，当前的说明继续生效。
+
+起草是一次同步的模型调用，通常在 15 秒左右返回；记忆中的事实越多，耗时越长，请为客户端留足超时时间。每次调用得到的草稿会略有不同。起草失败时请求返回 `500` 和 `INTERNAL_ERROR`，重试通常即可成功。
+
+已删除的 Actor 不能起草：请求返回 `404` 和 `ACTOR_INACTIVE`。此端点接收代表人的 Actor ID。Agent 请使用[起草 Agent 事实提取说明](/features/memorylake/api-reference/memory-settings/draft-agent-fact-instruction)。
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+### 请求体
+
+请求体可以不传。不传时按 Actor 的内置默认值起草。
+
+<ParamField body="guidance" type="string">
+希望草稿写什么，任何语言均可，最多 2000 个字符。
+</ParamField>
+
+<ParamField body="language" type="string" default="English">
+草稿使用的语言，包括其中的小节标题，最多 64 个字符。请填写英文的语言名称，例如 `English`、`Simplified Chinese`、`Traditional Chinese` 或 `Japanese`，不要填写 `zh-CN` 这样的语言代码。
+</ParamField>
+
+<ParamField body="use_existing_facts" type="boolean" default="false">
+设为 `true` 时，起草会参考该工作空间中已有的关于这个 Actor 的事实，写出这份记忆实际在记录的内容。还没有事实时，按默认值起草。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-3f9c2a7e5b1d4c8e9a6f0b2d7e4c1a95/settings/fact-instruction/draft' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "guidance": "保留职位和工作习惯，不要记项目细节",
+    "language": "Simplified Chinese",
+    "use_existing_facts": true
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="起草的说明">
+  <ResponseField name="fact_instruction" type="string">起草的说明，Markdown 格式。在您用更新 Actor 记忆设置提交之前不会保存。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "fact_instruction": "这份记忆所属的那个人的个人档案。\n\n## 包括\n职位与职责\n希望别人如何配合工作\n常用工具与工作习惯\n\n## 不包括\n任何项目的进展或细节\n关于助理的任何内容"
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,71 @@
+---
+title: "更新 Agent 记忆设置"
+description: "设置或清空决定 Agent 在工作空间中的记忆记录哪些内容的说明"
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{workspaceId}/agents/{agentId}/settings
+```
+
+部分更新 Agent 在工作空间中的记忆设置。未提供的字段保持不变。改动只作用于这个工作空间。
+
+新的 `fact_instruction` 会整体替换当前值，而不是追加。它从下一次向该 Agent 的记忆中提取事实时开始生效，已经记录的事实保持不变。
+
+已删除的 Agent 的设置仍可读取，但不能再修改：请求返回 `404` 和 `NOT_FOUND`。
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="agentId" type="string" required>
+Agent 标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="fact_instruction" type="string">
+这份记忆是关于什么的、不包含什么，Markdown 格式，最多 2000 个字符。传空字符串可清空它，恢复内置默认值。[起草 Agent 事实提取说明](/features/memorylake/api-reference/memory-settings/draft-agent-fact-instruction)可以帮您写一版。
+</ParamField>
+
+<RequestExample>
+```bash Set the instruction
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents/agent-7d2e9b4f1c6a4e3b8f5d0a9c2e7b6f13/settings' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "fact_instruction": "客服助理的工作档案。\n\n## 包括\n- 它负责解答哪些产品的问题\n- 它必须使用的工具和工作边界\n- 用户对它回答的纠正\n\n## 不包括\n- 关于任何具体个人的事实"
+  }'
+```
+
+```bash Clear the instruction
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/agents/agent-7d2e9b4f1c6a4e3b8f5d0a9c2e7b6f13/settings' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "fact_instruction": ""
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的记忆设置。
+
+<ResponseField name="data" type="object">
+<Expandable title="记忆设置对象">
+  <ResponseField name="fact_instruction" type="string">这份记忆是关于什么的、不包含什么，Markdown 格式。空字符串表示尚未设置，当前生效的是内置默认值。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "fact_instruction": "客服助理的工作档案。\n\n## 包括\n- 它负责解答哪些产品的问题\n- 它必须使用的工具和工作边界\n- 用户对它回答的纠正\n\n## 不包括\n- 关于任何具体个人的事实"
+  }
+}
+```
+</ResponseExample>

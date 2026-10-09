@@ -1,0 +1,76 @@
+---
+title: "起草项目事实提取说明"
+description: "用模型为项目起草一份事实提取说明"
+hideFooterPagination: true
+---
+
+```
+POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/settings/fact-instruction/draft
+```
+
+用模型为项目起草一份候选的 `fact_instruction`，并返回这份草稿。草稿不会自动保存：请审阅并按需修改，再用[更新项目记忆设置](/features/memorylake/api-reference/memory-settings/update-project-memory-settings)保存。在此之前，当前的说明继续生效。
+
+起草是一次同步的模型调用，通常在 15 秒左右返回；记忆中的事实越多，耗时越长，请为客户端留足超时时间。每次调用得到的草稿会略有不同。起草失败时请求返回 `500` 和 `INTERNAL_ERROR`，重试通常即可成功。
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目标识符
+</ParamField>
+
+### 请求体
+
+请求体可以不传。不传时按项目的内置默认值起草。
+
+<ParamField body="guidance" type="string">
+希望草稿写什么，任何语言均可，最多 2000 个字符。
+</ParamField>
+
+<ParamField body="language" type="string" default="English">
+草稿使用的语言，包括其中的小节标题，最多 64 个字符。请填写英文的语言名称，例如 `English`、`Simplified Chinese`、`Traditional Chinese` 或 `Japanese`，不要填写 `zh-CN` 这样的语言代码。
+</ParamField>
+
+<ParamField body="use_existing_facts" type="boolean" default="false">
+设为 `true` 时，起草会参考项目中已有的事实，写出这份记忆实际在记录的内容。项目中还没有事实时，按默认值起草。
+</ParamField>
+
+<ParamField body="use_documents" type="boolean" default="false">
+设为 `true` 时，起草会参考项目中文档的名称和摘要（不读取正文），写出这份记忆所依据的材料。项目中没有文档时，按默认值起草。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/settings/fact-instruction/draft' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "guidance": "只记文档和命令行工具的用法，不要记人的偏好",
+    "language": "Simplified Chinese",
+    "use_existing_facts": true,
+    "use_documents": true
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="起草的说明">
+  <ResponseField name="fact_instruction" type="string">起草的说明，Markdown 格式。在您用更新项目记忆设置提交之前不会保存。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "fact_instruction": "本工作的记录。\n\n## 包括\n文档的使用方式\nCLI 的使用方式\n文档与 CLI 的交互用法\n\n## 不包括\n任何人的个人记录\n任何人的偏好或习惯\n助理的工作画像"
+  }
+}
+```
+</ResponseExample>
