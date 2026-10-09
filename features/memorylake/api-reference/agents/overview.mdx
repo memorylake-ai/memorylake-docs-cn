@@ -43,6 +43,9 @@ MemoryLake agent 可通过标准的 [A2A（Agent 对 Agent）协议](/features/m
 | [删除 Agent](/features/memorylake/api-reference/agents/delete-agent) | `DELETE` | `/api/v3/agents/{id}` |
 | [创建版本](/features/memorylake/api-reference/agents/create-agent-version) | `POST` | `/api/v3/agents/{id}/versions` |
 | [绑定到工作空间](/features/memorylake/api-reference/agents/bind-agent) | `POST` | `/api/v3/workspaces/{id}/agents` |
+| [列出 Agent 事实](/features/memorylake/api-reference/facts/list-agent-facts) | `GET` | `/api/v3/workspaces/{id}/agents/{agentId}/facts` |
+| [添加 Agent 事实](/features/memorylake/api-reference/facts/add-agent-facts) | `POST` | `/api/v3/workspaces/{id}/agents/{agentId}/facts` |
+| [列出 Agent 记忆冲突](/features/memorylake/api-reference/v3-conflicts/list-agent-conflicts) | `GET` | `/api/v3/workspaces/{id}/agents/{agentId}/memories/conflicts` |
 | [获取记忆设置](/features/memorylake/api-reference/memory-settings/get-agent-memory-settings) | `GET` | `/api/v3/workspaces/{id}/agents/{agentId}/settings` |
 | [更新记忆设置](/features/memorylake/api-reference/memory-settings/update-agent-memory-settings) | `PATCH` | `/api/v3/workspaces/{id}/agents/{agentId}/settings` |
 | [起草事实提取说明](/features/memorylake/api-reference/memory-settings/draft-agent-fact-instruction) | `POST` | `/api/v3/workspaces/{id}/agents/{agentId}/settings/fact-instruction/draft` |
