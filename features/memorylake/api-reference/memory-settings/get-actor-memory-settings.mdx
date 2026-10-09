@@ -1,0 +1,63 @@
+---
+title: "获取 Actor 记忆设置"
+description: "读取决定 Actor 在工作空间中的记忆记录哪些内容的设置"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/actors/{actorId}/settings
+```
+
+返回 Actor 在工作空间中的记忆设置。Actor 的记忆保存 MemoryLake 在该工作空间所有项目中了解到的关于这个人的信息；Actor 绑定到的每个工作空间各有一份。目前只有一项设置：`fact_instruction`（事实提取说明），写明这份记忆是关于什么的、不包含什么。MemoryLake 每次提取关于该 Actor 的事实时都会读取它，从而收窄被记录的主题范围。
+
+`fact_instruction` 为空字符串表示尚未设置，当前生效的是 Actor 的内置默认值。已删除的 Actor 的设置仍然可以读取。
+
+此端点接收代表人的 Actor ID。Agent 请使用[获取 Agent 记忆设置](/features/memorylake/api-reference/memory-settings/get-agent-memory-settings)。
+
+<Note>
+**所需权限：** `workspace_actor:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间 ID
+</ParamField>
+
+<ParamField path="actorId" type="string" required>
+Actor ID
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/actors/actor-3f9c2a7e5b1d4c8e9a6f0b2d7e4c1a95/settings' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="记忆设置对象">
+  <ResponseField name="fact_instruction" type="string">这份记忆是关于什么的、不包含什么，Markdown 格式，最多 2000 个字符。空字符串表示尚未设置，当前生效的是内置默认值。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "fact_instruction": "某个人的个人档案。\n\n## 包括\n- 职位、所在团队和负责的产品\n- 希望别人如何配合工作\n\n## 不包括\n- 任何单个项目的记录\n- 关于助理的任何内容"
+  }
+}
+```
+
+```json Not set (200)
+{
+  "success": true,
+  "data": {
+    "fact_instruction": ""
+  }
+}
+```
+</ResponseExample>

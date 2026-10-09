@@ -1,0 +1,83 @@
+---
+title: "列出 Open Data 数据集"
+description: "列出 Agent 可以检索的 Open Data 数据集，以及在 open_datasets 中传入的标识符"
+---
+
+```
+GET /openapi/memorylake/api/v1/industry-opendata
+```
+
+列出 MemoryLake 精选的 Open Data 数据集。[向 Agent 发送消息](/features/memorylake/api-reference/a2a/overview#memorylake-扩展)时，把数据集的 `id` 传入 `web_search.open_datasets`，Agent 就会在联网搜索的同时检索该数据集。
+
+列表对所有调用方都相同。名称与描述均为英文，条目的返回顺序不固定。
+
+<Tip>
+请从这个接口读取标识符，不要写死在代码里。数据集会陆续增加。
+</Tip>
+
+<Note>
+**所需权限：** 无。列表对所有调用方都相同。
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v1/industry-opendata' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="array">
+Open Data 数据集数组
+<Expandable title="数据集对象">
+  <ResponseField name="id" type="string">数据集标识符，例如 `research/academic`。传入 `open_datasets` 时使用它。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="description" type="string">数据集包含的内容</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json 成功 (200)
+{
+  "success": true,
+  "data": [
+    {
+      "id": "clinical/trials",
+      "name": "Clinical Trials",
+      "description": "Clinical trial records from ClinicalTrials.gov"
+    },
+    {
+      "id": "economic/data",
+      "name": "Economic Data",
+      "description": "Economic indicators from FRED, BLS, Destatis, World Bank, and USAspending"
+    },
+    {
+      "id": "research/academic",
+      "name": "Academic Papers",
+      "description": "Academic papers from arXiv, PubMed, bioRxiv, and medRxiv"
+    },
+    {
+      "id": "patents/ip",
+      "name": "Patent Search",
+      "description": "USPTO patent records and intellectual property filings"
+    },
+    {
+      "id": "company/fundamentals",
+      "name": "SEC Filings",
+      "description": "SEC filings, earnings, balance sheets, income statements, cash flows, dividends, and insider transactions"
+    },
+    {
+      "id": "drug/database",
+      "name": "Drug Databases",
+      "description": "Drug and compound data from ChEMBL, PubChem, DrugBank, FDA drug labels, and Open Targets"
+    },
+    {
+      "id": "financial/markets",
+      "name": "Financial Data",
+      "description": "Real-time and historical prices for stocks, crypto, forex, funds, and commodities"
+    }
+  ]
+}
+```
+</ResponseExample>

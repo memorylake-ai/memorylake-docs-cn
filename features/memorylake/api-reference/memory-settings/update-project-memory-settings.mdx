@@ -1,0 +1,81 @@
+---
+title: "更新项目记忆设置"
+description: "设置或清空决定项目记忆记录哪些内容的说明"
+---
+
+```
+PATCH /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/settings
+```
+
+部分更新项目的记忆设置。未提供的字段保持不变。
+
+新的 `fact_instruction` 会整体替换当前值，而不是追加。它从下一次向项目中提取事实时开始生效，已经记录的事实保持不变。
+
+<Note>
+**所需权限：** `project:modify`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+工作空间标识符
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+项目标识符
+</ParamField>
+
+### 请求体
+
+<ParamField body="fact_instruction" type="string">
+这份记忆是关于什么的、不包含什么，Markdown 格式，最多 2000 个字符。传空字符串可清空它，恢复内置默认值。[起草项目事实提取说明](/features/memorylake/api-reference/memory-settings/draft-project-fact-instruction)可以帮您写一版。
+</ParamField>
+
+<RequestExample>
+```bash Set the instruction
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/settings' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "fact_instruction": "记录文档和命令行工具的使用方式。\n\n## 包括\n- 用户运行的命令及传入的参数\n- 用户阅读的文档页面及带着的问题\n\n## 不包括\n- 任何人的个人偏好"
+  }'
+```
+
+```bash Clear the instruction
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/projects/proj-b93e8d95a8705bcc4ec42a65ba4cc7f8/settings' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "fact_instruction": ""
+  }'
+```
+</RequestExample>
+
+### 响应
+
+返回更新后的记忆设置。
+
+<ResponseField name="data" type="object">
+<Expandable title="记忆设置对象">
+  <ResponseField name="fact_instruction" type="string">这份记忆是关于什么的、不包含什么，Markdown 格式。空字符串表示尚未设置，当前生效的是内置默认值。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "data": {
+    "fact_instruction": "记录文档和命令行工具的使用方式。\n\n## 包括\n- 用户运行的命令及传入的参数\n- 用户阅读的文档页面及带着的问题\n\n## 不包括\n- 任何人的个人偏好"
+  }
+}
+```
+
+```json Too long (400)
+{
+  "success": false,
+  "message": "fact_instruction Fact instruction must not exceed 2000 characters",
+  "error_code": "INVALID_ARGUMENT"
+}
+```
+</ResponseExample>
