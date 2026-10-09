@@ -43,6 +43,10 @@ MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本；每�
 | `acceptedOutputModes` | array | 客户端可处理的输出 MIME 类型。 |
 | `pushNotificationConfig` | object | 任务状态更新回调的 URL（可选带鉴权配置）。 |
 
+<Warning>
+**同一会话一次只处理一条消息。** 使用相同 `contextId` 的消息属于同一个会话，同一会话同一时间只能处理一条消息。上一条消息仍在处理时（包括非阻塞发送后任务尚未结束），用同一 `contextId` 发送的新消息会被直接拒绝，不会排队。请等上一条消息的响应或任务结束后再发送下一条；需要并行处理的请求，请为每个请求使用不同的 `contextId`。
+</Warning>
+
 ## MemoryLake 扩展
 
 MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议。在 `message:send` 或 `message:stream` 的请求元数据中传入此对象，以控制 Agent 与 MemoryLake 记忆层的交互方式。
@@ -88,7 +92,7 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
       让 Agent 联网搜索。仅需联网搜索时，传空对象 `{}`；再加上 `open_datasets`，即可同时检索 MemoryLake 精选的 Open Data 数据集。
       <Expandable title="web_search 字段">
         <ParamField body="open_datasets" type="array">
-        随联网搜索一并检索的 Open Data 数据集，用标识符指定：`research/academic`、`clinical/trials`、`drug/database`、`company/fundamentals`、`financial/markets`、`economic/data`、`patents/ip`。
+        随联网搜索一并检索的 Open Data 数据集，用标识符指定：`research/academic`、`clinical/trials`、`drug/database`、`company/fundamentals`、`financial/markets`、`economic/data`、`patents/ip`。调用[列出 Open Data 数据集](/features/memorylake/api-reference/a2a/list-open-data-collections)可获取当前全部标识符。
         </ParamField>
       </Expandable>
       </ParamField>
