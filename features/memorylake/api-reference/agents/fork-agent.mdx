@@ -104,7 +104,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agent-f
     },
     "version": 1,
     "model": "gpt-4o",
-    "capabilities": ["tool_use", "memory_read", "memory_write"],
+    "capabilities": {"web_search": {"max_results": 5, "search_depth": "basic", "chunks_per_source": 2, "open_datasets": ["research/academic"]}},
     "policies": {
       "max_turns": 20,
       "max_tool_calls": 10,

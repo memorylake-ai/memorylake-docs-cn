@@ -42,7 +42,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2
   <ResponseField name="metadata" type="object">用于存储 Agent 附加信息的任意键值对</ResponseField>
   <ResponseField name="version" type="integer">当前活跃版本号</ResponseField>
   <ResponseField name="model" type="string">Agent 使用的模型</ResponseField>
-  <ResponseField name="capabilities" type="array">Agent 支持的能力标识符列表</ResponseField>
+  <ResponseField name="capabilities" type="object">Agent 具备的能力，键是能力名。平台会为您未设置的字段补上默认值，所以配置里可能出现本文档没有说明的字段。</ResponseField>
   <ResponseField name="policies" type="object">
   约束 Agent 行为的执行策略
   <Expandable title="Policies 对象">
@@ -102,7 +102,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/agents/agt_r8k2
     },
     "version": 3,
     "model": "gpt-4o",
-    "capabilities": ["tool_use", "memory_read", "memory_write"],
+    "capabilities": {"web_search": {"max_results": 5, "search_depth": "basic", "chunks_per_source": 2, "open_datasets": ["research/academic"]}},
     "policies": {
       "max_turns": 20,
       "max_tool_calls": 10,
