@@ -86,17 +86,7 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
     </Expandable>
     </ParamField>
     <ParamField body="capabilitiesOverride" type="object">
-    按能力名逐项覆盖本次请求的能力配置。传入某个能力，即在本次请求中按您给出的配置启用它；不传则沿用 Agent 自身的配置。能力名及其字段一律用蛇形命名（snake_case），与周围的驼峰字段不同。目前只开放 `web_search` 一个能力，后续可能增加。
-    <Expandable title="能力">
-      <ParamField body="web_search" type="object">
-      让 Agent 联网搜索。仅需联网搜索时，传空对象 `{}`；再加上 `open_datasets`，即可同时检索 MemoryLake 精选的 Open Data 数据集。
-      <Expandable title="web_search 字段">
-        <ParamField body="open_datasets" type="array">
-        随联网搜索一并检索的 Open Data 数据集，用标识符指定：`research/academic`、`clinical/trials`、`drug/database`、`company/fundamentals`、`financial/markets`、`economic/data`、`patents/ip`。调用[列出 Open Data 数据集](/features/memorylake/api-reference/a2a/list-open-data-collections)可获取当前全部标识符。
-        </ParamField>
-      </Expandable>
-      </ParamField>
-    </Expandable>
+    为这一条消息额外开启的能力，键是能力名，值是该能力的配置。可用 `web_search`、`web_fetch`、`pii`、`vega`。各能力的作用，以及它与 Agent 自身配置的关系，见[按消息开启能力](#按消息开启能力)。
     </ParamField>
     <ParamField body="maxTurns" type="integer">覆盖最大轮次数</ParamField>
   </Expandable>
@@ -112,6 +102,37 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
   </ParamField>
 </Expandable>
 </ParamField>
+
+### 按消息开启能力
+
+`overrides.capabilitiesOverride` 用来给单条消息额外开启能力。它是一个对象：键是能力名，值是该能力的配置。能力名及其字段一律用蛇形命名（snake_case），与周围的驼峰字段不同。
+
+```json
+"capabilitiesOverride": {
+  "web_search": { "open_datasets": ["research/academic"] },
+  "web_fetch": {},
+  "pii": {},
+  "vega": {}
+}
+```
+
+| 能力 | 作用 | 配置 |
+|---|---|---|
+| `web_search` | 联网搜索。加上 `open_datasets` 后，还会检索 MemoryLake 精选的 Open Data 数据集。 | `open_datasets`（可选）：数据集标识符数组，可用值见[列出 Open Data 数据集](/features/memorylake/api-reference/a2a/list-open-data-collections)。只需联网搜索时传 `{}`。 |
+| `web_fetch` | 按 URL 读取网页正文，例如用户发来一个链接请 Agent 总结。 | 无，传 `{}`。 |
+| `pii` | 在消息发给模型之前遮盖个人信息：邮箱、中国大陆手机号与身份证号、银行卡号、IP 地址等会被替换成 `[EMAIL_REDACTED]` 这样的占位符。模型看不到原值，所以回答里也只有占位符；会话记录保留原文。 | 无，传 `{}`。 |
+| `vega` | 生成图表：Agent 可以把数据画成柱状图、折线图、饼图、散点图等图表。 | 无，传 `{}`。 |
+
+使用时请注意：
+
+- **只对这一条消息生效。** 同一会话的下一条消息不带这个覆盖，就不会开启。
+- **Agent 默认没有这些能力。** 不传覆盖时，只有 Agent 自身配置了联网搜索或读取网页，它才会使用（见[创建 Agent](/features/memorylake/api-reference/agents/create-agent) 的 `capabilities`）。`pii` 和 `vega` 只能在这里开启。
+- **传入的配置会替换 Agent 自身的配置。** 请给出该能力完整的配置，不要指望从 Agent 那里继承字段。例如 Agent 的 `web_search` 配置了 `open_datasets`，而这次只传 `"web_search": {}`，这条消息就不会检索任何 Open Data 数据集。
+- **只能开启，不能关闭。** 不传某个能力，即沿用 Agent 自身的配置。传 `null` 或 `{"enabled": false}` 都关不掉 Agent 已有的能力；需要不带它运行时，请使用没有配置该能力的 Agent。
+
+<Warning>
+**写错不会报错。** 拼错的能力名会被忽略。某个能力的配置不合法时（例如 `open_datasets` 传成字符串、`web_search` 传成 `true`），整个能力会被丢弃，请求照常返回 200，只是这次没有该能力。不认识的 Open Data 标识符会被跳过，全部无效时只做普通联网搜索。只有 `capabilitiesOverride` 本身不是对象（例如传成数组）时才会返回 400。如果 Agent 表现得像是没开某个能力，请先核对您请求里的能力名和配置。
+</Warning>
 
 ## 示例
 
