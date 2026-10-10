@@ -1,0 +1,86 @@
+---
+title: "下载条目"
+description: "下载文件库中某个文件的内容"
+---
+
+```
+GET /openapi/memorylake/api/v1/drives/items/{item_id}/binary
+```
+
+下载文件库中某个文件的内容。通常响应是 `303` 跳转，指向一个提供该文件的存储地址。如果文件所在的存储无法通过普通 URL 读取，MemoryLake 会以 `200` 直接把内容流式返回。无论哪种情况，只要跟随跳转就能拿到文件。
+
+<Note>
+**所需权限：** [`drive:item_read`](/features/team-collaboration/permission-reference#读取文件) · `service`
+</Note>
+
+### 路径参数
+
+<ParamField path="item_id" type="string" required>
+要下载的文件的 ID。文件夹（包括 `MY_SPACE`）不能下载。
+</ParamField>
+
+### 跟随跳转
+
+`Location` 头里的存储地址自带签名：
+
+- **请求它时不要带您的 API Key。** 如果请求同时带了 `Authorization` 头，存储会拒绝。`curl -L` 和 Python 的 `requests` 跟随跳转时会自动去掉这个头。如果您的 HTTP 客户端跟随跳转时会转发请求头，请关闭自动跳转，自己去请求 `Location` 里的地址。
+- **拿到后立即使用。** 这个地址很快会过期。之后还需要这个文件时，请重新调用本接口，不要保存这个地址。
+
+文件会以附件形式下载，文件名与文件库中的条目名称相同。
+
+<RequestExample>
+```bash cURL
+curl -L 'https://app.memorylake.cn/openapi/memorylake/api/v1/drives/items/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5/binary' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -o report.pdf
+```
+
+```python Python
+import requests
+
+BASE = "https://app.memorylake.cn/openapi/memorylake/api/v1"
+HEADERS = {"Authorization": "Bearer sk_xxxxxx"}
+
+def download_item(item_id: str, path: str) -> None:
+    """把文件库中的文件下载到本地路径。"""
+    resp = requests.get(
+        f"{BASE}/drives/items/{item_id}/binary",
+        headers=HEADERS,
+        stream=True,  # 会跟随 303，并在跳转时去掉 API Key
+    )
+    resp.raise_for_status()
+    with open(path, "wb") as f:
+        for chunk in resp.iter_content(chunk_size=1024 * 1024):
+            f.write(chunk)
+```
+</RequestExample>
+
+### 响应
+
+| 状态码 | 响应体 | 何时出现 |
+|--------|--------|----------|
+| `303` | 空 | 大多数文件。`Location` 头是提供该文件的存储地址 |
+| `200` | 文件内容 | 文件所在的存储无法通过普通 URL 读取时，由 MemoryLake 直接流式返回 |
+
+### 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|--------|--------|----------|
+| `400` | `DOWNLOAD_NOT_SUPPORTED` | 条目是文件夹，或因其他原因不能下载 |
+| `404` | — | 没有这个 `item_id` 的条目。该响应没有响应体 |
+
+<ResponseExample>
+```text Redirect (303)
+HTTP/1.1 303 See Other
+Location: https://<storage-host>/<path>?<signature>
+Content-Length: 0
+```
+
+```json Folder (400)
+{
+  "success": false,
+  "message": "This resource does not support download",
+  "error_code": "DOWNLOAD_NOT_SUPPORTED"
+}
+```
+</ResponseExample>
