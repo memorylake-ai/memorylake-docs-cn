@@ -255,6 +255,7 @@
                   "features/memorylake/api-reference/agents/get-agent",
                   "features/memorylake/api-reference/agents/update-agent",
                   "features/memorylake/api-reference/agents/delete-agent",
+                  "features/memorylake/api-reference/agents/fork-agent",
                   {
                     "group": "版本",
                     "pages": [

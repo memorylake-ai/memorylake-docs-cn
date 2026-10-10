@@ -28,6 +28,10 @@ Agent 的配置是版本化的。当你修改模型、系统提示词或策略�
 
 Agent 全局创建后，[绑定](/features/memorylake/api-reference/agents/bind-agent)到特定工作空间。Agent 只能在其绑定的工作空间内运作。
 
+### 复制
+
+[复制 Agent](/features/memorylake/api-reference/agents/fork-agent) 会把源 Agent 的最新版本复制成一个新的、相互独立的 Agent，并为它生成自己的 Actor。副本从版本 1 开始，不带源 Agent 的版本历史、metadata、工作空间绑定和记忆。
+
 ### A2A 协议
 
 MemoryLake agent 可通过标准的 [A2A（Agent 对 Agent）协议](/features/memorylake/api-reference/a2a/overview)访问。使用任何 A2A 兼容客户端向 agent 发送消息，通过 MemoryLake 的 `metadata.memorylake` 扩展提供记忆上下文（actor 身份、项目绑定、模型覆盖）。
@@ -41,6 +45,7 @@ MemoryLake agent 可通过标准的 [A2A（Agent 对 Agent）协议](/features/m
 | [获取 Agent](/features/memorylake/api-reference/agents/get-agent) | `GET` | `/api/v3/agents/{id}` |
 | [更新 Agent](/features/memorylake/api-reference/agents/update-agent) | `PATCH` | `/api/v3/agents/{id}` |
 | [删除 Agent](/features/memorylake/api-reference/agents/delete-agent) | `DELETE` | `/api/v3/agents/{id}` |
+| [复制 Agent](/features/memorylake/api-reference/agents/fork-agent) | `POST` | `/api/v3/agents/{id}/fork` |
 | [创建版本](/features/memorylake/api-reference/agents/create-agent-version) | `POST` | `/api/v3/agents/{id}/versions` |
 | [绑定到工作空间](/features/memorylake/api-reference/agents/bind-agent) | `POST` | `/api/v3/workspaces/{id}/agents` |
 | [列出 Agent 事实](/features/memorylake/api-reference/facts/list-agent-facts) | `GET` | `/api/v3/workspaces/{id}/agents/{agentId}/facts` |
