@@ -172,6 +172,7 @@
                   "features/memorylake/api-reference/library/overview",
                   "features/memorylake/api-reference/library/get-item",
                   "features/memorylake/api-reference/library/list-items",
+                  "features/memorylake/api-reference/library/download-item",
                   "features/memorylake/api-reference/library/create-upload",
                   "features/memorylake/api-reference/library/create-item",
                   "features/memorylake/api-reference/library/delete-item",
