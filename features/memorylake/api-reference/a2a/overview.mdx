@@ -57,13 +57,13 @@ MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议�
 
 这是与普通 A2A 服务器的核心区别 —— 这些字段将 Agent 连接到 MemoryLake 中的工作空间、项目和 Actor。对象里的字段分两类：
 
-- **[记忆与身份](#记忆与身份)**：`actorId`、`readWriteProjectId`、`readOnlyProjectIds`、`skipMemory`。由 MemoryLake 自己解析：校验您的权限，把会话绑定到对应的记忆，并告诉 Agent 要使用谁的记忆。
-- **[运行配置](#运行配置)**：`overrides`、`runtimeOptions`、`ttlSeconds`。MemoryLake 原样转给 Agent 运行时。
+- **[记忆与身份](#记忆与身份)**：`actorId`、`readWriteProjectId`、`readOnlyProjectIds`、`skipMemory`，决定 Agent 使用谁的记忆、读写哪些项目。
+- **[运行配置](#运行配置)**：`overrides`、`runtimeOptions`，调整 Agent 处理这条消息的方式。
 
 请使用本页列出的驼峰字段名。未知字段会被忽略而不是报错，所以某个设置看起来没生效时，请先检查拼写。`metadata` 下除 `memorylake` 以外的键，Agent 都不会读取。
 
 <Note>
-只有请求带了 `x-memorylake-project-id` 请求头时，才可以不传 `metadata.memorylake`，此时该请求头充当 `readWriteProjectId`。两者都没有时，请求返回 `400 INVALID_ARGUMENT`。传空对象 `{}` 是合法的：Agent 使用您自己的 Actor，记忆处于开启状态。
+**`metadata.memorylake` 必须传。** 不传时请求返回 `400 INVALID_ARGUMENT`。传空对象 `{}` 即使用默认设置：Agent 使用您自己的 Actor，记忆处于开启状态。
 </Note>
 
 ### 记忆与身份
@@ -143,33 +143,8 @@ Agent 可以检索（文档和记忆）但不会写入的其他项目。用于�
   <ParamField body="language" type="string">
   Agent 回答使用的语言，填语言名称，例如 `English`、`Chinese`、`Japanese`。`en` 视为 `English`，`zh` 或 `cn` 视为 `Chinese`，其他值按原样使用。不传时，Agent 用用户提问的语言回答。
   </ParamField>
-
-  <ParamField body="promptVariant" type="string">
-  Agent 使用哪一版 MemoryLake 内置指令的措辞：`default`、`zh` 或 `en`。不传时按模型自动选择：国产模型系列用 `zh`，其余用 `en`。它不影响回答语言，回答语言请用 `language` 设置。
-  </ParamField>
 </Expandable>
 </ParamField>
-
-<ParamField body="ttlSeconds" type="integer" default="3600">
-这次运行所用沙箱（Agent 执行代码、处理文件的环境）的空闲超时，单位为秒。沙箱闲置超过这个时长就会被回收。
-</ParamField>
-
-### 已接受但当前不生效
-
-下列字段会被接受并校验，但 MemoryLake 当前使用的 Agent 运行时不会按它们执行。带了这些字段的请求照常成功。
-
-| 字段 | 说明 |
-|---|---|
-| `subagentMapping` | 当前运行时不支持子 Agent 路由，配置了子 Agent 的 Agent 无法运行。 |
-| `overrides.reasoning` | 推理设置取自 MemoryLake 对该模型的配置。 |
-| `overrides.maxTurns` | 以 Agent 自身的轮次上限为准。如果传了，仍必须是正整数，否则请求失败。 |
-| `overrides.mcpServersExtend` | 请在 Agent 上配置 MCP 服务器。 |
-| `overrides.modelParams.stop_sequences` | — |
-| `runtimeOptions.subagentProgress` | — |
-
-### 由 MemoryLake 填充
-
-不要传 `userId`、`assistantId`、`memoryStores`、`datasets`、`driveRef` 和 `preassignedRunId`。这些字段由 MemoryLake 根据上面的[记忆与身份](#记忆与身份)字段替 Agent 填好。
 
 ### 按消息开启能力
 
@@ -251,7 +226,6 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
         "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"],
         "overrides": {
           "model": "gpt-4o",
-          "maxTurns": 5,
           "capabilitiesOverride": {
             "web_search": {
               "open_datasets": ["research/academic", "clinical/trials"]
@@ -363,8 +337,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
           "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
           "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"],
           "overrides": {
-            "model": "gpt-4o",
-            "maxTurns": 5
+            "model": "gpt-4o"
           }
         }
       }
