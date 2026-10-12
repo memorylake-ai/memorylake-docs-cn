@@ -39,16 +39,16 @@ MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本；每�
 | `configuration` 字段 | 版本 | 类型 | 说明 |
 |---|---|---|---|
 | `returnImmediately` | v1.0 | boolean | 为 `true` 时任务一创建就返回，不等它执行完。默认 `false`，即等任务完成后再返回。v1.0 路由会忽略 `blocking`。 |
-| `blocking` | v0.3 | boolean | 为 `true` 时等任务执行完成后再返回。 |
-| `historyLength` | 两者 | integer | 响应中携带的任务历史消息条数（取最近若干条）。 |
+| `blocking` | v0.3 | boolean | 为 `true` 时等任务执行完成后再返回。不传时 REST 路由会立即返回，JSON-RPC 方法则会等待，所以请显式设置。 |
+| `historyLength` | 两者 | integer | 响应中携带的任务历史消息条数（取最近若干条）。传 `0` 时不返回 `history`。不传时返回完整历史，但 v0.3 REST 不传时不返回 `history`。 |
 | `acceptedOutputModes` | 两者 | array | 客户端可处理的输出 MIME 类型。 |
 
 <Note>
-**不支持推送通知。** Agent Card 声明 `pushNotifications: false`，传 `pushNotificationConfig`（v0.3）或 `taskPushNotificationConfig`（v1.0）都不会收到回调。要跟踪任务进度，请使用流式响应，或轮询 `GET {baseUrl}/tasks/{taskId}`。
+**不支持推送通知。** Agent Card 声明 `pushNotifications: false`，传 `pushNotificationConfig`（v0.3）或 `taskPushNotificationConfig`（v1.0）都不会收到回调。要跟踪任务进度，请使用流式响应，或[订阅这个任务](#跟踪任务)。
 </Note>
 
 <Warning>
-**同一会话一次只处理一条消息。** 使用相同 `contextId` 的消息属于同一个会话，同一会话同一时间只能处理一条消息。上一条消息仍在处理时（包括非阻塞发送后任务尚未结束），用同一 `contextId` 发送的新消息会被直接拒绝，不会排队。请等上一条消息的响应或任务结束后再发送下一条；需要并行处理的请求，请为每个请求使用不同的 `contextId`。
+**同一会话一次只处理一条消息。** 使用相同 `contextId` 的消息属于同一个会话，同一会话同一时间只能处理一条消息。上一条消息仍在处理时（包括非阻塞发送后任务尚未结束），用同一 `contextId` 发送的新消息会被直接拒绝（`400 INVALID_ARGUMENT`），不会排队。请等上一条消息的响应或任务结束后再发送下一条；需要并行处理的请求，请为每个请求使用不同的 `contextId`。
 </Warning>
 
 ## MemoryLake 扩展
@@ -420,3 +420,169 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
   }'
 ```
 </CodeGroup>
+
+## 响应
+
+所有组合返回的都是同一套任务模型，只有外层结构和少数拼写随协议版本和传输方式变化，见 [v0.3 的差异](#v0-3-的差异)。本节示例使用 v1.0 REST。
+
+| 组合 | `message:send` 响应体 | `message:stream` 的每个事件 |
+|---|---|---|
+| v1.0 · REST | `{"task": {...}}` | `{"task": {...}}`、`{"statusUpdate": {...}}` 或 `{"artifactUpdate": {...}}` |
+| v1.0 · JSON-RPC | `{"jsonrpc": "2.0", "id": ..., "result": {"task": {...}}}` | `{"jsonrpc": "2.0", "id": ..., "result": {"statusUpdate": {...}}}` 等 |
+| v0.3 · REST | `{"task": {...}}` | `{"statusUpdate": {...}}` 等 |
+| v0.3 · JSON-RPC | `{"jsonrpc": "2.0", "id": ..., "result": {"kind": "task", ...}}` | `{"jsonrpc": "2.0", "id": ..., "result": {"kind": "status-update", ...}}` 等 |
+
+### 非流式发送
+
+`message:send` 总是返回一个任务，不会只返回一条消息。默认会等任务执行完再返回：
+
+```json
+{
+  "task": {
+    "id": "run-e21fffe8d53647f4bc918bb4a8fb7d73",
+    "contextId": "ctx-demo-1",
+    "status": { "state": "TASK_STATE_COMPLETED" },
+    "artifacts": [
+      {
+        "artifactId": "result-run-e21fffe8d53647f4bc918bb4a8fb7d73",
+        "name": "result",
+        "parts": [{ "text": "Paris is the capital of France." }],
+        "metadata": {}
+      }
+    ],
+    "history": [
+      {
+        "messageId": "msg-1",
+        "contextId": "ctx-demo-1",
+        "taskId": "run-e21fffe8d53647f4bc918bb4a8fb7d73",
+        "role": "ROLE_USER",
+        "parts": [{ "text": "What is the capital of France?" }]
+      },
+      {
+        "messageId": "run-e21fffe8d53647f4bc918bb4a8fb7d73-3",
+        "contextId": "ctx-demo-1",
+        "taskId": "run-e21fffe8d53647f4bc918bb4a8fb7d73",
+        "role": "ROLE_AGENT",
+        "parts": [{ "text": "Paris is the capital of France." }]
+      }
+    ]
+  }
+}
+```
+
+<ResponseField name="id" type="string">
+任务 ID。
+</ResponseField>
+
+<ResponseField name="contextId" type="string">
+任务所属的会话。下一条消息把它作为 `message.contextId` 传入即可继续这个会话。请求里没有传时，会生成一个新的。
+</ResponseField>
+
+<ResponseField name="status" type="object">
+<Expandable title="状态字段">
+  <ResponseField name="state" type="string">
+  任务结束后为 `TASK_STATE_COMPLETED`、`TASK_STATE_FAILED` 或 `TASK_STATE_CANCELED`；仍在执行时为 `TASK_STATE_SUBMITTED` 或 `TASK_STATE_WORKING`。
+  </ResponseField>
+  <ResponseField name="message" type="object">
+  只在任务失败时出现：一条消息，其 `parts[0].text` 是错误说明。
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseField name="artifacts" type="array">
+回答：最多一个 artifact，名为 `result`。任务失败或没有产出时不出现。见[回答内容](#回答内容)。
+</ResponseField>
+
+<ResponseField name="history" type="array">
+您发出的消息，之后按顺序是 Agent 的消息：执行过程中写的文字、思考内容，以及[工具调用](#工具调用)。连续的文字会合并成一条消息。`configuration.historyLength` 只保留最后 N 条，传 `0` 时不返回 `history`。
+</ResponseField>
+
+传 `returnImmediately: true`（v1.0）或 `blocking: false`（v0.3）时，任务一创建就返回：状态为 `TASK_STATE_SUBMITTED`（也可能已经是 `TASK_STATE_WORKING`），`history` 里只有您发出的消息，没有 artifact。任务会在后台继续执行；要拿到回答，请[订阅这个任务](#跟踪任务)。
+
+### 流式发送
+
+`message:stream` 以 `text/event-stream` 返回，每行 `data:` 是一个 JSON 事件，顺序如下：
+
+1. **`task`**：刚创建的任务，`history` 里是您发出的消息。
+2. **`statusUpdate`**，状态 `TASK_STATE_WORKING`：Agent 开始执行。
+3. **`statusUpdate`**，状态 `TASK_STATE_WORKING`：每一步进展一个，`status.message` 里只有一个 part，可能是：
+   - 一段回答文字。文字是**增量**下发的，需要依次拼接；每段都有自己的 `messageId`；
+   - 一段思考内容，带 `metadata.adk_thought: true`；
+   - 一次[工具调用或工具结果](#工具调用)；
+   - Agent 生成的文件，形如 `{"url": "...", "mediaType": "...", "filename": "..."}`。
+4. **`artifactUpdate`**：回答，见[回答内容](#回答内容)。
+5. **`statusUpdate`**：最终状态，`TASK_STATE_COMPLETED`、`TASK_STATE_FAILED`（`status.message` 里是错误说明）或 `TASK_STATE_CANCELED`。之后流结束。
+
+文字片段只用于实时展示，最终回答请以 artifact 为准：片段里还包含 Agent 在调用工具前写的过渡文字，artifact 里的文字才是完整的最终回答。以 `:` 开头的行是保活注释，忽略即可。
+
+```text
+data: {"task": {"id": "run-7828…6073", "contextId": "ctx-demo-1", "status": {"state": "TASK_STATE_SUBMITTED"}, "history": [{"messageId": "msg-1", "role": "ROLE_USER", "parts": [{"text": "What is the capital of France?"}], …}]}}
+
+data: {"statusUpdate": {"taskId": "run-7828…6073", "contextId": "ctx-demo-1", "status": {"state": "TASK_STATE_WORKING"}}}
+
+data: {"statusUpdate": {"taskId": "run-7828…6073", "contextId": "ctx-demo-1", "status": {"state": "TASK_STATE_WORKING", "message": {"messageId": "run-7828…6073-3", "role": "ROLE_AGENT", "parts": [{"text": "Let me look that up."}], …}}}}
+
+data: {"statusUpdate": {…, "status": {"state": "TASK_STATE_WORKING", "message": {"messageId": "run-7828…6073-8-call", "role": "ROLE_AGENT", "parts": [{"data": {"id": "call_1", "name": "web_search", "args": {"query": "capital of France"}}, "metadata": {"adk_type": "function_call"}}], …}}}}
+
+data: {"statusUpdate": {…, "status": {"state": "TASK_STATE_WORKING", "message": {"messageId": "run-7828…6073-9-response", "role": "ROLE_AGENT", "parts": [{"data": {"id": "call_1", "name": "web_search", "response": "{\"results\": [{\"title\": \"Paris\", \"url\": \"https://en.wikipedia.org/wiki/Paris\"}]}"}, "metadata": {"adk_type": "function_response"}}], …}}}}
+
+data: {"statusUpdate": {…, "status": {"state": "TASK_STATE_WORKING", "message": {"messageId": "run-7828…6073-11", "role": "ROLE_AGENT", "parts": [{"text": "Paris is"}], …}}}}
+
+data: {"statusUpdate": {…, "status": {"state": "TASK_STATE_WORKING", "message": {"messageId": "run-7828…6073-12", "role": "ROLE_AGENT", "parts": [{"text": " the capital of France."}], …}}}}
+
+data: {"artifactUpdate": {"taskId": "run-7828…6073", "contextId": "ctx-demo-1", "artifact": {"artifactId": "result-run-7828…6073", "name": "result", "parts": [{"text": "Paris is the capital of France."}, {"data": {"kind": "recommended_questions", "questions": ["What is the population of Paris?"]}}], "metadata": {}}, "lastChunk": true}}
+
+data: {"statusUpdate": {"taskId": "run-7828…6073", "contextId": "ctx-demo-1", "status": {"state": "TASK_STATE_COMPLETED"}}}
+```
+
+为便于阅读，ID 用 `…` 做了缩写，重复字段也已省略。
+
+### 回答内容
+
+名为 `result` 的 artifact 以一组 part 承载回答：
+
+| Part | 形式 | 说明 |
+|---|---|---|
+| 回答文字 | `{"text": "..."}` | 最终回答。 |
+| 附件 | `{"data": {"kind": "attachments", "attachments": [...]}}` | Agent 生成的文件。每项包含 `name`、`mime_type`、`presign_url`（下载链接）和 `description`；文件保存失败时 `committed` 为 `false`，`error` 说明原因。 |
+| 推荐追问 | `{"data": {"kind": "recommended_questions", "questions": ["..."]}}` | 用户接下来可能想问的问题。只在 Agent 给出推荐时出现。 |
+
+artifact 和流里还可能出现其他 `data` part。遇到不认识的 `kind`，或者没有 `kind` 的 `data` part，跳过即可。`data` part 里的数字会以浮点数返回，例如 `2` 会变成 `2.0`。
+
+### 工具调用
+
+Agent 的工具调用以 `data` part 的形式出现，用 `metadata.adk_type` 标记，这是 Google Agent Development Kit 的约定。流和 `history` 里都会出现。
+
+| `metadata.adk_type` | `data` | 说明 |
+|---|---|---|
+| `function_call` | `{"id", "name", "args"}` | Agent 调用工具时、工具实际运行前发出。`args` 是对象。 |
+| `function_response` | `{"id", "name", "response"}` | 工具结果，`id` 与对应的调用一致。`response` 通常是 JSON 编码后的字符串；工具出错时为 `{"error": "..."}`，有错误码时还会带 `code`。 |
+
+工具调用上可能还带有 `metadata.adk_thought_signature`，这是一个不透明的值，忽略即可。
+
+### 跟踪任务
+
+`GET {baseUrl}/tasks/{taskId}`（v0.3：`{baseUrl}/v1/tasks/{taskId}`）只返回任务的 `id`、`contextId` 和 `status`（含 `state` 与 `timestamp`）：不包含回答和历史，失败的任务也不带错误说明。
+
+要拿到一个没有等待的任务的回答，请订阅它：`GET {baseUrl}/tasks/{taskId}:subscribe`（v0.3：`{baseUrl}/v1/tasks/{taskId}:subscribe`），并带上 `Accept: text/event-stream`。它会从头重放该任务的事件，格式与 `message:stream` 相同，只是开头没有 `task` 事件；之后实时跟随，直到任务结束。已经失败或被取消的任务无法订阅。
+
+### 错误
+
+**任务失败。** 请求仍然返回 HTTP 200，任务以 `TASK_STATE_FAILED` 结束，`status.message.parts[0].text` 是错误说明。例如 `overrides.model` 填了不存在的模型时，任务失败，错误为 `LLM model config not found: <model>`。
+
+**请求被拒绝。** REST 路由返回 HTTP 错误状态码和标准的[错误响应体](/features/memorylake/api-reference/errors)（`success`、`message`、`error_code`），例如：
+
+| 状态码 | `error_code` | 场景 |
+|---|---|---|
+| 400 | `INVALID_ARGUMENT` | 请求不合法，或同一会话里还有消息正在处理。 |
+| 402 | `QUOTA_EXCEEDED` | 配额已用完。 |
+| 403 | `ACCESS_DENIED` | 缺少请求所需的权限。 |
+| 404 | `NOT_FOUND` | Agent 或任务不存在。 |
+
+JSON-RPC 下，MemoryLake 在 Agent 运行之前发现的错误（例如配额或权限错误）同样使用上面的 HTTP 状态码和错误响应体；Agent 报告的错误则以 JSON-RPC `error` 对象返回，HTTP 状态码为 200，其中 v0.3 方法一律使用错误码 `-32603`。
+
+### v0.3 的差异
+
+- **JSON-RPC。** result 直接就是任务，带 `"kind": "task"`。流事件带 `"kind": "status-update"` 或 `"artifact-update"`，最后一个状态更新带 `"final": true`。状态用小写，例如 `completed`、`failed`、`canceled`、`submitted`、`working`；角色为 `user` 和 `agent`。每个 part 都带 `kind`：`{"kind": "text", "text": ...}`、`{"kind": "data", "data": {...}}` 或 `{"kind": "file", "file": {...}}`。
+- **REST。** 状态拼写与 v1.0 相同，只有已取消拼作 `TASK_STATE_CANCELLED`。消息的 part 放在 `content` 下而不是 `parts`，data part 的形式是 `{"data": {"data": {...}}}`。`GET` 返回的任务不带 `timestamp`。
+- **REST 的默认值。** 不传 `blocking` 时，`message:send` 会立即返回而不是等待；不传 `historyLength` 时不返回 `history`。请显式设置这两个字段。
