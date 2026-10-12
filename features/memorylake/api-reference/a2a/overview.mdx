@@ -34,14 +34,18 @@ MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本；每�
 
 走 JSON-RPC 时，两个协议版本都 POST 到不带后缀的 `{baseUrl}`，由 `method` 指定具体操作：v1.0 使用 `SendMessage`、`SendStreamingMessage`、`GetTask`、`CancelTask`、`SubscribeToTask`；v0.3 使用 `message/send`、`message/stream`、`tasks/get`、`tasks/cancel`、`tasks/resubscribe`。协议版本由方法名协商得出；v1.0 客户端还应额外发送 `A2A-Version: 1.0`。
 
-四组路由都接受同一个 `configuration` 对象，以及下文描述的同一套 MemoryLake 扩展：
+四组路由都接受同一个 `configuration` 对象，以及下文描述的同一套 MemoryLake 扩展。两个协议版本对「是否等待任务完成」的开关叫法不同：
 
-| `configuration` 字段 | 类型 | 说明 |
-|---|---|---|
-| `blocking` | boolean | 是否等待任务执行完成后再返回。v1.0 与 v0.3 均适用。 |
-| `historyLength` | integer | 响应中携带的任务历史消息条数（取最近若干条）。 |
-| `acceptedOutputModes` | array | 客户端可处理的输出 MIME 类型。 |
-| `pushNotificationConfig` | object | 任务状态更新回调的 URL（可选带鉴权配置）。 |
+| `configuration` 字段 | 版本 | 类型 | 说明 |
+|---|---|---|---|
+| `returnImmediately` | v1.0 | boolean | 为 `true` 时任务一创建就返回，不等它执行完。默认 `false`，即等任务完成后再返回。v1.0 路由会忽略 `blocking`。 |
+| `blocking` | v0.3 | boolean | 为 `true` 时等任务执行完成后再返回。 |
+| `historyLength` | 两者 | integer | 响应中携带的任务历史消息条数（取最近若干条）。 |
+| `acceptedOutputModes` | 两者 | array | 客户端可处理的输出 MIME 类型。 |
+
+<Note>
+**不支持推送通知。** Agent Card 声明 `pushNotifications: false`，传 `pushNotificationConfig`（v0.3）或 `taskPushNotificationConfig`（v1.0）都不会收到回调。要跟踪任务进度，请使用流式响应，或轮询 `GET {baseUrl}/tasks/{taskId}`。
+</Note>
 
 <Warning>
 **同一会话一次只处理一条消息。** 使用相同 `contextId` 的消息属于同一个会话，同一会话同一时间只能处理一条消息。上一条消息仍在处理时（包括非阻塞发送后任务尚未结束），用同一 `contextId` 发送的新消息会被直接拒绝，不会排队。请等上一条消息的响应或任务结束后再发送下一条；需要并行处理的请求，请为每个请求使用不同的 `contextId`。
@@ -49,63 +53,127 @@ MemoryLake 并行暴露两套 A2A 路由，分别对应一个协议版本；每�
 
 ## MemoryLake 扩展
 
-MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议。在 `message:send` 或 `message:stream` 的请求元数据中传入此对象，以控制 Agent 与 MemoryLake 记忆层的交互方式。
+MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议。在 `message:send` 或 `message:stream` 请求的 `metadata` 里传入此对象：REST 请求体放在顶层 `metadata`，JSON-RPC 放在 `params.metadata`。Agent 不会从 `message.metadata` 里读取这些字段。
 
-这是与普通 A2A 服务器的核心区别 —— 这些字段将 Agent 连接到 MemoryLake 中的工作空间、项目和 Actor。
+这是与普通 A2A 服务器的核心区别 —— 这些字段将 Agent 连接到 MemoryLake 中的工作空间、项目和 Actor。对象里的字段分两类：
 
-<ParamField body="metadata.memorylake" type="object" required>
-MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上下文的情况下运行。
-<Expandable title="字段说明" defaultOpen>
-  <ParamField body="actorId" type="string">
-  代表终端用户的 Actor 标识符。从会话中提取的事实将关联到此 Actor，实现按用户记忆。
+- **[记忆与身份](#记忆与身份)**：`actorId`、`readWriteProjectId`、`readOnlyProjectIds`、`skipMemory`。由 MemoryLake 自己解析：校验您的权限，把会话绑定到对应的记忆，并告诉 Agent 要使用谁的记忆。
+- **[运行配置](#运行配置)**：`overrides`、`runtimeOptions`、`ttlSeconds`。MemoryLake 原样转给 Agent 运行时。
+
+请使用本页列出的驼峰字段名。未知字段会被忽略而不是报错，所以某个设置看起来没生效时，请先检查拼写。`metadata` 下除 `memorylake` 以外的键，Agent 都不会读取。
+
+<Note>
+只有请求带了 `x-memorylake-project-id` 请求头时，才可以不传 `metadata.memorylake`，此时该请求头充当 `readWriteProjectId`。两者都没有时，请求返回 `400 INVALID_ARGUMENT`。传空对象 `{}` 是合法的：Agent 使用您自己的 Actor，记忆处于开启状态。
+</Note>
+
+### 记忆与身份
+
+<ParamField body="actorId" type="string">
+发出这条消息的终端用户，填 MemoryLake 的 Actor ID（`actor-` 加 32 位十六进制字符）。Agent 会检索这个 Actor 的记忆，会话中用户一方的发言也记在这个 Actor 名下，从而实现按用户记忆。
+
+- **默认值：** 当前认证用户在该工作空间里的 Actor。该用户在这里没有 Actor 时，请求返回 `400 STATE_NOT_READY`。
+- **必须**是已绑定到该工作空间的 Actor。其他 ID 返回 `400`，已删除的 Actor 返回 `400 ACTOR_INACTIVE`。
+- **权限：** 需要对该 Actor 有 `workspace_actor:fact_add` 和 `workspace_actor:fact_search`。会话开始时校验一次；之后某条消息带来会话里还没有过的 Actor 时，会再校验。
+</ParamField>
+
+<ParamField body="readWriteProjectId" type="string">
+Agent 工作所在的项目（`proj-` 加 32 位十六进制字符）。Agent 会检索这个项目的文档和记忆，会话也记在这个项目下，从会话中提取的记忆就保存在这里。会话历史本身存储在工作空间层级。
+
+- **一个会话只绑定一个项目。** 会话（`contextId`）的第一条消息绑定项目，之后的消息可以不传，沿用该项目。传入不同的项目，或者给一个开始时没有项目的会话补上项目，都会返回 `400`。
+- **只能是同一工作空间的项目。** 其他工作空间的项目返回 `404`。
+- **权限：** 需要对该项目有 `project:mem_add`、`project:doc_add`、`project:mem_search` 和 `project:doc_search`，在会话开始时校验。
+- **带文件时必填。** 消息里的文件（`drive://` 引用或 inline 字节）会作为文档导入这个项目。带文件的消息必须自己写明项目，不能靠从会话继承，否则请求返回 `400`。
+</ParamField>
+
+<ParamField body="readOnlyProjectIds" type="string[]">
+Agent 可以检索（文档和记忆）但不会写入的其他项目。用于让 Agent 访问共享知识库。
+
+- **只对这一条消息生效。** 它不会存到会话里，所以每条需要看到这些项目的消息都要带上。
+- **权限：** 需要对每个项目有 `project:mem_search` 和 `project:doc_search`，缺任何一项都返回 `403`。
+- 找不到对应项目的 ID 会被跳过，不报错。
+</ParamField>
+
+<ParamField body="skipMemory" type="boolean" default="false">
+为 `true` 时，这条消息不使用记忆：Agent 不检索记忆和项目文档，这条消息的内容也不会写入记忆。会话照常创建，对 Actor 和项目的权限照常校验。
+</ParamField>
+
+### 运行配置
+
+<ParamField body="overrides" type="object">
+只对这一条消息修改 Agent 的配置。没有传的项沿用 Agent 自身的配置。
+<Expandable title="覆盖字段">
+  <ParamField body="model" type="string">
+  替代 Agent 模型的模型代码，例如 `gpt-4o`。会在您的组织可用的模型中查找。模型不存在不会让请求失败，而是任务以失败状态结束，错误信息为 `LLM model config not found: <model>`。
   </ParamField>
 
-  <ParamField body="readWriteProjectId" type="string">
-  Agent 可读写的项目。提取的事实将持久化到此项目；会话历史存储在工作空间层级，不属于项目。
+  <ParamField body="systemPromptOverride" type="string">
+  替换这条消息中 Agent 自身的指令。MemoryLake 的内置指令（例如如何使用工具和能力、用什么语言回答）仍然生效，所以只需描述 Agent 的角色和任务。
   </ParamField>
 
-  <ParamField body="readOnlyProjectIds" type="array">
-  Agent 可搜索（文档和事实）但不能修改的附加项目。用于让 Agent 访问共享知识库。
-  </ParamField>
-
-  <ParamField body="subagentMapping" type="object">
-  将子 Agent 名称（在 Agent 配置中定义）映射到具体的 Agent ID。允许在请求时动态路由子 Agent 调用。
-  </ParamField>
-
-  <ParamField body="overrides" type="object">
-  Agent 配置的运行时覆盖。
-  <Expandable title="覆盖字段">
-    <ParamField body="model" type="string">覆盖 Agent 的模型（例如 `gpt-4o`、`claude-sonnet-4-20250514`）</ParamField>
-    <ParamField body="systemPromptOverride" type="string">替换此次请求的 Agent 系统提示词</ParamField>
-    <ParamField body="modelParams" type="object">覆盖模型参数（例如 `temperature`、`max_tokens`）</ParamField>
-    <ParamField body="reasoning" type="object">
-    推理配置
-    <Expandable title="推理字段">
-      <ParamField body="type" type="string">推理类型</ParamField>
-      <ParamField body="budgetTokens" type="integer">推理 token 预算</ParamField>
-    </Expandable>
-    </ParamField>
-    <ParamField body="capabilitiesOverride" type="object">
-    为这一条消息额外开启的能力，键是能力名，值是该能力的配置。可用 `web_search`、`web_fetch`、`pii`、`vega`。各能力的作用，以及它与 Agent 自身配置的关系，见[按消息开启能力](#按消息开启能力)。
-    </ParamField>
-    <ParamField body="maxTurns" type="integer">覆盖最大轮次数</ParamField>
+  <ParamField body="modelParams" type="object">
+  这条消息的采样参数。键名用蛇形命名，`maxTokens` 和 `topP` 也可以。
+  <Expandable title="模型参数">
+    <ParamField body="max_tokens" type="integer">回答的最大 token 数。</ParamField>
+    <ParamField body="temperature" type="number">采样温度。</ParamField>
+    <ParamField body="top_p" type="number">核采样阈值。</ParamField>
   </Expandable>
+  类型不对的值会被单独丢弃，不报错，其他参数照常生效。未知的键会被忽略。MemoryLake 不检查取值范围。
   </ParamField>
 
-  <ParamField body="runtimeOptions" type="object">
-  本次请求的运行选项。
-  <Expandable title="运行选项字段">
-    <ParamField body="language" type="string">
-    Agent 回答使用的语言，填语言名称，例如 `English`、`Chinese`、`Japanese`。不传时，Agent 用用户提问的语言回答。
-    </ParamField>
-  </Expandable>
+  <ParamField body="responseFormat" type="object">
+  让 Agent 按 JSON Schema 输出 JSON。可以直接传 schema 对象，也可以包装成 `{"type": "json_schema", "schema": {...}}`，或者 OpenAI 风格的 `{"type": "json_schema", "json_schema": {"name": "...", "schema": {...}}}`。此时回答的文本部分是一个符合该 schema 的 JSON 字符串。
+  </ParamField>
+
+  <ParamField body="extraSkills" type="object[]">
+  在 Agent 已挂载的技能之外，为这条消息额外加上的技能。每一项形如 `{"skillId": "skill-…", "skillVersion": 2}`；不传 `skillVersion` 时使用最新版本。如果 Agent 已经挂了同一个技能，这里的条目会在这条消息中替换原来的挂载。
+  - 技能必须属于您的组织，或者是 MemoryLake 的内置技能。
+  - 技能或版本不存在时，请求失败。
+  - [安全审核](/features/memorylake/api-reference/skills/overview#安全审核)结果不是 `safe` 的版本会被跳过，不报错。
+  </ParamField>
+
+  <ParamField body="capabilitiesOverride" type="object">
+  为这一条消息额外开启的能力，键是能力名，值是该能力的配置。可用 `web_search`、`web_fetch`、`pii`、`vega`。各能力的作用，以及它与 Agent 自身配置的关系，见[按消息开启能力](#按消息开启能力)。
   </ParamField>
 </Expandable>
 </ParamField>
 
+<ParamField body="runtimeOptions" type="object">
+这条消息的运行选项。
+<Expandable title="运行选项字段">
+  <ParamField body="language" type="string">
+  Agent 回答使用的语言，填语言名称，例如 `English`、`Chinese`、`Japanese`。`en` 视为 `English`，`zh` 或 `cn` 视为 `Chinese`，其他值按原样使用。不传时，Agent 用用户提问的语言回答。
+  </ParamField>
+
+  <ParamField body="promptVariant" type="string">
+  Agent 使用哪一版 MemoryLake 内置指令的措辞：`default`、`zh` 或 `en`。不传时按模型自动选择：国产模型系列用 `zh`，其余用 `en`。它不影响回答语言，回答语言请用 `language` 设置。
+  </ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="ttlSeconds" type="integer" default="3600">
+这次运行所用沙箱（Agent 执行代码、处理文件的环境）的空闲超时，单位为秒。沙箱闲置超过这个时长就会被回收。
+</ParamField>
+
+### 已接受但当前不生效
+
+下列字段会被接受并校验，但 MemoryLake 当前使用的 Agent 运行时不会按它们执行。带了这些字段的请求照常成功。
+
+| 字段 | 说明 |
+|---|---|
+| `subagentMapping` | 当前运行时不支持子 Agent 路由，配置了子 Agent 的 Agent 无法运行。 |
+| `overrides.reasoning` | 推理设置取自 MemoryLake 对该模型的配置。 |
+| `overrides.maxTurns` | 以 Agent 自身的轮次上限为准。如果传了，仍必须是正整数，否则请求失败。 |
+| `overrides.mcpServersExtend` | 请在 Agent 上配置 MCP 服务器。 |
+| `overrides.modelParams.stop_sequences` | — |
+| `runtimeOptions.subagentProgress` | — |
+
+### 由 MemoryLake 填充
+
+不要传 `userId`、`assistantId`、`memoryStores`、`datasets`、`driveRef` 和 `preassignedRunId`。这些字段由 MemoryLake 根据上面的[记忆与身份](#记忆与身份)字段替 Agent 填好。
+
 ### 按消息开启能力
 
-`overrides.capabilitiesOverride` 用来给单条消息额外开启能力。它是一个对象：键是能力名，值是该能力的配置。能力名及其字段一律用蛇形命名（snake_case），与周围的驼峰字段不同。
+`overrides.capabilitiesOverride` 用来给单条消息额外开启能力。它是一个对象：键是能力名，值是该能力的配置。能力名及其字段一律用蛇形命名（snake_case），与周围的驼峰字段不同（也接受 `webSearch`、`openDatasets` 这样的驼峰写法）。
 
 ```json
 "capabilitiesOverride": {
@@ -128,7 +196,7 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
 - **只对这一条消息生效。** 同一会话的下一条消息不带这个覆盖，就不会开启。
 - **Agent 默认没有这些能力。** 不传覆盖时，只有 Agent 自身配置了联网搜索或读取网页，它才会使用（见[创建 Agent](/features/memorylake/api-reference/agents/create-agent) 的 `capabilities`）。`pii` 和 `vega` 只能在这里开启。
 - **传入的配置会替换 Agent 自身的配置。** 请给出该能力完整的配置，不要指望从 Agent 那里继承字段。例如 Agent 的 `web_search` 配置了 `open_datasets`，而这次只传 `"web_search": {}`，这条消息就不会检索任何 Open Data 数据集。
-- **只能开启，不能关闭。** 不传某个能力，即沿用 Agent 自身的配置。传 `null` 或 `{"enabled": false}` 都关不掉 Agent 已有的能力；需要不带它运行时，请使用没有配置该能力的 Agent。
+- **只能开启，不能关闭。** 不传某个能力，即沿用 Agent 自身的配置；传 `null` 也关不掉 Agent 已有的能力。`{"enabled": false}` 更要避免：并没有 `enabled` 这个字段，它会被当成 `{}`，反而以默认配置**开启**该能力，即使 Agent 原本没有。需要不带某个能力运行时，请使用没有配置该能力的 Agent。
 
 <Warning>
 **写错不会报错。** 拼错的能力名会被忽略。某个能力的配置不合法时（例如 `open_datasets` 传成字符串、`web_search` 传成 `true`），整个能力会被丢弃，请求照常返回 200，只是这次没有该能力。不认识的 Open Data 标识符会被跳过，全部无效时只做普通联网搜索。只有 `capabilitiesOverride` 本身不是对象（例如传成数组）时才会返回 400。如果 Agent 表现得像是没开某个能力，请先核对您请求里的能力名和配置。
@@ -151,7 +219,7 @@ MemoryLake 专属配置。不传此字段时，Agent 将在没有任何记忆上
 | 7 | v0.3 · send · JSON-RPC | `message/send` | — |
 | 8 | v0.3 · stream · JSON-RPC | `message/stream` | SSE |
 
-上表 **header** 列中，**SSE** 表示 `Accept: text/event-stream`，**v1.0** 表示 `A2A-Version: 1.0`。8 种组合都使用同一个 `configuration` 对象和同一套 `metadata.memorylake` 扩展。其中 4 个 streaming 变体以 `text/event-stream` 返回；4 个 send 变体返回单个 JSON 响应体。
+上表 **header** 列中，**SSE** 表示 `Accept: text/event-stream`，**v1.0** 表示 `A2A-Version: 1.0`。8 种组合都使用相同的 `configuration` 字段（v1.0 默认等待并使用 `returnImmediately`，v0.3 使用 `blocking`）和同一套 `metadata.memorylake` 扩展。其中 4 个 streaming 变体以 `text/event-stream` 返回；4 个 send 变体返回单个 JSON 响应体。
 
 <Note>
 请注意版本与传输方式之间的三处结构差异：v1.0 使用 `parts`，`role` 为 `"ROLE_USER"`；v0.3 **REST** 使用 `content`，`role` 为 `"ROLE_USER"`；v0.3 **JSON-RPC** 使用 `parts` 且每个 part 都带 `kind` 判别符，`role` 为小写的 `"user"`。
@@ -173,14 +241,14 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       "contextId": "ctx_m4n7p2q9"
     },
     "configuration": {
-      "blocking": true,
+      "returnImmediately": false,
       "historyLength": 10
     },
     "metadata": {
       "memorylake": {
-        "actorId": "act_user_jane",
+        "actorId": "actor-33d6b73298fb43482a765643ff92444b",
         "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
-        "readOnlyProjectIds": ["proj_shared_kb"],
+        "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"],
         "overrides": {
           "model": "gpt-4o",
           "maxTurns": 5,
@@ -209,8 +277,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     },
     "metadata": {
       "memorylake": {
-        "actorId": "act_user_jane",
-        "readOnlyProjectIds": ["proj_meetings"]
+        "actorId": "actor-33d6b73298fb43482a765643ff92444b",
+        "readOnlyProjectIds": ["proj-c62be3c8aa01d134ac32975afe24d034"]
       }
     }
   }'
@@ -233,7 +301,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     },
     "metadata": {
       "memorylake": {
-        "actorId": "act_user_jane",
+        "actorId": "actor-33d6b73298fb43482a765643ff92444b",
         "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"
       }
     }
@@ -254,8 +322,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     },
     "metadata": {
       "memorylake": {
-        "actorId": "act_user_jane",
-        "readOnlyProjectIds": ["proj_meetings"]
+        "actorId": "actor-33d6b73298fb43482a765643ff92444b",
+        "readOnlyProjectIds": ["proj-c62be3c8aa01d134ac32975afe24d034"]
       }
     }
   }'
@@ -286,14 +354,14 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
         "contextId": "ctx_m4n7p2q9"
       },
       "configuration": {
-        "blocking": true,
+        "returnImmediately": false,
         "historyLength": 10
       },
       "metadata": {
         "memorylake": {
-          "actorId": "act_user_jane",
+          "actorId": "actor-33d6b73298fb43482a765643ff92444b",
           "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
-          "readOnlyProjectIds": ["proj_shared_kb"],
+          "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"],
           "overrides": {
             "model": "gpt-4o",
             "maxTurns": 5
@@ -324,8 +392,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       },
       "metadata": {
         "memorylake": {
-          "actorId": "act_user_jane",
-          "readOnlyProjectIds": ["proj_meetings"]
+          "actorId": "actor-33d6b73298fb43482a765643ff92444b",
+          "readOnlyProjectIds": ["proj-c62be3c8aa01d134ac32975afe24d034"]
         }
       }
     }
@@ -355,7 +423,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       },
       "metadata": {
         "memorylake": {
-          "actorId": "act_user_jane",
+          "actorId": "actor-33d6b73298fb43482a765643ff92444b",
           "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"
         }
       }
@@ -382,8 +450,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       },
       "metadata": {
         "memorylake": {
-          "actorId": "act_user_jane",
-          "readOnlyProjectIds": ["proj_meetings"]
+          "actorId": "actor-33d6b73298fb43482a765643ff92444b",
+          "readOnlyProjectIds": ["proj-c62be3c8aa01d134ac32975afe24d034"]
         }
       }
     }
