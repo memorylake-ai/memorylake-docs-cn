@@ -40,7 +40,7 @@ Agent 使用的模型（例如 `gpt-4o`、`claude-sonnet-4-20250514`）
 </ParamField>
 
 <ParamField body="capabilities" type="object">
-Agent 在每次对话中都具备的能力，键是能力名，值是该能力的配置。这里可以设置 `web_search` 和 `web_fetch`，写法与 A2A 消息里的 [`capabilitiesOverride`](/features/memorylake/api-reference/a2a/overview#按消息开启能力) 相同；`pii` 和 `vega` 只能按消息开启。不认识的能力名会被丢弃，不会报错。不传此字段时，Agent 两者都没有。
+Agent 在每次对话中都具备的能力，键是能力名，值是该能力的配置。这里可以设置 `web_search` 和 `web_fetch`，写法与 A2A 消息里的 [`capabilitiesOverride`](/features/memorylake/api-reference/a2a/overview#按消息开启能力) 相同；`pii`、`vega` 和 `dataset` 只能按消息开启。不认识的能力名会被丢弃，不会报错。不传此字段时，Agent 两者都没有。
 </ParamField>
 
 <ParamField body="policies" type="object">
