@@ -120,17 +120,6 @@ Agent 可以检索（文档和记忆）但不会写入的其他项目。用于�
   类型不对的值会被单独丢弃，不报错，其他参数照常生效。未知的键会被忽略。MemoryLake 不检查取值范围。
   </ParamField>
 
-  <ParamField body="responseFormat" type="object">
-  让 Agent 按 JSON Schema 输出 JSON。可以直接传 schema 对象，也可以包装成 `{"type": "json_schema", "schema": {...}}`，或者 OpenAI 风格的 `{"type": "json_schema", "json_schema": {"name": "...", "schema": {...}}}`。此时回答的文本部分是一个符合该 schema 的 JSON 字符串。
-  </ParamField>
-
-  <ParamField body="extraSkills" type="object[]">
-  在 Agent 已挂载的技能之外，为这条消息额外加上的技能。每一项形如 `{"skillId": "skill-…", "skillVersion": 2}`；不传 `skillVersion` 时使用最新版本。如果 Agent 已经挂了同一个技能，这里的条目会在这条消息中替换原来的挂载。
-  - 技能必须属于您的组织，或者是 MemoryLake 的内置技能。
-  - 技能或版本不存在时，请求失败。
-  - [安全审核](/features/memorylake/api-reference/skills/overview#安全审核)结果不是 `safe` 的版本会被跳过，不报错。
-  </ParamField>
-
   <ParamField body="capabilitiesOverride" type="object">
   为这一条消息额外开启的能力，键是能力名，值是该能力的配置。可用 `web_search`、`web_fetch`、`pii`、`vega`。各能力的作用，以及它与 Agent 自身配置的关系，见[按消息开启能力](#按消息开启能力)。
   </ParamField>
