@@ -1,6 +1,6 @@
 ---
 title: "删除工作空间"
-description: "永久删除工作空间"
+description: "删除工作空间"
 ---
 
 ```
@@ -8,10 +8,10 @@ DELETE /openapi/memorylake/api/v3/workspaces/{id}
 ```
 
 <Warning>
-这是一个破坏性操作。工作空间及其所有关联数据将被永久删除。
+这是一个破坏性操作，且不可撤销。工作空间及其中的一切（项目、会话、Actor 与 Agent 绑定，以及所有其他工作空间范围的数据）将无法再通过 API 或控制台访问。删除只是让这些数据不再可访问，并不会抹除已存储的内容。
 </Warning>
 
-通过 ID 永久删除工作空间。
+通过 ID 删除工作空间。
 
 <Note>
 **所需权限：** `workspace:delete`
