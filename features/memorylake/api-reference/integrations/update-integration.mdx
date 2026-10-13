@@ -1,0 +1,178 @@
+---
+title: "更新 IM 集成"
+description: "更改 IM 集成"
+---
+
+```
+PATCH /openapi/memorylake/admin/v1/integrations/{integration_id}
+```
+
+更改 IM 集成。仅更改您发送的字段；不接受 `null`。省略 `credentials` 则保留原凭据；仅发送新的 secret 即可轮换。机器人的应用标识符不可更改（422）。新的 DingTalk、Feishu 和 Slack 凭据会在保存前验证，状态会回到 `pending`，直至新连接建立。更改项目引用所需的项目访问权限与[创建 IM 集成](/features/memorylake/api-reference/integrations/create-integration)相同。
+
+<Note>
+**所需权限：** `workspace:integration_manage`（作用于 `workspace_id`）
+
+- 设置了 `read_write_project_id` 时：`project:mem_add`（作用于 `read_write_project_id`）
+- 设置了 `read_only_project_ids` 时：`project:mem_search`（作用于 `read_only_project_ids`）
+</Note>
+
+### 路径参数
+
+<ParamField path="integration_id" type="string" required>
+集成的标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。不比较凭据值。
+</ParamField>
+
+### 请求体
+
+<ParamField body="agent_id" type="string">
+切换应答的 Agent。进行中的 IM 会话将以新 Agent 重新开始；发送当前的 `agent_id` 不会产生任何变化。
+</ParamField>
+
+<ParamField body="credentials" type="object">
+仅可写入。省略则保留已存储的凭据。只需发送有变化的值：可单独轮换密钥。应用标识符（`appKey` / `appId` / `botId`，或 Slack 团队与机器人用户）无法更改——如需连接其他机器人，请删除并重新创建集成。DingTalk、Feishu 和 Slack 的凭据会在保存前向平台校验。
+<Expandable title="Integration Credentials 对象">
+  <ParamField body="credentials.appId" type="string">飞书：App ID。用于标识机器人；创建后不可更改。</ParamField>
+  <ParamField body="credentials.appKey" type="string">DingTalk：Client ID（AppKey）。用于标识机器人；创建后不可更改。</ParamField>
+  <ParamField body="credentials.appSecret" type="string">DingTalk：Client Secret（AppSecret）。Feishu：App Secret。</ParamField>
+  <ParamField body="credentials.appToken" type="string">Slack：具有 `connections:write` 权限的 App-Level Token（`xapp-…`）。</ParamField>
+  <ParamField body="credentials.botId" type="string">WeCom：智能机器人的 Bot ID。用于标识机器人；创建后不可更改。</ParamField>
+  <ParamField body="credentials.botToken" type="string">Slack：Bot User OAuth Token（`xoxb-…`）。不支持启用了令牌轮换的应用。</ParamField>
+  <ParamField body="credentials.secret" type="string">WeCom：智能机器人的 Secret。</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="daily_message_limit" type="integer">
+每天处理的最大消息数；0 表示不限
+</ParamField>
+
+<ParamField body="dataset_ids" type="array">
+替换数据集。`[]` 表示移除。
+</ParamField>
+
+<ParamField body="enabled" type="boolean">
+连接（`true`）或断开（`false`）机器人
+</ParamField>
+
+<ParamField body="name" type="string">
+新显示名称
+</ParamField>
+
+<ParamField body="read_only_project_ids" type="array">
+替换只读项目。`[]` 表示移除。
+</ParamField>
+
+<ParamField body="read_write_project_id" type="string">
+提炼出的记忆所归入的新项目
+</ParamField>
+
+<ParamField body="settings" type="object">
+替换渠道特定的设置
+<Expandable title="Integration Settings 对象">
+  <ParamField body="settings.card_template_id" type="string">仅限 DingTalk：AI 卡片模板 ID。设置后回复将以流式写入交互卡片；省略或发送 `""` 则以普通消息回复。</ParamField>
+</Expandable>
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/integrations/8e6332af9d801f19496ca0f9fded5333' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "agent_id": "bacb5a9d15867eca98ad566c546b2503",
+    "credentials": {
+      "appId": "example",
+      "appKey": "example",
+      "appSecret": "example",
+      "appToken": "example",
+      "botId": "example",
+      "botToken": "example",
+      "secret": "example"
+    },
+    "daily_message_limit": 1,
+    "dataset_ids": [
+      "3748f84ef0d2e877c0097b8f32d45cf0"
+    ],
+    "enabled": true,
+    "name": "Example name",
+    "read_only_project_ids": [
+      "5af1515af082229ccfd68f981a6cf886"
+    ],
+    "read_write_project_id": "47e198610eb6f56441396b62501d1ccf",
+    "settings": {
+      "card_template_id": "870213bad9d43369a8af134b1b482d6e"
+    }
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Integration 对象">
+  <ResponseField name="agent_id" type="string">负责回复发送给该机器人的消息的 Agent</ResponseField>
+  <ResponseField name="channel" type="string">IM 平台。可选值：`dingtalk`、`wecom`、`feishu`、`slack`。</ResponseField>
+  <ResponseField name="created_at" type="integer">创建时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="credentials_configured" type="boolean">是否已存储凭据。凭据本身仅可写入，从不返回。</ResponseField>
+  <ResponseField name="daily_message_limit" type="integer">此集成每天处理的最大消息数；0 表示不限</ResponseField>
+  <ResponseField name="dataset_ids" type="array">Agent 可使用的开放数据数据集</ResponseField>
+  <ResponseField name="enabled" type="boolean">是否应连接该集成</ResponseField>
+  <ResponseField name="external_app_id" type="string">机器人在 IM 平台上的标识符（DingTalk Client ID、Feishu App ID、WeCom Bot ID、Slack `team:bot-user`）。不属于机密信息。</ResponseField>
+  <ResponseField name="id" type="string">集成的标识符</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="read_only_project_ids" type="array">额外检索的项目（只读）</ResponseField>
+  <ResponseField name="read_write_project_id" type="string">从 IM 对话中提取的记忆写入的项目</ResponseField>
+  <ResponseField name="settings" type="object">
+  渠道专属设置
+  <Expandable title="Integration Settings 对象">
+    <ResponseField name="card_template_id" type="string">仅限 DingTalk：AI 卡片模板 ID。设置后回复将以流式写入交互卡片；省略或发送 `""` 则以普通消息回复。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="status" type="string">连接状态。创建后或更改凭据后为 `pending`，直至首次连接尝试；可轮询[获取 IM 集成](/features/memorylake/api-reference/integrations/get-integration)跟踪状态。可选值：`pending`、`connected`、`error`、`disabled`。</ResponseField>
+  <ResponseField name="updated_at" type="integer">最后更新时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="workspace_id" type="string">集成所属的工作空间。创建时确定。</ResponseField>
+  <ResponseField name="status_error" type="string">`status` 为 `error` 时的简短规范化原因，用于展示（中文，采用控制台措辞，可能变化）。绝不包含平台的原始响应。程序中请使用 `status_error_code`。</ResponseField>
+  <ResponseField name="status_error_code" type="string">稳定的原因代码，只要存在 `status_error` 就会返回。`credentials_invalid`：平台拒绝了凭据（请修正凭据）；`subscribe_rejected`：WeCom 拒绝了订阅——凭据错误或触发平台限流，会自动重试；`preempted`：另一个连接接管了该机器人，通常是同一机器人在另一环境中建立了连接；`timeout` / `disconnected` / `connection_aborted` / `connection_failed`：连接问题，会自动重试；`dependency_unavailable`：此部署依赖的某项服务不可用，会自动重试；`dependency_misconfigured`：此部署缺少该渠道所需的组件（WeCom 需要 Redis）——请联系运维人员；`internal_error`：我方故障；`unknown`：该原因记录于原因代码引入之前，会在下次连接尝试时被替换。今后可能新增代码；遇到无法识别的代码时，请按 `connection_failed` 处理。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "agent_id": "9926a90400d85f0a54e9e195e915db44",
+    "channel": "dingtalk",
+    "created_at": 1760000000,
+    "credentials_configured": false,
+    "daily_message_limit": 1,
+    "dataset_ids": [
+      "3748f84ef0d2e877c0097b8f32d45cf0"
+    ],
+    "enabled": true,
+    "external_app_id": "524832f3cb1ba8ef33208d0692b8d565",
+    "id": "f58008acc066bab6dfb73de8efde8905",
+    "name": "Example name",
+    "read_only_project_ids": [
+      "5af1515af082229ccfd68f981a6cf886"
+    ],
+    "read_write_project_id": "aed31b20113b86ecc2587aa0cbc0eb2f",
+    "settings": {
+      "card_template_id": "870213bad9d43369a8af134b1b482d6e"
+    },
+    "status": "pending",
+    "updated_at": 1760000000,
+    "workspace_id": "ce55865bcc4c12c26161d24b238a888e",
+    "status_error": "example",
+    "status_error_code": "credentials_invalid"
+  }
+}
+```
+</ResponseExample>

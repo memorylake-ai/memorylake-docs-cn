@@ -1,0 +1,225 @@
+---
+title: "撤销数据库资源访问权限"
+description: "把数据库资源移出受限的访问范围"
+noindex: true
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/access/{resource_type}/{resource_id}/scope-grants/{subject_type}/{subject_id}
+```
+
+针对数据库连接、数据源和分析模型的[撤销访问权限](/features/memorylake/api-reference/access-control/revoke-scope)。
+
+| `resource_type` | `resource_id` 取值 | 所需权限 |
+|---|---|---|
+| `db-connections` | `connection_id` | `dbconn:assign`（作用于 `connection_id`）或 `member:set_scope`（`subject_type` 为 `members` 时）或 `access_group:manage`（`subject_type` 为 `access-groups` 时）<br />同时需要：`dbconn:assign`（作用于 `connection_id`）或 `access_group:view`<br />同时需要：`dbconn:read`（作用于 `connection_id`） |
+| `db-datasources` | `datasource_id` | `db_datasource:assign`（作用于 `datasource_id`）或 `member:set_scope`（`subject_type` 为 `members` 时）或 `access_group:manage`（`subject_type` 为 `access-groups` 时）<br />同时需要：`db_datasource:assign`（作用于 `datasource_id`）或 `access_group:view`<br />同时需要：`db_datasource:read`（作用于 `datasource_id`） |
+| `analysis-models` | `model_id` | `analysis_model:assign`（作用于 `model_id`）或 `member:set_scope`（`subject_type` 为 `members` 时）或 `access_group:manage`（`subject_type` 为 `access-groups` 时）<br />同时需要：`analysis_model:assign`（作用于 `model_id`）或 `access_group:view`<br />同时需要：`analysis_model:read`（作用于 `model_id`） |
+
+<Note>
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="resource_type" type="string" required>
+资源类型，取上表中的值之一
+</ParamField>
+
+<ParamField path="resource_id" type="string" required>
+资源 ID，取值见上表
+</ParamField>
+
+<ParamField path="subject_type" type="string" required>
+`members` 或 `access-groups`
+</ParamField>
+
+<ParamField path="subject_id" type="string" required>
+成员的 `principal_id`，或用户组 ID
+</ParamField>
+
+### 查询参数
+
+<ParamField query="reason" type="string">
+记录到审计日志中的可选原因
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access/db-connections/4c2da948e33c54f60ddd71e9b47076d4/scope-grants/members/89914667f74821b220f374d323f0f4b0' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Resource Access View 对象">
+  <ResponseField name="allowed" type="array">
+  可访问该实例的成员和用户组
+  <Expandable title="Resource Access Entry 对象">
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="subject_id" type="string">`principal_id` 或用户组 ID</ResponseField>
+    <ResponseField name="subject_type" type="string">`member` 或 `access_group`</ResponseField>
+    <ResponseField name="actions" type="array">显式来源允许的操作</ResponseField>
+    <ResponseField name="blocked_by" type="string">对于被阻止的条目：`scope` = 被限定在其他实例；`permission` = 其角色完全无法查看此资源类型</ResponseField>
+    <ResponseField name="level_options" type="object">
+    成员：调用方在此处可为其设置的级别
+    <Expandable title="Permission Level Options 对象">
+      <ResponseField name="can_set_none" type="boolean">调用方能否移除该成员的权限级别（级别 `none`）</ResponseField>
+      <ResponseField name="settable_levels" type="array">调用方可为该成员设置的级别（不含当前级别）</ResponseField>
+      <ResponseField name="blocked_reason" type="string">当前级别无法降低或移除的原因：`outranked` 表示该成员的级别不低于调用方；`last_manager` 表示该成员是最后一个可管理该资源的人；`no_permission` 表示调用方无法共享该资源</ResponseField>
+      <ResponseField name="current_level" type="string">在此实例上为该成员设置的权限级别；未设置时省略。可选值：`read`、`write`、`manage`。</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="member_count" type="integer">用户组：成员数</ResponseField>
+    <ResponseField name="permission_level" type="string">该成员在此实例上可执行的操作，综合所有来源。可选值：`read`、`write`、`manage`。</ResponseField>
+    <ResponseField name="role" type="string">成员：其角色</ResponseField>
+    <ResponseField name="scope_grant_count" type="integer">主体访问范围内此资源类型的实例数</ResponseField>
+    <ResponseField name="scope_mode" type="string">成员：`all` = 不受此资源类型的访问范围限制；`instances` = 仅限其范围内的实例</ResponseField>
+    <ResponseField name="sources" type="array">
+    主体访问该实例的途径
+    <Expandable title="Resource Access Source 对象">
+      <ResponseField name="type" type="string">`role`：成员的角色覆盖所有实例。`scope_grant`：该实例在主体的访问范围内。`access_group`：某个用户组的实例列表。`parent`：在父工作空间上授予。`permission_level`：在此实例上设置的权限级别。</ResponseField>
+      <ResponseField name="access_group_id" type="string">对于 `access_group`：该用户组</ResponseField>
+      <ResponseField name="access_group_name" type="string">对于 `access_group`：其名称</ResponseField>
+      <ResponseField name="actions" type="array">此来源允许的操作；`["*"]` = 主体全部权限所允许的操作</ResponseField>
+      <ResponseField name="parent_id" type="string">对于 `parent`：父工作空间 ID</ResponseField>
+      <ResponseField name="permission_levels" type="array">对于 `permission_level`：在此实例上持有的权限级别</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="allowed_count" type="integer">可访问该实例的成员</ResponseField>
+  <ResponseField name="blocked" type="array">
+  无法访问的成员
+  <Expandable title="Resource Access Entry 对象">
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="subject_id" type="string">`principal_id` 或用户组 ID</ResponseField>
+    <ResponseField name="subject_type" type="string">`member` 或 `access_group`</ResponseField>
+    <ResponseField name="actions" type="array">显式来源允许的操作</ResponseField>
+    <ResponseField name="blocked_by" type="string">对于被阻止的条目：`scope` = 被限定在其他实例；`permission` = 其角色完全无法查看此资源类型</ResponseField>
+    <ResponseField name="level_options" type="object">
+    成员：调用方在此处可为其设置的级别
+    <Expandable title="Permission Level Options 对象">
+      <ResponseField name="can_set_none" type="boolean">调用方能否移除该成员的权限级别（级别 `none`）</ResponseField>
+      <ResponseField name="settable_levels" type="array">调用方可为该成员设置的级别（不含当前级别）</ResponseField>
+      <ResponseField name="blocked_reason" type="string">当前级别无法降低或移除的原因：`outranked` 表示该成员的级别不低于调用方；`last_manager` 表示该成员是最后一个可管理该资源的人；`no_permission` 表示调用方无法共享该资源</ResponseField>
+      <ResponseField name="current_level" type="string">在此实例上为该成员设置的权限级别；未设置时省略。可选值：`read`、`write`、`manage`。</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="member_count" type="integer">用户组：成员数</ResponseField>
+    <ResponseField name="permission_level" type="string">该成员在此实例上可执行的操作，综合所有来源。可选值：`read`、`write`、`manage`。</ResponseField>
+    <ResponseField name="role" type="string">成员：其角色</ResponseField>
+    <ResponseField name="scope_grant_count" type="integer">主体访问范围内此资源类型的实例数</ResponseField>
+    <ResponseField name="scope_mode" type="string">成员：`all` = 不受此资源类型的访问范围限制；`instances` = 仅限其范围内的实例</ResponseField>
+    <ResponseField name="sources" type="array">
+    主体访问该实例的途径
+    <Expandable title="Resource Access Source 对象">
+      <ResponseField name="type" type="string">`role`：成员的角色覆盖所有实例。`scope_grant`：该实例在主体的访问范围内。`access_group`：某个用户组的实例列表。`parent`：在父工作空间上授予。`permission_level`：在此实例上设置的权限级别。</ResponseField>
+      <ResponseField name="access_group_id" type="string">对于 `access_group`：该用户组</ResponseField>
+      <ResponseField name="access_group_name" type="string">对于 `access_group`：其名称</ResponseField>
+      <ResponseField name="actions" type="array">此来源允许的操作；`["*"]` = 主体全部权限所允许的操作</ResponseField>
+      <ResponseField name="parent_id" type="string">对于 `parent`：父工作空间 ID</ResponseField>
+      <ResponseField name="permission_levels" type="array">对于 `permission_level`：在此实例上持有的权限级别</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="grantable_levels" type="array">调用方可在此实例上设置的权限级别；调用方无法共享该实例时为空</ResponseField>
+  <ResponseField name="instance_id" type="string">实例 ID；工作空间 Actor 和 Agent 为 `<workspace_id>/<id>`</ResponseField>
+  <ResponseField name="resource_type" type="string">资源类型</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "allowed": [
+      {
+        "name": "Example name",
+        "subject_id": "e9225468996bae25743a2b64eeb19cc7",
+        "subject_type": "member",
+        "actions": [
+          "example"
+        ],
+        "blocked_by": "scope",
+        "level_options": {
+          "can_set_none": true,
+          "settable_levels": [
+            "example"
+          ],
+          "blocked_reason": "outranked",
+          "current_level": "read"
+        },
+        "member_count": 1,
+        "permission_level": "read",
+        "role": "tenant_member",
+        "scope_grant_count": 1,
+        "scope_mode": "all",
+        "sources": [
+          {
+            "type": "role",
+            "access_group_id": "21b69c2e4fc3734ad8c25bf8b5224366",
+            "access_group_name": "Example access group",
+            "actions": [],
+            "parent_id": "ba8581988563142580f3237fbf400514",
+            "permission_levels": []
+          }
+        ]
+      }
+    ],
+    "allowed_count": 1,
+    "blocked": [
+      {
+        "name": "Example name",
+        "subject_id": "e9225468996bae25743a2b64eeb19cc7",
+        "subject_type": "member",
+        "actions": [
+          "example"
+        ],
+        "blocked_by": "scope",
+        "level_options": {
+          "can_set_none": true,
+          "settable_levels": [
+            "example"
+          ],
+          "blocked_reason": "outranked",
+          "current_level": "read"
+        },
+        "member_count": 1,
+        "permission_level": "read",
+        "role": "tenant_member",
+        "scope_grant_count": 1,
+        "scope_mode": "all",
+        "sources": [
+          {
+            "type": "role",
+            "access_group_id": "21b69c2e4fc3734ad8c25bf8b5224366",
+            "access_group_name": "Example access group",
+            "actions": [],
+            "parent_id": "ba8581988563142580f3237fbf400514",
+            "permission_levels": []
+          }
+        ]
+      }
+    ],
+    "grantable_levels": [
+      "example"
+    ],
+    "instance_id": "a88bb6c846106e751d8cf36bdeb592fe",
+    "resource_type": "example"
+  }
+}
+```
+</ResponseExample>

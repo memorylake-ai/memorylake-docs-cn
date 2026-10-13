@@ -200,6 +200,16 @@
                       "features/memorylake/api-reference/conversations/list-messages",
                       "features/memorylake/api-reference/conversations/batch-get-messages"
                     ]
+                  },
+                  {
+                    "group": "IM 集成",
+                    "pages": [
+                      "features/memorylake/api-reference/integrations/list-integrations",
+                      "features/memorylake/api-reference/integrations/create-integration",
+                      "features/memorylake/api-reference/integrations/get-integration",
+                      "features/memorylake/api-reference/integrations/update-integration",
+                      "features/memorylake/api-reference/integrations/delete-integration"
+                    ]
                   }
                 ]
               },
@@ -435,6 +445,171 @@
                       "features/memorylake/api-reference/database/database-memories/reload-database-memory",
                       "features/memorylake/api-reference/database/database-memories/generate-database-memory-instruction"
                     ]
+                  },
+                  {
+                    "group": "数据库访问权限",
+                    "pages": [
+                      "features/memorylake/api-reference/access-control/get-database-resource-access",
+                      "features/memorylake/api-reference/access-control/list-database-permission-level-options",
+                      "features/memorylake/api-reference/access-control/set-database-permission-level",
+                      "features/memorylake/api-reference/access-control/grant-database-scope",
+                      "features/memorylake/api-reference/access-control/revoke-database-scope"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "团队",
+                "pages": [
+                  "features/memorylake/api-reference/team/get-team",
+                  "features/memorylake/api-reference/team/update-team",
+                  "features/memorylake/api-reference/team/create-team",
+                  "features/memorylake/api-reference/team/transfer-ownership",
+                  "features/memorylake/api-reference/team/delete-team"
+                ]
+              },
+              {
+                "group": "成员",
+                "pages": [
+                  "features/memorylake/api-reference/members/list-members",
+                  "features/memorylake/api-reference/members/get-member",
+                  "features/memorylake/api-reference/members/create-member",
+                  "features/memorylake/api-reference/members/update-member",
+                  "features/memorylake/api-reference/members/remove-member",
+                  "features/memorylake/api-reference/members/list-roles",
+                  "features/memorylake/api-reference/members/get-member-access-scope",
+                  "features/memorylake/api-reference/members/set-member-access-scope",
+                  "features/memorylake/api-reference/members/get-member-effective-permissions"
+                ]
+              },
+              {
+                "group": "邀请",
+                "pages": [
+                  "features/memorylake/api-reference/invitations/list-invitations",
+                  "features/memorylake/api-reference/invitations/create-invitation",
+                  "features/memorylake/api-reference/invitations/get-invitation",
+                  "features/memorylake/api-reference/invitations/revoke-invitation"
+                ]
+              },
+              {
+                "group": "API Key",
+                "pages": [
+                  "features/memorylake/api-reference/api-keys/list-api-keys",
+                  "features/memorylake/api-reference/api-keys/create-api-key",
+                  "features/memorylake/api-reference/api-keys/get-api-key",
+                  "features/memorylake/api-reference/api-keys/update-api-key",
+                  "features/memorylake/api-reference/api-keys/rotate-api-key",
+                  "features/memorylake/api-reference/api-keys/revoke-api-key"
+                ]
+              },
+              {
+                "group": "访问控制",
+                "pages": [
+                  "features/memorylake/api-reference/access-control/overview",
+                  "features/memorylake/api-reference/access-control/get-permission-catalog",
+                  "features/memorylake/api-reference/access-control/list-my-permissions",
+                  {
+                    "group": "角色",
+                    "pages": [
+                      "features/memorylake/api-reference/access-control/get-role",
+                      "features/memorylake/api-reference/access-control/create-role",
+                      "features/memorylake/api-reference/access-control/update-role",
+                      "features/memorylake/api-reference/access-control/delete-role",
+                      "features/memorylake/api-reference/access-control/get-role-access-scope",
+                      "features/memorylake/api-reference/access-control/set-role-access-scope"
+                    ]
+                  },
+                  {
+                    "group": "权限规则",
+                    "pages": [
+                      "features/memorylake/api-reference/access-control/list-permission-rules",
+                      "features/memorylake/api-reference/access-control/create-permission-rules",
+                      "features/memorylake/api-reference/access-control/delete-permission-rule"
+                    ]
+                  },
+                  {
+                    "group": "用户组",
+                    "pages": [
+                      "features/memorylake/api-reference/access-control/list-access-groups",
+                      "features/memorylake/api-reference/access-control/create-access-group",
+                      "features/memorylake/api-reference/access-control/get-access-group",
+                      "features/memorylake/api-reference/access-control/update-access-group",
+                      "features/memorylake/api-reference/access-control/delete-access-group",
+                      "features/memorylake/api-reference/access-control/list-access-group-members",
+                      "features/memorylake/api-reference/access-control/add-access-group-members",
+                      "features/memorylake/api-reference/access-control/remove-access-group-member",
+                      "features/memorylake/api-reference/access-control/set-access-group-permissions",
+                      "features/memorylake/api-reference/access-control/get-access-group-access-scope",
+                      "features/memorylake/api-reference/access-control/set-access-group-access-scope",
+                      "features/memorylake/api-reference/access-control/get-access-group-effective-permissions"
+                    ]
+                  },
+                  {
+                    "group": "资源访问权限",
+                    "pages": [
+                      "features/memorylake/api-reference/access-control/get-resource-access",
+                      "features/memorylake/api-reference/access-control/list-permission-level-options",
+                      "features/memorylake/api-reference/access-control/set-permission-level",
+                      "features/memorylake/api-reference/access-control/grant-scope",
+                      "features/memorylake/api-reference/access-control/revoke-scope"
+                    ]
+                  }
+                ]
+              },
+              {
+                "group": "用量与审计日志",
+                "pages": [
+                  "features/memorylake/api-reference/usage/get-usage",
+                  "features/memorylake/api-reference/usage/get-usage-summary",
+                  "features/memorylake/api-reference/usage/list-usage-records",
+                  "features/memorylake/api-reference/usage/list-audit-logs"
+                ]
+              },
+              {
+                "group": "计费",
+                "pages": [
+                  {
+                    "group": "订阅",
+                    "pages": [
+                      "features/memorylake/api-reference/billing/get-subscription",
+                      "features/memorylake/api-reference/billing/preview-plan-change"
+                    ]
+                  },
+                  {
+                    "group": "额度",
+                    "pages": [
+                      "features/memorylake/api-reference/billing/get-credit-balance",
+                      "features/memorylake/api-reference/billing/list-credit-transactions",
+                      "features/memorylake/api-reference/billing/get-balance-alert",
+                      "features/memorylake/api-reference/billing/set-balance-alert",
+                      "features/memorylake/api-reference/billing/reset-balance-alert",
+                      "features/memorylake/api-reference/billing/list-balance-alert-events",
+                      "features/memorylake/api-reference/billing/get-auto-topup",
+                      "features/memorylake/api-reference/billing/list-auto-topup-attempts"
+                    ]
+                  },
+                  {
+                    "group": "订单",
+                    "pages": [
+                      "features/memorylake/api-reference/billing/list-orders",
+                      "features/memorylake/api-reference/billing/get-order"
+                    ]
+                  },
+                  {
+                    "group": "支付方式",
+                    "pages": [
+                      "features/memorylake/api-reference/billing/list-payment-methods"
+                    ]
+                  },
+                  {
+                    "group": "发票",
+                    "pages": [
+                      "features/memorylake/api-reference/billing/list-invoices",
+                      "features/memorylake/api-reference/billing/get-invoice",
+                      "features/memorylake/api-reference/billing/download-invoice-pdf",
+                      "features/memorylake/api-reference/billing/get-billing-details",
+                      "features/memorylake/api-reference/billing/set-billing-details"
+                    ]
                   }
                 ]
               },
@@ -481,52 +656,6 @@
               },
               "features/memorylake/api-reference/errors",
               "features/memorylake/api-reference/rate-limits"
-            ]
-          },
-          {
-            "group": "管理 API",
-            "pages": [
-              "features/management-api/overview",
-              {
-                "group": "团队",
-                "pages": [
-                  "features/management-api/team/get-team",
-                  "features/management-api/team/update-team"
-                ]
-              },
-              {
-                "group": "API 密钥",
-                "pages": [
-                  "features/management-api/api-keys/list-api-keys",
-                  "features/management-api/api-keys/create-api-key",
-                  "features/management-api/api-keys/get-api-key",
-                  "features/management-api/api-keys/rotate-api-key",
-                  "features/management-api/api-keys/revoke-api-key"
-                ]
-              },
-              {
-                "group": "成员",
-                "pages": [
-                  "features/management-api/members/list-members", "features/management-api/members/list-roles",
-                  "features/management-api/members/create-member",
-                  "features/management-api/members/update-member",
-                  "features/management-api/members/remove-member"
-                ]
-              },
-              {
-                "group": "邀请",
-                "pages": [
-                  "features/management-api/invitations/create-invitation",
-                  "features/management-api/invitations/list-invitations",
-                  "features/management-api/invitations/revoke-invitation"
-                ]
-              },
-              {
-                "group": "用量",
-                "pages": [
-                  "features/management-api/usage/get-usage"
-                ]
-              }
             ]
           }
         ]
@@ -585,5 +714,11 @@
         ]
       }
     ]
-  }
+  },
+  "redirects": [
+    {
+      "source": "/features/management-api/:slug*",
+      "destination": "/features/memorylake/api-reference/:slug*"
+    }
+  ]
 }

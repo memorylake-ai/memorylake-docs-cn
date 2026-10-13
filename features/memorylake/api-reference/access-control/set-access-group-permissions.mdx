@@ -1,0 +1,95 @@
+---
+title: "设置用户组权限"
+description: "替换用户组自有的权限列表；`[]` 会移除其中所有权限"
+---
+
+```
+PUT /openapi/memorylake/admin/v1/access-groups/{group_id}/permissions
+```
+
+替换用户组自有的权限列表；`[]` 会移除其中所有权限。基础角色或基础用户组保持不变。仅接受 `GET /permission-catalog?grantable_to=access_group` 中的权限。发送 `If-Match` 时还需要 `view` 权限：需读取当前列表进行比较。
+
+响应携带 `ETag` 头（与对该资源执行 GET 时返回的值相同）。将其放入 `If-Match` 回传即可使写入成为条件写入：若资源在此期间已被修改，写入将以 412 被拒绝，且不做任何更改。该校验能缩小但无法完全消除并发覆盖的窗口——两个在同一时刻通过校验的写入方都可能写入成功。
+
+<Note>
+**所需权限：** `access_group:manage`
+
+- 发送了 `If-Match`（会读取当前列表进行比对）时：`access_group:view`
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="group_id" type="string" required>
+标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="If-Match" type="string">
+可选。来自[获取用户组](/features/memorylake/api-reference/access-control/get-access-group)或先前[设置用户组权限](/features/memorylake/api-reference/access-control/set-access-group-permissions)的 ETag。若该用户组的权限此后已变更，写入将以 412 拒绝；省略则无条件覆盖。
+</ParamField>
+
+### 请求体
+
+<ParamField body="permissions" type="array" required>
+用户组的完整权限列表；传 `[]` 将移除全部权限。基础角色或基础用户组不受影响。
+<Expandable title="Access Group Permission 对象">
+  <ParamField body="permissions[].action" type="string" required>操作</ParamField>
+  <ParamField body="permissions[].resource_type" type="string" required>资源类型（参见 `GET /permission-catalog?grantable_to=access_group`）</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="reason" type="string" required>
+变更原因；记录在审计日志中
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups/7013fb5c15cfb29411f040967354b8a3/permissions' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "permissions": [
+      {
+        "action": "example",
+        "resource_type": "example"
+      }
+    ],
+    "reason": "example"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Access Group Permissions 对象">
+  <ResponseField name="group_id" type="string">用户组</ResponseField>
+  <ResponseField name="permissions" type="array">
+  用户组在其基础角色或基础用户组之上额外授予的权限
+  <Expandable title="Access Group Permission 对象">
+    <ResponseField name="action" type="string">操作</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型（参见 `GET /permission-catalog?grantable_to=access_group`）</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "group_id": "6bb71ef5236628d6e205696e676c1e4b",
+    "permissions": [
+      {
+        "action": "example",
+        "resource_type": "example"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

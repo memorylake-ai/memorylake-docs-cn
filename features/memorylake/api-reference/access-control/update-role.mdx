@@ -1,0 +1,96 @@
+---
+title: "更新自定义角色"
+description: "重命名自定义角色或修改其描述"
+---
+
+```
+PATCH /openapi/memorylake/admin/v1/roles/{role_key}
+```
+
+重命名自定义角色或修改其描述。仅更改您发送的字段；不接受 null。内置角色无法修改（409）。如需更改角色授予的权限，请使用权限规则。
+
+<Note>
+**所需权限：** `policy:custom_role_manage`
+</Note>
+
+### 路径参数
+
+<ParamField path="role_key" type="string" required>
+自定义角色的角色键
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="description" type="string">
+新描述；传 `""` 可清除
+</ParamField>
+
+<ParamField body="label" type="string">
+新显示名称
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles/data_analyst' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "description": "Example description",
+    "label": "example"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Role Detail 对象">
+  <ResponseField name="admin_grant_only" type="boolean">为 true 时，仅团队所有者或持有管理员基线的成员（通过其角色或用户组）可授予此角色。这是角色本身的属性，对所有调用方相同；不同于控制台角色列表中按调用方计算的可分配标记。</ResponseField>
+  <ResponseField name="assignable" type="boolean">成员与邀请的写操作是否接受此角色——对所有调用方相同。所有者角色始终不接受。与控制台的角色列表不同，此字段不表示您本人能否授予该角色：如需判断，请结合 `admin_grant_only` 与您自己的角色。</ResponseField>
+  <ResponseField name="built_in" type="boolean">每个团队都有的三个角色为 true；在本团队中创建的角色为 false</ResponseField>
+  <ResponseField name="key" type="string">成员与邀请写操作的角色字段所接受的值</ResponseField>
+  <ResponseField name="label" type="string">显示名称。内置角色带有固定的英文标签；自定义角色使用操作者设置的名称。</ResponseField>
+  <ResponseField name="base_role_key" type="string">对于自定义角色：创建时被复制权限规则的来源角色。内置角色以及未指定基础角色创建的自定义角色不包含此字段。</ResponseField>
+  <ResponseField name="description" type="string">由运营方撰写的描述。仅自定义角色带有描述。</ResponseField>
+  <ResponseField name="parent_role_key" type="string">与 `base_role_key` 的值相同；为兼容现有客户端而保留。</ResponseField>
+  <ResponseField name="permissions" type="array">
+  该角色授予的全部权限及其来源。仅返回给在 `tenant:policy` 上持有 `policy:manage` 的调用方；对其他调用方省略。空列表表示该角色不授予任何权限。实例限制（该角色的访问范围）不在此体现。
+  <Expandable title="Role Permission 对象">
+    <ResponseField name="permission" type="string">权限，格式为 `<resource_type>:<action>`（例如 `memorylake:project:project:read`）</ResponseField>
+    <ResponseField name="source" type="string">`built_in`：属于内置角色定义的一部分。`base_role`：基础角色同样授予该权限——在创建此角色时从基础角色复制而来。`role_rule`：仅由此角色自身的权限规则授予。</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "admin_grant_only": false,
+    "assignable": false,
+    "built_in": false,
+    "key": "sk-f6e5d4c3...redacted...b2a1",
+    "label": "example",
+    "base_role_key": "tenant_member",
+    "description": "Example description",
+    "parent_role_key": "example",
+    "permissions": [
+      {
+        "permission": "example",
+        "source": "built_in"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

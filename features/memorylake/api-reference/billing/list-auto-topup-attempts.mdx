@@ -1,0 +1,89 @@
+---
+title: "列出自动充值记录"
+description: "列出自动充值尝试记录，按时间倒序——包括失败的尝试，失败的尝试可能没有订单"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/auto-topup/attempts
+```
+
+列出自动充值尝试记录，按时间倒序——包括失败的尝试，失败的尝试可能没有订单。
+
+<Note>
+**所需权限：** `credits:view`
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页条数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/auto-topup/attempts' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Auto Topup Attempt 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Auto Topup Attempt 对象">
+    <ResponseField name="amount" type="object">
+    扣费金额（或尝试扣费的金额）
+    <Expandable title="Money 对象">
+      <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+      <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="created_at" type="integer">Unix 秒级时间戳</ResponseField>
+    <ResponseField name="failure_reason" type="string">失败原因；仅当 `status` 为 `failed` 时有值，否则为 null。`payment_method_missing` 表示未绑定银行卡；`payment_failed` 表示支付服务商拒绝或未能完成扣款；`processing_error` 表示无法发起扣款</ResponseField>
+    <ResponseField name="id" type="integer">尝试 ID</ResponseField>
+    <ResponseField name="order_id" type="string">为该笔扣费创建的订单（GET /billing/orders/\{order_id\}）；未创建时为 null</ResponseField>
+    <ResponseField name="status" type="string">本次尝试的结果。可选值：`pending`、`succeeded`、`failed`、`refunded`。</ResponseField>
+    <ResponseField name="tokens" type="integer">充值成功时增加的 tokens</ResponseField>
+    <ResponseField name="triggered_by" type="string">触发来源。可选值：`balance_check`、`manual`。</ResponseField>
+    <ResponseField name="updated_at" type="integer">Unix 秒级时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "amount": {
+          "amount": 1999,
+          "currency": "usd"
+        },
+        "created_at": 1760000000,
+        "failure_reason": "payment_method_missing",
+        "id": 1,
+        "order_id": "74e5cfabc395a14f8f866a7031a74a3f",
+        "status": "pending",
+        "tokens": 1200000,
+        "triggered_by": "balance_check",
+        "updated_at": 1760000000
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

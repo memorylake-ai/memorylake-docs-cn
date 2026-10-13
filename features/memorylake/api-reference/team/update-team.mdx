@@ -1,0 +1,68 @@
+---
+title: "重命名团队"
+description: "更新团队的显示名称"
+---
+
+```
+PATCH /openapi/memorylake/admin/v1/team
+```
+
+更新团队的显示名称。仅团队所有者可执行此操作——与控制台的规则一致。
+
+<Note>
+**所需权限：** 仅团队所有者
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+团队的新显示名称
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/team' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Example name"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Team 对象">
+  <ResponseField name="created_at" type="integer">创建时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="id" type="string">此团队的稳定标识符</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="owner_principal_id" type="string">团队所有者的 `principal_id`（参见成员列表）</ResponseField>
+  <ResponseField name="type" type="string">`personal` 表示单用户空间，`org` 表示有成员的团队</ResponseField>
+  <ResponseField name="caller_role" type="string">调用所用 Key 在此团队中的角色：`tenant_owner` | `tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "created_at": 1760000000,
+    "id": "7d9e7032509bd2d43c2eeec93bae86a2",
+    "name": "Example name",
+    "owner_principal_id": "284c4662589661476271ee7c94015dec",
+    "type": "personal",
+    "caller_role": "tenant_member"
+  }
+}
+```
+</ResponseExample>

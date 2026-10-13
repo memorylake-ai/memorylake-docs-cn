@@ -1,0 +1,65 @@
+---
+title: "更新成员"
+description: "更改成员的角色和/或成员级用量上限"
+---
+
+```
+PATCH /openapi/memorylake/admin/v1/members/{principal_id}
+```
+
+更改成员的角色和/或成员级用量上限。仅更改您发送的字段；不接受 `null`。此处不可分配所有者角色，也不可更改所有者本人的角色和您自己的角色——如需移交所有权，请使用[转让所有权](/features/memorylake/api-reference/team/transfer-ownership)。
+
+<Note>
+**所需权限：** 取决于您发送的内容：
+
+- 发送了 `role` 时：`member:change_role`
+- 发送了 `max_tokens` 时：`member:set_quota`
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="principal_id" type="string" required>
+成员的标识符（`principal_id`）
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="max_tokens" type="integer">
+每位成员的用量上限，单位 tokens，最多 1374389534。0 表示取消上限。
+</ParamField>
+
+<ParamField body="role" type="string">
+新角色：`tenant_admin`、`tenant_member` 或本团队的自定义角色键。此处不能指定所有者角色。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members/dbcf9a3aabee5042775269c9d137a2f8' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "max_tokens": 1200000,
+    "role": "tenant_member"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

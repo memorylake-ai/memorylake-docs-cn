@@ -61,6 +61,12 @@ Mintlify 的标题锚点由标题文本生成，**保留 `：`、`’`、`&` 等
 
 `mint broken-links` **不检查锚点**，所以坏锚点会长期潜伏。改动标题或新增带锚点的链接后，用 `mint dev` 起服务、抓页面 HTML 里 `<h2..h4 id="...">` 作为基准来核对，不要凭推断拼 slug。
 
+## 生成的 API 页
+
+`features/memorylake/api-reference/` 下这几个目录里的页面由接口自身的 spec 生成：`team/`、`members/`、`invitations/`、`api-keys/`、`access-control/`、`usage/`、`billing/`、`integrations/`。**不要手改**，下次同步会覆盖。要改其中某页，请改 `memorylake-apiservice` 仓库里的 spec 或生成器（`cmd/docs-gen`：页面清单与顺序在 `pages.yaml`，中文在 `i18n/zh.yaml`），再运行 `task openapi:docs INTL=<memorylake-docs> CN=<本仓库>`，它会同时改写两个文档仓库。通用页（`overview`、`authentication`、`errors`、`rate-limits`）仍是手写。
+
+旧的 `features/management-api/*` 地址已重定向到这些页（`docs.json` 的 `redirects`）。
+
 ## 隐藏的 API 文档
 
 部分 API 参考分组已经发布，但默认不展示。这些分组放在「API 参考」标签里它们最终的位置上，读者在顶部导航**连续点击「API 参考」标签 5 次（3 秒内）**后才能看到。再点 5 次重新隐藏，选择会记在浏览器里。

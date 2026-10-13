@@ -1,0 +1,48 @@
+---
+title: "删除用户组"
+description: "删除用户组；其成员将失去该组授予的权限"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/access-groups/{group_id}
+```
+
+删除用户组；其成员将失去该组授予的权限。只要仍有其他用户组以其为基础，请求将以 409 被拒绝。
+
+<Note>
+**所需权限：** `access_group:manage`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="group_id" type="string" required>
+标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups/7013fb5c15cfb29411f040967354b8a3' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

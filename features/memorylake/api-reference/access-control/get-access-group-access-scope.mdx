@@ -1,0 +1,87 @@
+---
+title: "获取用户组访问范围"
+description: "按资源类型返回用户组为其成员提供访问的实例"
+---
+
+```
+GET /openapi/memorylake/admin/v1/access-groups/{group_id}/access-scope
+```
+
+按资源类型返回用户组为其成员提供访问的实例。`ETag` 头标识此状态，可用于条件式[设置用户组访问范围](/features/memorylake/api-reference/access-control/set-access-group-access-scope)。
+
+<Note>
+**所需权限：** `access_group:view`
+</Note>
+
+### 路径参数
+
+<ParamField path="group_id" type="string" required>
+标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups/7013fb5c15cfb29411f040967354b8a3/access-scope' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Access Group Access Scope 对象">
+  <ResponseField name="group_id" type="string">用户组</ResponseField>
+  <ResponseField name="scopes" type="array">
+  每个可设范围的资源类型一项；用户组只会增加访问权限
+  <Expandable title="Access Scope Entry 对象">
+    <ResponseField name="mode" type="string">`all` 表示所有实例；`instances` 表示仅列出的实例</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型，例如 `memorylake:project`（参见 `GET /permission-catalog`）</ResponseField>
+    <ResponseField name="available_actions" type="array">只读。成员角色对该类型授予的实例级操作——即范围条目最多可允许的操作。</ResponseField>
+    <ResponseField name="instances" type="array">
+    `mode` 为 `instances` 时的实例列表
+    <Expandable title="Access Scope Instance 对象">
+      <ResponseField name="id" type="string">实例 ID，与数据 API 返回的一致</ResponseField>
+      <ResponseField name="actions" type="array">该实例上允许的操作。省略则为该成员角色允许的全部操作。</ResponseField>
+      <ResponseField name="effective_actions" type="array">只读。成员当前角色仍授予的操作子集。</ResponseField>
+      <ResponseField name="permission_level" type="string">只读。当 `via_permission_level` 为 true 时的权限级别。可选值：`read`、`write`、`manage`。</ResponseField>
+      <ResponseField name="shadowed_actions" type="array">只读。此处存储但成员当前角色已不再授予的操作。</ResponseField>
+      <ResponseField name="via_permission_level" type="boolean">只读。成员通过在此实例上授予的权限级别访问该实例，而非通过此范围。写入时可原样回传；此类实例会被跳过。</ResponseField>
+      <ResponseField name="workspace_id" type="string">项目实例的父工作空间。写入项目实例时必填。</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "group_id": "75bcd78140d9e42928db031f1fbb59a5",
+    "scopes": [
+      {
+        "mode": "all",
+        "resource_type": "example",
+        "available_actions": [
+          "example"
+        ],
+        "instances": [
+          {
+            "id": "bc572b050c9920425b5fd75681eccbb2",
+            "actions": [],
+            "effective_actions": [],
+            "permission_level": "read",
+            "shadowed_actions": [],
+            "via_permission_level": false,
+            "workspace_id": "0fa2d21dc175adc7a003e0b37f156cb1"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

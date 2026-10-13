@@ -1,0 +1,46 @@
+---
+title: "删除 IM 集成"
+description: "断开机器人连接，并删除该集成及其会话映射"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/integrations/{integration_id}
+```
+
+断开机器人连接，并删除该集成及其会话映射。会话历史会保留。
+
+<Note>
+**所需权限：** `workspace:integration_manage`（作用于 `workspace_id`）
+</Note>
+
+### 路径参数
+
+<ParamField path="integration_id" type="string" required>
+集成的标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/integrations/8e6332af9d801f19496ca0f9fded5333' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

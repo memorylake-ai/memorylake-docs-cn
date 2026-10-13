@@ -1,0 +1,63 @@
+---
+title: "访问控制"
+description: "角色、权限规则、用户组、访问范围与单个资源的访问权限"
+---
+
+访问控制决定团队里每位成员能做什么、能在哪里做。每个 API Key 都以创建它的成员身份行事，所以同一套规则也决定了 Key 能做什么。通过这组接口，您无需打开控制台就能管理这些规则。
+
+## 权限如何确定
+
+<Steps>
+<Step title="角色">
+每位成员有一个角色。内置角色是 `tenant_owner`、`tenant_admin` 和 `tenant_member`，您也可以添加[自定义角色](/features/memorylake/api-reference/access-control/create-role)。一个角色包含一组操作，例如 `project:modify`、`member:invite`。[列出角色](/features/memorylake/api-reference/members/list-roles)返回团队的角色，[权限目录](/features/memorylake/api-reference/access-control/get-permission-catalog)列出所有可以授予的操作。
+</Step>
+<Step title="权限规则">
+一条[权限规则](/features/memorylake/api-reference/access-control/create-permission-rules)为某个自定义角色或某位成员额外允许一个操作。内置角色不可更改。
+</Step>
+<Step title="用户组">
+[用户组](/features/memorylake/api-reference/access-control/create-access-group)把一组权限（以及可选的资源列表）打包，授予加入该组的每位成员。
+</Step>
+<Step title="访问范围">
+[访问范围](/features/memorylake/api-reference/members/set-member-access-scope)把角色收窄到某类资源中列出的那几个，例如只允许访问团队的两个工作空间。访问范围只做限制，不会授予超出角色的权限。没有设置访问范围的资源类型不受限。
+</Step>
+<Step title="资源访问权限">
+在单个资源上，您可以给成员设置权限级别（`read`、`write` 或 `manage`），也可以把该资源加入某人受限的访问范围。见下文[资源访问权限](#资源访问权限)。
+</Step>
+</Steps>
+
+要查看某位成员或某个用户组的最终结果以及每项权限的来源，请使用[查看成员有效权限](/features/memorylake/api-reference/members/get-member-effective-permissions)或[查看用户组有效权限](/features/memorylake/api-reference/access-control/get-access-group-effective-permissions)。要确认您自己的 Key 能做什么，请使用[列出我的权限](/features/memorylake/api-reference/access-control/list-my-permissions)。
+
+## 资源访问权限
+
+可以按单个资源共享的各类资源，都使用同一组资源访问接口。路径中给出资源类型和资源 ID：
+
+```
+/openapi/memorylake/admin/v1/access/{resource_type}/{resource_id}
+```
+
+| `resource_type` | 资源 |
+|---|---|
+| `workspaces` | 工作空间 |
+| `projects` | 项目 |
+| `actors` | Actor |
+| `agents` | Agent |
+| `skills` | 技能 |
+| `boundaries` | Boundary |
+| `workspaces/{workspace_id}/actors` | 绑定到工作空间的 Actor |
+| `workspaces/{workspace_id}/agents` | 绑定到工作空间的 Agent |
+
+| 接口 | 作用 |
+|---|---|
+| [查看资源访问权限](/features/memorylake/api-reference/access-control/get-resource-access) | 谁能访问该资源，以及原因 |
+| [列出可选权限级别](/features/memorylake/api-reference/access-control/list-permission-level-options) | 您可以为某位成员设置的级别 |
+| [设置权限级别](/features/memorylake/api-reference/access-control/set-permission-level) | 给成员设置该资源上的 `read`、`write` 或 `manage` |
+| [授予访问权限](/features/memorylake/api-reference/access-control/grant-scope) | 把该资源加入受限的访问范围 |
+| [撤销访问权限](/features/memorylake/api-reference/access-control/revoke-scope) | 把它移出 |
+
+## 条件写入
+
+整体替换一份列表的写操作（访问范围、用户组的权限）会返回 `ETag` 响应头。下次写入时把它放进 `If-Match`：如果这期间有人改过这份列表，写入会以 `412` 被拒绝，且不做任何改动。
+
+## 保护管理员
+
+有些改动会影响管理员能做的事：让某人成为管理员，或缩小管理员的访问范围。这类改动只能由团队所有者或管理员执行。其他人尝试时请求会以 `403` 被拒绝，错误中的 `data.operation` 指明是哪类改动，参见[错误码](/features/memorylake/api-reference/errors)。

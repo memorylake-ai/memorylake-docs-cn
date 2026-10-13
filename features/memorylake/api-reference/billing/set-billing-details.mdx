@@ -1,0 +1,98 @@
+---
+title: "设置开票信息"
+description: "替换已付款发票上打印的购买方信息（未提供的字段会被清空）"
+---
+
+```
+PUT /openapi/memorylake/admin/v1/billing/invoices/{invoice_id}/billing-details
+```
+
+替换已付款发票上打印的购买方信息（未提供的字段会被清空）。之后下载的 PDF 将包含这些信息。
+
+<Note>
+**所需权限：** `invoice:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="invoice_id" type="string" required>
+发票 ID（`invoice_id`）
+</ParamField>
+
+### 请求体
+
+<ParamField body="address" type="string" required>
+账单地址
+</ParamField>
+
+<ParamField body="invoice_type" type="string" required>
+`individual` 需要 `name`；`business` 需要 `company_name`
+</ParamField>
+
+<ParamField body="company_name" type="string">
+公司名称
+</ParamField>
+
+<ParamField body="contact_email" type="string">
+联系邮箱
+</ParamField>
+
+<ParamField body="name" type="string">
+人员姓名
+</ParamField>
+
+<ParamField body="tax_id" type="string">
+纳税人识别号
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/invoices/2501a637ff332794f7dc5edee0556e67/billing-details' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "address": "example",
+    "invoice_type": "individual",
+    "company_name": "Example company",
+    "contact_email": "alice@example.com",
+    "name": "Example name",
+    "tax_id": "4155f354c126224a5833bdd25597ea80"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Billing Details 对象">
+  <ResponseField name="address" type="string">账单地址</ResponseField>
+  <ResponseField name="company_name" type="string">公司名称</ResponseField>
+  <ResponseField name="contact_email" type="string">联系邮箱</ResponseField>
+  <ResponseField name="invoice_id" type="string">发票</ResponseField>
+  <ResponseField name="invoice_type" type="string">`individual` 表示开具给个人（`name`）；`business` 表示开具给公司（`company_name`）</ResponseField>
+  <ResponseField name="name" type="string">人员姓名</ResponseField>
+  <ResponseField name="saved" type="boolean">false 表示尚未保存任何内容：字段值是根据发票开具对象成员的资料给出的建议（或为空），PDF 为服务商提供的版本</ResponseField>
+  <ResponseField name="tax_id" type="string">纳税人识别号</ResponseField>
+  <ResponseField name="updated_at" type="integer">上次保存时间，Unix 秒级时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "address": "example",
+    "company_name": "Example company",
+    "contact_email": "alice@example.com",
+    "invoice_id": "19c056571f855cb3f9252ccbcaada863",
+    "invoice_type": "individual",
+    "name": "Example name",
+    "saved": false,
+    "tax_id": "42e837c2d259aa902d4196922464cfeb",
+    "updated_at": 1760000000
+  }
+}
+```
+</ResponseExample>

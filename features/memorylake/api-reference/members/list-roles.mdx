@@ -1,0 +1,64 @@
+---
+title: "列出角色"
+description: "列出您团队的角色：三个内置角色以及本团队的自定义角色"
+---
+
+```
+GET /openapi/memorylake/admin/v1/roles
+```
+
+列出您团队的角色：三个内置角色以及本团队的自定义角色。`key` 即成员和邀请写入操作中角色字段接受的值。所有者角色永远无法通过此 API 分配；标记为 `admin_grant_only` 的角色只能由所有者或持有管理员基线（通过其角色或用户组）的成员授予。这两个标志描述的是角色本身而非您：对所有调用方都相同。任何成员都可读取。
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Roles 对象">
+  <ResponseField name="roles" type="array">
+  先列内置角色（`owner`、`admin`、`member`），再按创建时间从早到晚列出本团队的自定义角色
+  <Expandable title="Role 对象">
+    <ResponseField name="admin_grant_only" type="boolean">为 true 时，仅团队所有者或持有管理员基线的成员（通过其角色或用户组）可授予此角色。这是角色本身的属性，对所有调用方相同；不同于控制台角色列表中按调用方计算的可分配标记。</ResponseField>
+    <ResponseField name="assignable" type="boolean">成员与邀请的写操作是否接受此角色——对所有调用方相同。所有者角色始终不接受。与控制台的角色列表不同，此字段不表示您本人能否授予该角色：如需判断，请结合 `admin_grant_only` 与您自己的角色。</ResponseField>
+    <ResponseField name="built_in" type="boolean">每个团队都有的三个角色为 true；在本团队中创建的角色为 false</ResponseField>
+    <ResponseField name="key" type="string">成员与邀请写操作的角色字段所接受的值</ResponseField>
+    <ResponseField name="label" type="string">显示名称。内置角色带有固定的英文标签；自定义角色使用操作者设置的名称。</ResponseField>
+    <ResponseField name="base_role_key" type="string">对于自定义角色：创建时被复制权限规则的来源角色。内置角色以及未指定基础角色创建的自定义角色不包含此字段。</ResponseField>
+    <ResponseField name="description" type="string">由运营方撰写的描述。仅自定义角色带有描述。</ResponseField>
+    <ResponseField name="parent_role_key" type="string">与 `base_role_key` 的值相同；为兼容现有客户端而保留。</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "roles": [
+      {
+        "admin_grant_only": false,
+        "assignable": false,
+        "built_in": false,
+        "key": "sk-f6e5d4c3...redacted...b2a1",
+        "label": "example",
+        "base_role_key": "tenant_member",
+        "description": "Example description",
+        "parent_role_key": "example"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

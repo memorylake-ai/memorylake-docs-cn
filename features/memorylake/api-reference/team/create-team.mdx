@@ -1,0 +1,106 @@
+---
+title: "创建团队"
+description: "以 API Key 所有者身份创建新的组织团队"
+---
+
+```
+POST /openapi/memorylake/admin/v1/teams
+```
+
+以 API Key 所有者身份创建新的组织团队。若 `issue_api_key` 为 `true`，响应中会包含该团队新的所有者 API Key，且仅返回一次。创建团队计入所有者的团队数量上限，并在可用时发放免费套餐。
+
+<Warning>
+**高风险操作。** 调用后立即生效。调用前请先读完上面说明的影响。
+</Warning>
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。若签发了 API Key，其密钥仅在首次响应中返回。
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+新组织团队的显示名称
+</ParamField>
+
+<ParamField body="api_key_name" type="string">
+可选所有者 API Key 的显示名称。默认为团队名称加上 ' API key'。
+</ParamField>
+
+<ParamField body="issue_api_key" type="boolean">
+若为 true，还会在新团队中创建一个所有者 API Key，并仅返回一次其密钥。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/teams' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Example name",
+    "api_key_name": "Example api key",
+    "issue_api_key": true
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Create Team 对象">
+  <ResponseField name="team" type="object">
+  新团队
+  <Expandable title="Team 对象">
+    <ResponseField name="created_at" type="integer">创建时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="id" type="string">此团队的稳定标识符</ResponseField>
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="owner_principal_id" type="string">团队所有者的 `principal_id`（参见成员列表）</ResponseField>
+    <ResponseField name="type" type="string">`personal` 表示单用户空间，`org` 表示有成员的团队</ResponseField>
+    <ResponseField name="caller_role" type="string">调用所用 Key 在此团队中的角色：`tenant_owner` | `tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="api_key" type="object">
+  新团队的一次性 API Key，仅在 `issue_api_key` 为 true 时返回。幂等重放时不返回 Key 密钥。
+  <Expandable title="API Key Created 对象">
+    <ResponseField name="id" type="string">此 API Key 的稳定标识符</ResponseField>
+    <ResponseField name="key" type="string">完整的 API Key，包含 `sk-` 前缀。请立即保存——读取类端点不会再返回它。</ResponseField>
+    <ResponseField name="key_prefix" type="string">Key 主体的前 8 个字符</ResponseField>
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="key_suffix" type="string">Key 的后 4 个字符</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (201)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "team": {
+      "created_at": 1760000000,
+      "id": "7d9e7032509bd2d43c2eeec93bae86a2",
+      "name": "Example name",
+      "owner_principal_id": "284c4662589661476271ee7c94015dec",
+      "type": "personal",
+      "caller_role": "tenant_member"
+    },
+    "api_key": {
+      "id": "b62967384a5222f7709e7ee5220e565f",
+      "key": "sk-f6e5d4c3...redacted...b2a1",
+      "key_prefix": "f6e5d4c3",
+      "name": "Example name",
+      "key_suffix": "b2a1"
+    }
+  }
+}
+```
+</ResponseExample>

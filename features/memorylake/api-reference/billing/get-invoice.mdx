@@ -1,0 +1,94 @@
+---
+title: "获取发票"
+description: "返回一张发票"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/invoices/{invoice_id}
+```
+
+返回一张发票。其他团队的发票会报告为未找到。
+
+<Note>
+**所需权限：** `invoice:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="invoice_id" type="string" required>
+发票 ID（`invoice_id`）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/invoices/2501a637ff332794f7dc5edee0556e67' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Billing Invoice 对象">
+  <ResponseField name="created_at" type="integer">签发时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="hosted_invoice_url" type="string">支付服务商托管的发票页面；没有时为 null</ResponseField>
+  <ResponseField name="invoice_id" type="string">发票 ID</ResponseField>
+  <ResponseField name="invoice_pdf_url" type="string">支付服务商自身的 PDF 链接；服务商尚未提供时为 null。GET /billing/invoices/\{invoice_id\}/pdf 始终在本 API 内直接返回 PDF</ResponseField>
+  <ResponseField name="number" type="string">票面上印制的发票号码</ResponseField>
+  <ResponseField name="order_id" type="string">其所属的订单（GET /billing/orders/\{order_id\}）；没有时为 null</ResponseField>
+  <ResponseField name="status" type="string">发票状态。可选值：`draft`、`open`、`paid`、`uncollectible`、`void`。</ResponseField>
+  <ResponseField name="subtotal" type="object">
+  税前合计
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="tax" type="object">
+  税额
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="total" type="object">
+  合计
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="due_at" type="integer">付款截止时间，Unix 秒级时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "created_at": 1760000000,
+    "hosted_invoice_url": "https://example.com/hosted_invoice",
+    "invoice_id": "fc9ec77f14773109fc1b0f8a2749731e",
+    "invoice_pdf_url": "https://example.com/invoice_pdf",
+    "number": "example",
+    "order_id": "98fae70aa1ad919811f9214706e755e1",
+    "status": "draft",
+    "subtotal": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "tax": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "total": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "due_at": 1760000000
+  }
+}
+```
+</ResponseExample>

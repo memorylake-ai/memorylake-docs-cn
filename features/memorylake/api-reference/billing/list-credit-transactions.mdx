@@ -1,0 +1,80 @@
+---
+title: "列出额度流水"
+description: "列出计入余额的额度，按时间倒序，并标明来源"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/credit-transactions
+```
+
+列出计入余额的额度，按时间倒序，并标明来源。持有 `log:read_all` 时返回整个团队的条目；仅持有 `log:read_self` 时，返回为您记录的条目。仅通过 `continuation_token` 分页——不返回总数。
+
+<Note>
+**所需权限：** `log:read_all`（全团队）或 `log:read_self`（仅本人）
+</Note>
+
+### 查询参数
+
+<ParamField query="start_time" type="integer">
+仅返回该时间及之后的条目，Unix 秒级时间戳
+</ParamField>
+
+<ParamField query="end_time" type="integer">
+仅返回该时间之前的条目，Unix 秒级时间戳
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页条数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/credit-transactions' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Credit Transaction 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Credit Transaction 对象">
+    <ResponseField name="created_at" type="integer">Unix 秒级时间戳</ResponseField>
+    <ResponseField name="id" type="integer">流水 ID</ResponseField>
+    <ResponseField name="order_id" type="string">其对应的订单（GET /billing/orders/\{order_id\}）；没有时为 null</ResponseField>
+    <ResponseField name="source" type="string">额度来源：`order`（购买）、`auto_topup`（自动充值）、`redemption`（兑换码）、`invite_code`（邀请码）、`subscription_grant`（订阅周期发放的 tokens）；`other` 表示未记录来源的早期条目</ResponseField>
+    <ResponseField name="tokens" type="integer">增加的 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "created_at": 1760000000,
+        "id": 1,
+        "order_id": "afa1df0e22978cf3ba3d864039a2b510",
+        "source": "order",
+        "tokens": 1200000
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

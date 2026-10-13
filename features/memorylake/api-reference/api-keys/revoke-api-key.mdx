@@ -1,0 +1,46 @@
+---
+title: "吊销 API Key"
+description: "删除 API Key"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/api-keys/{id}
+```
+
+删除 API Key。用于发起请求的 Key 不能吊销自身。
+
+<Note>
+**所需权限：** `service_account:delete`（仅本人的 Key）或 `service_account:delete`（全部 Key）
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+API Key 的标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d971b8b5813eb1ecceec31354c101b4' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

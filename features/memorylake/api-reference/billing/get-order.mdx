@@ -1,0 +1,83 @@
+---
+title: "获取订单"
+description: "返回一个订单"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/orders/{order_id}
+```
+
+返回一个订单。其他团队的订单会报告为未找到。
+
+<Note>
+**所需权限：** `order:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="order_id" type="string" required>
+订单号（`order_id`）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/orders/2ea2c7c1d2145b58dc6229dde0cca855' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Billing Order 对象">
+  <ResponseField name="amount" type="object">
+  已支付金额（或应付金额）
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="created_at" type="integer">Unix 秒级时间戳</ResponseField>
+  <ResponseField name="invoice_id" type="string">发票（GET /billing/invoices/\{invoice_id\}）；未开具时为 null</ResponseField>
+  <ResponseField name="order_id" type="string">订单号（收据上显示的交易号）</ResponseField>
+  <ResponseField name="receipt_url" type="string">支付服务商的收据页面；没有时为 null</ResponseField>
+  <ResponseField name="status" type="string">付款状态；`closed` = 付款前已放弃。可选值：`pending`、`succeeded`、`failed`、`closed`、`refunded`、`disputed`。</ResponseField>
+  <ResponseField name="tokens_granted" type="integer">订单支付后计入余额的 tokens（订阅付款为 0——其 tokens 以订阅发放的形式到账）</ResponseField>
+  <ResponseField name="type" type="string">`onetime` 表示购买额度；`auto_topup` 表示自动充值扣款；`subscription` 表示订阅付款</ResponseField>
+  <ResponseField name="refunded_amount" type="object">
+  退款金额（如有）
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="refunded_at" type="integer">Unix 秒级时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "amount": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "created_at": 1760000000,
+    "invoice_id": "8ed8f98873f8216d20a57a529c68b80f",
+    "order_id": "15180b2f335b821ab2d276984445fd81",
+    "receipt_url": "https://example.com/receipt",
+    "status": "pending",
+    "tokens_granted": 1200000,
+    "type": "onetime",
+    "refunded_amount": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "refunded_at": 1760000000
+  }
+}
+```
+</ResponseExample>

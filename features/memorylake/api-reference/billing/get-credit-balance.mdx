@@ -1,0 +1,60 @@
+---
+title: "获取额度余额"
+description: "返回团队以 tokens 计的余额，分为本周期的订阅赠额和一次性额度，以及计费模式"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/credit-balance
+```
+
+返回团队以 tokens 计的余额，分为本周期的订阅赠额和一次性额度，以及计费模式。
+
+<Note>
+**所需权限：** `credits:view`
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/credit-balance' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Credit Balance 对象">
+  <ResponseField name="available_tokens" type="integer">以 tokens 计的团队余额：`one_time` 加上未过期的订阅额度。每部分各自向下取整，因此两者之和最多可比此值少 1 个 token。此处不应用成员自身的用量上限（参见 GET /usage）。</ResponseField>
+  <ResponseField name="billing_mode" type="string">`standard` 表示用量会扣减余额；`metering_only` 表示用量仅记录、不扣费</ResponseField>
+  <ResponseField name="breakdown" type="array">
+  按来源划分的余额
+  <Expandable title="Credit Balance Bucket 对象">
+    <ResponseField name="source" type="string">`subscription` 表示本周期的订阅发放额度；`one_time` 表示购买或赠送的不过期额度</ResponseField>
+    <ResponseField name="tokens" type="integer">此部分剩余的 tokens。`one_time` 在透支后可能为负数</ResponseField>
+    <ResponseField name="expires_at" type="integer">额度桶的过期时间，Unix 秒级时间戳；`one_time` 及已过期的订阅额度桶不返回此字段</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="unlimited" type="boolean">true 表示用量不从余额中扣除（`billing_mode` 为 `metering_only`）</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "available_tokens": 1200000,
+    "billing_mode": "standard",
+    "breakdown": [
+      {
+        "source": "subscription",
+        "tokens": 1200000,
+        "expires_at": 1760000000
+      }
+    ],
+    "unlimited": false
+  }
+}
+```
+</ResponseExample>

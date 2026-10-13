@@ -1,0 +1,100 @@
+---
+title: "列出成员"
+description: "列出您团队的成员"
+---
+
+```
+GET /openapi/memorylake/admin/v1/members
+```
+
+列出您团队的成员。任何成员都可读取成员名单；联系方式（`email`、`username`）仅返回给所有者和管理员。
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+
+- 设置了 `email` 时：团队所有者或管理员
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页条目数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌。不透明——请勿自行构造或解析。
+</ParamField>
+
+<ParamField query="name_fuzzy" type="string">
+按成员显示名称进行不区分大小写的子串匹配。对团队所有者和管理员，还会匹配邮箱和用户名。
+</ParamField>
+
+<ParamField query="role" type="string">
+仅返回 `role` 字段为此角色键的成员（`tenant_owner`、`tenant_admin`、`tenant_member` 或自定义角色键）。未知的角色键不匹配任何成员。
+</ParamField>
+
+<ParamField query="email" type="array">
+仅返回这些邮箱地址的成员（不区分大小写，精确匹配）。如需多个，请重复该参数。联系方式仅对所有者和管理员可见，此筛选条件同样如此：其他人会收到 403。
+</ParamField>
+
+<ParamField query="member_type" type="string">
+仅真人成员或仅虚拟成员。可选值：`human`、`virtual`。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Member 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Member 对象">
+    <ResponseField name="display_name" type="string">成员的显示名称</ResponseField>
+    <ResponseField name="joined_at" type="integer">此成员加入的时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="member_type" type="string">`human` 表示通过邀请加入，`virtual` 表示由所有者/管理员创建的托管身份</ResponseField>
+    <ResponseField name="principal_id" type="string">此成员的稳定标识符</ResponseField>
+    <ResponseField name="role" type="string">在本团队中的主角色：`tenant_owner` | `tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
+    <ResponseField name="status" type="string">成员状态。可选值：`active`、`inactive`。</ResponseField>
+    <ResponseField name="used_tokens" type="integer">此成员消耗的 tokens</ResponseField>
+    <ResponseField name="email" type="string">仅返回给团队所有者和管理员</ResponseField>
+    <ResponseField name="max_tokens" type="integer">每位成员的上限，单位 tokens。成员无上限时省略。</ResponseField>
+    <ResponseField name="username" type="string">仅返回给团队所有者和管理员</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "display_name": "Alice",
+        "joined_at": 1760000000,
+        "member_type": "human",
+        "principal_id": "42fbbd89934900ebbc74814c49f009d2",
+        "role": "tenant_member",
+        "status": "active",
+        "used_tokens": 1200000,
+        "email": "alice@example.com",
+        "max_tokens": 1200000,
+        "username": "alice"
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

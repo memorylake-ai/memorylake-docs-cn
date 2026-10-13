@@ -1,0 +1,111 @@
+---
+title: "更新用户组"
+description: "重命名用户组或修改其描述"
+---
+
+```
+PATCH /openapi/memorylake/admin/v1/access-groups/{group_id}
+```
+
+重命名用户组或修改其描述。仅更改您发送的字段；不接受 null。基础角色或基础用户组无法更改。响应为[获取用户组](/features/memorylake/api-reference/access-control/get-access-group)返回的用户组，因此还需要 `view` 权限。
+
+<Note>
+**所需权限：** `access_group:manage` 且 `access_group:view`
+</Note>
+
+### 路径参数
+
+<ParamField path="group_id" type="string" required>
+标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="description" type="string">
+新描述；传 `""` 可清除
+</ParamField>
+
+<ParamField body="name" type="string">
+新显示名称
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups/7013fb5c15cfb29411f040967354b8a3' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "description": "Example description",
+    "name": "Example name"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Access Group 对象">
+  <ResponseField name="created_at" type="integer">Unix 秒级时间戳</ResponseField>
+  <ResponseField name="created_by" type="string">创建者的 `principal_id`</ResponseField>
+  <ResponseField name="group_id" type="string">标识符</ResponseField>
+  <ResponseField name="member_count" type="integer">成员数</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="permissions" type="array">
+  用户组在其基础角色或基础用户组之上额外授予的权限
+  <Expandable title="Access Group Permission 对象">
+    <ResponseField name="action" type="string">操作</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型（参见 `GET /permission-catalog?grantable_to=access_group`）</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="updated_at" type="integer">Unix 秒级时间戳</ResponseField>
+  <ResponseField name="base_access_group_id" type="string">该用户组授予此另一用户组所授予的全部权限。创建时确定，之后不可更改。</ResponseField>
+  <ResponseField name="base_role_key" type="string">该用户组授予此角色（`tenant_member` 或 `tenant_admin`）所授予的全部权限。创建时确定，之后不可更改。</ResponseField>
+  <ResponseField name="description" type="string">描述</ResponseField>
+  <ResponseField name="scope_summary" type="array">
+  用户组开放访问的实例，按资源类型计数
+  <Expandable title="Access Group Scope Count 对象">
+    <ResponseField name="instance_count" type="integer">用户组向其成员开放访问的此类型实例</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "created_at": 1760000000,
+    "created_by": "example",
+    "group_id": "6f8976043c3a1d0040a5853315a3c843",
+    "member_count": 1,
+    "name": "Example name",
+    "permissions": [
+      {
+        "action": "example",
+        "resource_type": "example"
+      }
+    ],
+    "updated_at": 1760000000,
+    "base_access_group_id": "d62d704744ca464eeee07a49ef8c2877",
+    "base_role_key": "tenant_member",
+    "description": "Example description",
+    "scope_summary": [
+      {
+        "instance_count": 1,
+        "resource_type": "example"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,95 @@
+---
+title: "获取余额预警"
+description: "返回余额预警配置（已保存的配置，或 `is_default` 为 true 的默认配置），以及当前是否有预警生效"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/credit-balance/alert
+```
+
+返回余额预警配置（已保存的配置，或 `is_default` 为 true 的默认配置），以及当前是否有预警生效。
+
+<Note>
+**所需权限：** `credits:view`
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/credit-balance/alert' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Balance Alert 对象">
+  <ResponseField name="delivery_enabled" type="boolean">false 表示此部署完全不评估余额预警；设置会被保留但不生效</ResponseField>
+  <ResponseField name="enabled" type="boolean">是否发送预警</ResponseField>
+  <ResponseField name="is_default" type="boolean">true 表示尚未保存任何内容；采用所示的默认值（有订阅时为 `percent_used` 80 / 95，否则为 `tokens_remaining` 1,600,000 / 320,000）</ResponseField>
+  <ResponseField name="notification_channel" type="object">
+  预警的发送目标
+  <Expandable title="Alert Recipients Channel 对象">
+    <ResponseField name="recipients" type="array">附加邮箱地址，最多 5 个。团队所有者的邮箱也始终会收到预警</ResponseField>
+    <ResponseField name="type" type="string">投递渠道。可选值：`email`。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="status" type="object">
+  当前预警状态
+  <Expandable title="Balance Alert Status 对象">
+    <ResponseField name="state" type="string">`triggered` 表示预警已触发，且余额尚未恢复到预警水位以上。可选值：`ok`、`triggered`。</ResponseField>
+    <ResponseField name="balance_tokens" type="integer">触发时的余额，以 tokens 计</ResponseField>
+    <ResponseField name="threshold" type="object">
+    触发的水位
+    <Expandable title="Balance Alert Threshold 对象">
+      <ResponseField name="type" type="string">`percent_used` 表示订阅周期（无订阅时为累计充入的全部额度）的已用比例达到 `value` 百分比时预警；`tokens_remaining` 表示余额降至 `value` tokens 时预警</ResponseField>
+      <ResponseField name="value" type="integer">`percent_used` 取 1–99；`tokens_remaining` 取 1–1,000,000,000</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="triggered_at" type="integer">当前生效预警的触发时间，Unix 秒级时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="thresholds" type="array">
+  预警级别；须为同一类型
+  <Expandable title="Balance Alert Threshold 对象">
+    <ResponseField name="type" type="string">`percent_used` 表示订阅周期（无订阅时为累计充入的全部额度）的已用比例达到 `value` 百分比时预警；`tokens_remaining` 表示余额降至 `value` tokens 时预警</ResponseField>
+    <ResponseField name="value" type="integer">`percent_used` 取 1–99；`tokens_remaining` 取 1–1,000,000,000</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "delivery_enabled": true,
+    "enabled": true,
+    "is_default": true,
+    "notification_channel": {
+      "recipients": [
+        "example"
+      ],
+      "type": "email"
+    },
+    "status": {
+      "state": "ok",
+      "balance_tokens": 1200000,
+      "threshold": {
+        "type": "percent_used",
+        "value": 1
+      },
+      "triggered_at": 1760000000
+    },
+    "thresholds": [
+      {
+        "type": "percent_used",
+        "value": 1
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,136 @@
+---
+title: "预览套餐变更"
+description: "预估在不做其他更改的情况下将订阅切换到 `plan_id` 的费用：立即收取的按比例折算金额、其明细项、变更生效时间以及下一张完整发票"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/subscription/plan-change-preview
+```
+
+预估在不做其他更改的情况下将订阅切换到 `plan_id` 的费用：立即收取的按比例折算金额、其明细项、变更生效时间以及下一张完整发票。`proration_date` 回显计算按比例折算所依据的时刻。无需费用的切换会返回 `applicable` 为 false 并附带原因。变更套餐本身需在控制台中完成。
+
+<Note>
+**所需权限：** `subscription:manage`
+</Note>
+
+### 查询参数
+
+<ParamField query="plan_id" type="integer" required>
+要试算切换价格的目标套餐
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/subscription/plan-change-preview?plan_id=9e50b1aed525a8280e28b9662b6a7ba0' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Plan Change Preview 对象">
+  <ResponseField name="applicable" type="boolean">false 表示无需计价：参见 `reason`。变更本身仍可能有效。</ResponseField>
+  <ResponseField name="lines" type="array">
+  构成 `amount_due` 的明细行；不适用时为空
+  <Expandable title="Plan Change Preview Line 对象">
+    <ResponseField name="amount" type="object">
+    明细行金额；未使用时长的抵扣为负数
+    <Expandable title="Money 对象">
+      <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+      <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="description" type="string">明细行描述</ResponseField>
+    <ResponseField name="proration" type="boolean">按比例计费的行项为 true</ResponseField>
+    <ResponseField name="period_end" type="integer">服务周期结束时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="period_start" type="integer">服务周期开始时间，Unix 秒级时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="plan_id" type="integer">请求中指定的目标套餐</ResponseField>
+  <ResponseField name="amount_due" type="object">
+  若现在进行变更将立即收取的费用（按比例折算）；负数表示计入余额。适用时返回。
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="effective_at" type="integer">变更的生效时间，Unix 秒级时间戳：升级为当前时间，降级到免费套餐为计费周期结束时</ResponseField>
+  <ResponseField name="from_plan" type="object">
+  当前套餐
+  <Expandable title="Plan Ref 对象">
+    <ResponseField name="id" type="integer">套餐 ID</ResponseField>
+    <ResponseField name="name" type="string">套餐名称</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="next_invoice" type="object">
+  新套餐的第一张完整周期发票。适用时返回。
+  <Expandable title="Next Invoice 对象">
+    <ResponseField name="amount" type="object">
+    新套餐一个周期的全价
+    <Expandable title="Money 对象">
+      <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+      <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="date" type="integer">签发时间，Unix 秒级时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="proration_date" type="integer">计算按比例折算所依据的时间点，Unix 秒级时间戳。适用时返回。</ResponseField>
+  <ResponseField name="reason" type="string">无需计价的原因：`no_paid_subscription`（当前订阅并非通过支付服务商付费）、`downgrade_to_free`（切换到免费套餐在计费周期结束时生效，不产生费用）、`resume_only`（目标为已设置取消的订阅的当前套餐：切回仅会恢复该订阅）</ResponseField>
+  <ResponseField name="to_plan" type="object">
+  目标套餐
+  <Expandable title="Plan Ref 对象">
+    <ResponseField name="id" type="integer">套餐 ID</ResponseField>
+    <ResponseField name="name" type="string">套餐名称</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "applicable": false,
+    "lines": [
+      {
+        "amount": {
+          "amount": 1999,
+          "currency": "usd"
+        },
+        "description": "Example description",
+        "proration": false,
+        "period_end": 1760000000,
+        "period_start": 1760000000
+      }
+    ],
+    "plan_id": 1,
+    "amount_due": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "effective_at": 1760000000,
+    "from_plan": {
+      "id": 1,
+      "name": "Example name"
+    },
+    "next_invoice": {
+      "amount": {
+        "amount": 1999,
+        "currency": "usd"
+      },
+      "date": 1
+    },
+    "proration_date": 1,
+    "reason": "no_paid_subscription",
+    "to_plan": {
+      "id": 1,
+      "name": "Example name"
+    }
+  }
+}
+```
+</ResponseExample>

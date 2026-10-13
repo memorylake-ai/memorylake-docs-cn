@@ -70,6 +70,38 @@ https://app.memorylake.cn/openapi/memorylake
 <Card title="项目" icon="diagram-project" href="/features/memorylake/api-reference/v3-projects/list-projects">
 管理项目及其文档、会话和事实。
 </Card>
+
+<Card title="团队" icon="building" href="/features/memorylake/api-reference/team/get-team">
+读取、重命名、创建和删除团队，转让所有权。
+</Card>
+
+<Card title="成员" icon="users" href="/features/memorylake/api-reference/members/list-members">
+成员名单、角色、虚拟成员与访问范围。
+</Card>
+
+<Card title="邀请" icon="envelope" href="/features/memorylake/api-reference/invitations/list-invitations">
+通过邮件邀请成员，撤销待处理的邀请。
+</Card>
+
+<Card title="API Key" icon="key" href="/features/memorylake/api-reference/api-keys/list-api-keys">
+创建、轮换和吊销 API Key。
+</Card>
+
+<Card title="访问控制" icon="shield-halved" href="/features/memorylake/api-reference/access-control/overview">
+角色、权限规则、用户组，以及谁能访问每个资源。
+</Card>
+
+<Card title="用量与审计日志" icon="chart-line" href="/features/memorylake/api-reference/usage/get-usage">
+额度、按模型和成员的消耗、用量明细与审计记录。
+</Card>
+
+<Card title="计费" icon="credit-card" href="/features/memorylake/api-reference/billing/get-subscription">
+订阅、额度余额与预警、订单和发票。
+</Card>
+
+<Card title="IM 集成" icon="comments" href="/features/memorylake/api-reference/integrations/list-integrations">
+把 Agent 接入 Slack、飞书、钉钉和企业微信机器人。
+</Card>
 </CardGroup>
 
 ## 通用模式
@@ -107,12 +139,24 @@ https://app.memorylake.cn/openapi/memorylake
 
 当响应中的 `continuation_token` 为 `null` 时，表示没有更多页。
 
+### 幂等请求
+
+会改动团队的写接口（创建 Key、轮换 Key、邀请成员、修改角色等）支持可选的 `Idempotency-Key` 请求头，取值为任意唯一字符串，例如 UUID。24 小时内用同一个值重试，会重放第一次的响应（包括错误），而不会再执行一次改动；重放的响应带有 `Idempotency-Replayed: true`。同一个值配不同的参数，或在第一次请求尚未完成时重复使用，会被拒绝。新 API Key 这类密钥只在第一次的响应里返回。支持该请求头的接口会在**请求头**一节列出它。
+
+```bash
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/{id}/rotate' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+
 ### 时间戳
 
 所有时间戳使用 ISO 8601 格式：
 ```
 2024-01-15T10:30:00Z
 ```
+
+标注为「Unix 秒级时间戳」的字段（例如团队、成员、用量和计费接口中的时间）是整数，表示自 1970-01-01 UTC 起的秒数。
 
 ## 后续步骤
 

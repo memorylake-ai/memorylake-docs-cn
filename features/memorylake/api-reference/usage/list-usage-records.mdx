@@ -1,0 +1,117 @@
+---
+title: "列出用量明细"
+description: "列出单条消耗记录，按时间倒序：每次计费的模型请求或平台操作对应一条，包含 tokens 以及以 tokens 计的消耗"
+---
+
+```
+GET /openapi/memorylake/admin/v1/usage/records
+```
+
+列出单条消耗记录，按时间倒序：每次计费的模型请求或平台操作对应一条，包含 tokens 以及以 tokens 计的消耗。消耗归属到成员——如需区分不同应用，请为每个应用分配各自的虚拟成员。记录近乎实时；[获取用量](/features/memorylake/api-reference/usage/get-usage)读取每隔几分钟刷新一次的汇总数据，因此两者可能短暂不一致。持有 `log:read_all` 时列表覆盖整个团队；仅持有 `log:read_self` 的调用方只能看到自己的记录，按其他成员的 `principal_id` 筛选会被拒绝。时间窗口默认为最近 7 天，最长 92 天。与其他列表不同，此列表不返回总数——请使用 `continuation_token` 持续翻页，直到其不再返回。限流：默认每个 Key 每分钟 20 次请求，与其他所有操作分开计数。翻阅大量记录时，请使用最大的 `page_size`（100）。
+
+<Note>
+**所需权限：** `log:read_all`（全团队）或 `log:read_self`（仅本人）
+
+- 按其他成员的 `principal_id` 筛选时：`log:read_all`
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页条目数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌。不透明——请勿自行构造或解析。请同时发送相同的筛选条件。
+</ParamField>
+
+<ParamField query="start_time" type="integer">
+要包含的最早记录时间，Unix 秒级时间戳（含）。默认为 `end_time` 前 7 天。
+</ParamField>
+
+<ParamField query="end_time" type="integer">
+记录时间上限，Unix 秒级时间戳（不含）。默认为当前时间。时间窗口最长 92 天。
+</ParamField>
+
+<ParamField query="model" type="array">
+仅返回这些模型或平台操作（`files_process`、`memory_input`、`retrieval_call`、`search_call`）的记录。如需多个，请重复该参数。
+</ParamField>
+
+<ParamField query="kind" type="string">
+`model_call`：模型请求。`platform_task`：平台操作，例如文件处理和记忆写入。省略则两者都包含。
+</ParamField>
+
+<ParamField query="principal_id" type="array">
+仅返回这些成员的记录。如需多个，请重复该参数。仅限查看自己记录的调用方只能传自己的 ID。
+</ParamField>
+
+<ParamField query="request_id" type="string">
+仅返回此请求 ID 的记录。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/usage/records' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Usage Record 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Usage Record 对象">
+    <ResponseField name="completion_tokens" type="integer">补全（输出）tokens</ResponseField>
+    <ResponseField name="created_at" type="integer">消耗的记录时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="id" type="string">记录 ID</ResponseField>
+    <ResponseField name="kind" type="string">`model_call` 或 `platform_task`</ResponseField>
+    <ResponseField name="model" type="string">模型名称，或平台操作（`files_process`、`memory_input`、`retrieval_call`、`search_call`）</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">Prompt（输入）tokens</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+    <ResponseField name="member" type="object">
+    该消耗归属的成员；记录未携带成员时不返回
+    <Expandable title="Usage Record Member 对象">
+      <ResponseField name="principal_id" type="string">成员的 principal ID</ResponseField>
+      <ResponseField name="display_name" type="string">成员的显示名称</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="request_id" type="string">请求 ID（如有记录）</ResponseField>
+    <ResponseField name="trace_id" type="string">Trace ID，有记录时返回</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "completion_tokens": 1200000,
+        "created_at": 1760000000,
+        "id": "a672d31430497d2bf7e0a35c08f0d757",
+        "kind": "model_call",
+        "model": "example",
+        "prompt_tokens": 1200000,
+        "used_tokens": 1200000,
+        "member": {
+          "principal_id": "d20a9584eebe672f5820bb4ad5859745",
+          "display_name": "Alice"
+        },
+        "request_id": "c5ed51a925f042a4ae5fa015330a6345",
+        "trace_id": "95917fd92abee21729b9575f0b9c9cec"
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>
