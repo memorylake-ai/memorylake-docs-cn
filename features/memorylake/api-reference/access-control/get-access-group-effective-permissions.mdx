@@ -1,0 +1,134 @@
+---
+title: "查看用户组有效权限"
+description: "返回用户组授予的全部内容，每项权限附带其来源（基础角色或基础用户组，或用户组自有列表），以及它提供访问的实例"
+---
+
+```
+GET /openapi/memorylake/admin/v1/access-groups/{group_id}/effective-permissions
+```
+
+返回用户组授予的全部内容，每项权限附带其来源（基础角色或基础用户组，或用户组自有列表），以及它提供访问的实例。
+
+<Note>
+**所需权限：** `access_group:view`
+</Note>
+
+### 路径参数
+
+<ParamField path="group_id" type="string" required>
+标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups/7013fb5c15cfb29411f040967354b8a3/effective-permissions' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Access Group Effective Permissions 对象">
+  <ResponseField name="group_id" type="string">用户组</ResponseField>
+  <ResponseField name="member_count" type="integer">成员数</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="permissions" type="array">
+  该用户组授予的全部权限，每项标明来源：基础（`inherits_from`）或该用户组自身的权限列表
+  <Expandable title="Effective Permission 对象">
+    <ResponseField name="permission" type="string">操作</ResponseField>
+    <ResponseField name="sources" type="array">
+    此权限的来源
+    <Expandable title="Effective Source Ref 对象">
+      <ResponseField name="type" type="string">`role`、`access_group` 或 `personal`（直接设置在成员上的规则）</ResponseField>
+      <ResponseField name="id" type="string">角色键或用户组 ID；个人时省略</ResponseField>
+      <ResponseField name="name" type="string">角色或用户组的显示名称；`personal` 时省略</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="scopes" type="array">
+  用户组开放访问的实例，按资源类型列出
+  <Expandable title="Access Scope Entry 对象">
+    <ResponseField name="mode" type="string">`all` 表示所有实例；`instances` 表示仅列出的实例</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型，例如 `memorylake:project`（参见 `GET /permission-catalog`）</ResponseField>
+    <ResponseField name="available_actions" type="array">只读。成员角色对该类型授予的实例级操作——即范围条目最多可允许的操作。</ResponseField>
+    <ResponseField name="instances" type="array">
+    `mode` 为 `instances` 时的实例列表
+    <Expandable title="Access Scope Instance 对象">
+      <ResponseField name="id" type="string">实例 ID，与数据 API 返回的一致</ResponseField>
+      <ResponseField name="actions" type="array">该实例上允许的操作。省略则为该成员角色允许的全部操作。</ResponseField>
+      <ResponseField name="effective_actions" type="array">只读。成员当前角色仍授予的操作子集。</ResponseField>
+      <ResponseField name="permission_level" type="string">只读。当 `via_permission_level` 为 true 时的权限级别。可选值：`read`、`write`、`manage`。</ResponseField>
+      <ResponseField name="shadowed_actions" type="array">只读。此处存储但成员当前角色已不再授予的操作。</ResponseField>
+      <ResponseField name="via_permission_level" type="boolean">只读。成员通过在此实例上授予的权限级别访问该实例，而非通过此范围。写入时可原样回传；此类实例会被跳过。</ResponseField>
+      <ResponseField name="workspace_id" type="string">项目实例的父工作空间。写入项目实例时必填。</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="inherits_from" type="object">
+  基础角色或基础用户组；用户组两者都没有时省略
+  <Expandable title="Effective Source Ref 对象">
+    <ResponseField name="type" type="string">`role`、`access_group` 或 `personal`（直接设置在成员上的规则）</ResponseField>
+    <ResponseField name="id" type="string">角色键或用户组 ID；个人时省略</ResponseField>
+    <ResponseField name="name" type="string">角色或用户组的显示名称；`personal` 时省略</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="overridden_permissions" type="array">用户组自有列表中未生效的权限</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "group_id": "cda040c43b8de706929b9cfad8d35791",
+    "member_count": 1,
+    "name": "Example name",
+    "permissions": [
+      {
+        "permission": "example",
+        "sources": [
+          {
+            "type": "role",
+            "id": "7ea9bf65e6937c3c168bc7a2a0f6fbf2",
+            "name": "Example name"
+          }
+        ]
+      }
+    ],
+    "scopes": [
+      {
+        "mode": "all",
+        "resource_type": "example",
+        "available_actions": [
+          "example"
+        ],
+        "instances": [
+          {
+            "id": "bc572b050c9920425b5fd75681eccbb2",
+            "actions": [],
+            "effective_actions": [],
+            "permission_level": "read",
+            "shadowed_actions": [],
+            "via_permission_level": false,
+            "workspace_id": "0fa2d21dc175adc7a003e0b37f156cb1"
+          }
+        ]
+      }
+    ],
+    "inherits_from": {
+      "type": "role",
+      "id": "7ea9bf65e6937c3c168bc7a2a0f6fbf2",
+      "name": "Example name"
+    },
+    "overridden_permissions": [
+      "example"
+    ]
+  }
+}
+```
+</ResponseExample>

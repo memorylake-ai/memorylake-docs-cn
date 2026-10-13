@@ -1,0 +1,100 @@
+---
+title: "获取用量汇总"
+description: "返回今日、最近 7 天及本月至今的用量"
+---
+
+```
+GET /openapi/memorylake/admin/v1/usage/summary
+```
+
+返回今日、最近 7 天及本月至今的用量。范围规则和数据与[获取用量](/features/memorylake/api-reference/usage/get-usage)相同（包含平台计量操作）：持有 `usage:view_all` 时为整个团队，否则为调用方自己的用量。
+
+<Note>
+**所需权限：** `usage:view_all`（全团队）或 `usage:view_self`（仅本人）
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/usage/summary' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Usage Summary 对象">
+  <ResponseField name="last_7_days" type="object">
+  最近 7 天，含今天
+  <Expandable title="Usage Summary Window 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="end_date" type="string">包含的最后一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="start_date" type="string">包含的第一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="month_to_date" type="object">
+  从当月 1 日至今天
+  <Expandable title="Usage Summary Window 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="end_date" type="string">包含的最后一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="start_date" type="string">包含的第一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="scope" type="string">数据覆盖的消耗范围：`team`（调用方持有 `usage:view_all`）或 `self`（仅持有 `usage:view_self`——调用方本人的用量，包括其 API Key；2026-05-21 之前的 API Key 用量记录在 Key 本身名下，不计入 `self` 数据）</ResponseField>
+  <ResponseField name="timezone" type="string">划分日期所用的 IANA 时区（Asia/Shanghai）</ResponseField>
+  <ResponseField name="today" type="object">
+  今天
+  <Expandable title="Usage Summary Window 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="end_date" type="string">包含的最后一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="start_date" type="string">包含的第一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "last_7_days": {
+      "completion_tokens": 1200000,
+      "end_date": "example",
+      "prompt_tokens": 1200000,
+      "requests": 1,
+      "start_date": "example",
+      "used_tokens": 1200000
+    },
+    "month_to_date": {
+      "completion_tokens": 1200000,
+      "end_date": "example",
+      "prompt_tokens": 1200000,
+      "requests": 1,
+      "start_date": "example",
+      "used_tokens": 1200000
+    },
+    "scope": "team",
+    "timezone": "example",
+    "today": {
+      "completion_tokens": 1200000,
+      "end_date": "example",
+      "prompt_tokens": 1200000,
+      "requests": 1,
+      "start_date": "example",
+      "used_tokens": 1200000
+    }
+  }
+}
+```
+</ResponseExample>

@@ -14,9 +14,16 @@ API 请求受速率限制，以确保公平使用和系统稳定性。限制在�
 | 每 IP 地址 | 数分钟的滑动窗口；具体阈值按部署设定，对正常的集成流量足够宽松 |
 | 每用户账户 | 默认访问组下 600 次请求 / 分钟 |
 | 每 IP 地址，上传端点 | 独立且更严格的按分钟计数桶 |
+| 每个 API Key，[团队、成员、访问控制、用量、计费与 IM 集成接口](/features/memorylake/api-reference/access-control/overview) | 60 次请求 / 分钟 |
+| 每个 API Key，[用量明细](/features/memorylake/api-reference/usage/list-usage-records)与[审计日志](/features/memorylake/api-reference/usage/list-audit-logs) | 20 次请求 / 分钟，单独计数 |
+| 每个团队，[邀请](/features/memorylake/api-reference/invitations/create-invitation) | 每天（UTC）最多创建 50 个邀请 |
 
 <Note>
 当任一限制被超出时，API 返回 HTTP 状态码 `429 Too Many Requests` 并带有 `Retry-After` 响应头。按账户的限制由您所在的访问组设定，因此可能与上方展示的默认值不同 —— 如需更高限制，请联系 [contact@data.cloud](mailto:contact@data.cloud)。
+</Note>
+
+<Note>
+所有 `429` 响应都带有 `Retry-After`（需要等待的秒数）以及 `X-RateLimit-Limit`、`X-RateLimit-Remaining`、`X-RateLimit-Reset`（限额恢复时的 Unix 秒级时间戳）。请等待 `Retry-After` 之后再重试：被限流拒绝的请求不会被幂等重放，所以带同一个 `Idempotency-Key` 的退避重试是安全的。
 </Note>
 
 ## 速率限制超出响应

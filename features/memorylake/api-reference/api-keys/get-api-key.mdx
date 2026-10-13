@@ -1,0 +1,84 @@
+---
+title: "获取 API Key"
+description: "返回一个 API Key"
+---
+
+```
+GET /openapi/memorylake/admin/v1/api-keys/{id}
+```
+
+返回一个 API Key。属于其他团队的 Key 会报告为未找到。
+
+<Note>
+**所需权限：** `service_account:read`（仅本人的 Key）或 `service_account:read`（全部 Key）
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+API Key 的标识符
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d971b8b5813eb1ecceec31354c101b4' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="API Key 对象">
+  <ResponseField name="allowed_ips" type="array">允许使用此 Key 的客户端 IP 或 CIDR 范围。空数组表示不限制。</ResponseField>
+  <ResponseField name="created_at" type="integer">创建时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="id" type="string">此 API Key 的稳定标识符</ResponseField>
+  <ResponseField name="is_system" type="boolean">平台为自身用途创建的 Key 为 true（例如控制台 Playground）</ResponseField>
+  <ResponseField name="key_prefix" type="string">Key 主体的前 8 个字符。读取类端点从不返回完整 Key。</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="status" type="string">Key 的当前状态。可选值：`enabled`、`disabled`、`expired`。</ResponseField>
+  <ResponseField name="backup_group" type="string">备用模型路由分组。省略表示无。</ResponseField>
+  <ResponseField name="expires_at" type="integer">过期时间，Unix 秒级时间戳。Key 永不过期时省略。</ResponseField>
+  <ResponseField name="group" type="string">此 Key 的请求所使用的模型路由分组。省略 = 所有者自己的分组。</ResponseField>
+  <ResponseField name="key_suffix" type="string">Key 的后 4 个字符，用于在不返回 Key 的情况下核对某人持有的 Key。未保留明文的 Key 省略此字段。</ResponseField>
+  <ResponseField name="last_used_at" type="integer">此 Key 最近一次使用的时间，Unix 秒级时间戳。为近似值——更新有节流，最多可能延迟一小时。从未使用过时省略。</ResponseField>
+  <ResponseField name="owner" type="object">
+  此 Key 代表的成员——其请求携带该成员的权限，用量也计入该成员。为虚拟成员签发的 Key，即为该虚拟成员。账号已不存在时省略。
+  <Expandable title="API Key Owner 对象">
+    <ResponseField name="display_name" type="string">成员的显示名称</ResponseField>
+    <ResponseField name="member_type" type="string">`human` 表示通过邀请加入，`virtual` 表示由所有者/管理员创建的托管身份</ResponseField>
+    <ResponseField name="principal_id" type="string">成员的 `principal_id`（参见 GET /members）</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "allowed_ips": [
+      "example"
+    ],
+    "created_at": 1760000000,
+    "id": "40c8c8eba1dca6d1ba4bd63384a16d3c",
+    "is_system": true,
+    "key_prefix": "f6e5d4c3",
+    "name": "Example name",
+    "status": "enabled",
+    "backup_group": "example",
+    "expires_at": 1760000000,
+    "group": "example",
+    "key_suffix": "b2a1",
+    "last_used_at": 1760000000,
+    "owner": {
+      "display_name": "Alice",
+      "member_type": "human",
+      "principal_id": "61083f9552ae2ae6bd9105e4e2763c7b"
+    }
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,65 @@
+---
+title: "获取成员"
+description: "返回您团队中的一名成员，结构与成员名单相同"
+---
+
+```
+GET /openapi/memorylake/admin/v1/members/{principal_id}
+```
+
+返回您团队中的一名成员，结构与成员名单相同。任何成员均可读取；联系方式（`email`、`username`）仅返回给所有者和管理员。不属于您团队成员的主体会报告为未找到。
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+</Note>
+
+### 路径参数
+
+<ParamField path="principal_id" type="string" required>
+成员的标识符（`principal_id`）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members/dbcf9a3aabee5042775269c9d137a2f8' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Member 对象">
+  <ResponseField name="display_name" type="string">成员的显示名称</ResponseField>
+  <ResponseField name="joined_at" type="integer">此成员加入的时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="member_type" type="string">`human` 表示通过邀请加入，`virtual` 表示由所有者/管理员创建的托管身份</ResponseField>
+  <ResponseField name="principal_id" type="string">此成员的稳定标识符</ResponseField>
+  <ResponseField name="role" type="string">在本团队中的主角色：`tenant_owner` | `tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
+  <ResponseField name="status" type="string">成员状态。可选值：`active`、`inactive`。</ResponseField>
+  <ResponseField name="used_tokens" type="integer">此成员消耗的 tokens</ResponseField>
+  <ResponseField name="email" type="string">仅返回给团队所有者和管理员</ResponseField>
+  <ResponseField name="max_tokens" type="integer">每位成员的上限，单位 tokens。成员无上限时省略。</ResponseField>
+  <ResponseField name="username" type="string">仅返回给团队所有者和管理员</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "display_name": "Alice",
+    "joined_at": 1760000000,
+    "member_type": "human",
+    "principal_id": "42fbbd89934900ebbc74814c49f009d2",
+    "role": "tenant_member",
+    "status": "active",
+    "used_tokens": 1200000,
+    "email": "alice@example.com",
+    "max_tokens": 1200000,
+    "username": "alice"
+  }
+}
+```
+</ResponseExample>

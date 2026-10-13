@@ -1,0 +1,81 @@
+---
+title: "邀请成员"
+description: "创建邀请并向受邀人发送邮件"
+---
+
+```
+POST /openapi/memorylake/admin/v1/invitations
+```
+
+创建邀请并向受邀人发送邮件。每个团队中每个邮箱只能有一个有效邀请：若已存在待处理邀请，请先撤销——重新邀请即撤销后再创建（没有重新发送端点）。邀请邮件 7 天后过期。每个团队每 24 小时的创建数量有上限；上限按已创建的邀请计数，429 响应会携带 `Retry-After`。
+
+<Note>
+**所需权限：** `member:invite`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果，而不会发送第二封邮件。
+</ParamField>
+
+### 请求体
+
+<ParamField body="email" type="string" required>
+被邀请人邮箱地址。每个团队中每个地址只能有一个有效邀请。
+</ParamField>
+
+<ParamField body="role" type="string" required>
+受邀人接受邀请后将持有的角色：`tenant_admin`、`tenant_member` 或本团队的自定义角色键。无法邀请为所有者角色。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/invitations' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "email": "alice@example.com",
+    "role": "tenant_member"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Invitation 对象">
+  <ResponseField name="created_at" type="integer">首次邀请时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="email" type="string">被邀请人邮箱地址（规范化为小写）</ResponseField>
+  <ResponseField name="expires_at" type="integer">当前邀请邮件的过期时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="id" type="string">此邀请的稳定标识符</ResponseField>
+  <ResponseField name="role" type="string">受邀人接受邀请后将持有的角色：`tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
+  <ResponseField name="status" type="string">邀请状态。可选值：`pending`、`accepted`、`rejected`、`expired`、`revoked`。</ResponseField>
+  <ResponseField name="accepted_at" type="integer">接受时间，Unix 秒级时间戳。仅在已接受时返回。</ResponseField>
+  <ResponseField name="accepted_principal_id" type="string">此邀请产生的成员的 `principal_id`。仅在已接受时返回。</ResponseField>
+  <ResponseField name="last_invited_at" type="integer">最近一次发送邀请邮件的时间，Unix 秒级时间戳。早于此字段引入的记录中省略。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (201)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "created_at": 1760000000,
+    "email": "alice@example.com",
+    "expires_at": 1760000000,
+    "id": "c079f4f4e529b9d687b3cce00eeb9644",
+    "role": "tenant_member",
+    "status": "pending",
+    "accepted_at": 1760000000,
+    "accepted_principal_id": "5a4863beca31b3b37f780badf1652511",
+    "last_invited_at": 1760000000
+  }
+}
+```
+</ResponseExample>

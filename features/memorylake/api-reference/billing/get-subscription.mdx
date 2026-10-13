@@ -1,0 +1,75 @@
+---
+title: "获取订阅"
+description: "返回团队当前的订阅：套餐、状态、当前周期，以及是否在周期结束时终止"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/subscription
+```
+
+返回团队当前的订阅：套餐、状态、当前周期，以及是否在周期结束时终止。`status` 为 `none` 表示团队没有有效订阅。
+
+<Note>
+**所需权限：** `subscription:view`
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/subscription' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Subscription 对象">
+  <ResponseField name="cancel_at_period_end" type="boolean">true 表示订阅在 `current_period_end` 结束，不再续订</ResponseField>
+  <ResponseField name="status" type="string">`none` 表示团队没有生效中的订阅；此时其他字段不返回。可选值：`active`、`past_due`、`none`。</ResponseField>
+  <ResponseField name="current_period_end" type="integer">当前周期结束时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="current_period_start" type="integer">当前周期开始时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="plan" type="object">
+  已订阅的套餐
+  <Expandable title="Subscription Plan Summary 对象">
+    <ResponseField name="billing_interval" type="string">计费周期。可选值：`month`、`year`。</ResponseField>
+    <ResponseField name="id" type="integer">套餐 ID（即[预览套餐变更](/features/memorylake/api-reference/billing/preview-plan-change)接受的 `plan_id`）</ResponseField>
+    <ResponseField name="name" type="string">套餐名称</ResponseField>
+    <ResponseField name="price" type="object">
+    每个计费周期的价格
+    <Expandable title="Money 对象">
+      <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+      <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="tier" type="string">套餐等级。可选值：`free`、`pro`、`premium`。</ResponseField>
+    <ResponseField name="tokens_per_cycle" type="integer">每个周期开始时发放的 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "cancel_at_period_end": false,
+    "status": "active",
+    "current_period_end": 1760000000,
+    "current_period_start": 1760000000,
+    "plan": {
+      "billing_interval": "month",
+      "id": 1,
+      "name": "Example name",
+      "price": {
+        "amount": 1999,
+        "currency": "usd"
+      },
+      "tier": "free",
+      "tokens_per_cycle": 1200000
+    }
+  }
+}
+```
+</ResponseExample>

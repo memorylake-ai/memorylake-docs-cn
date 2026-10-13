@@ -1,0 +1,64 @@
+---
+title: "列出支付方式"
+description: "列出已保存的卡片：卡组织、卡号后四位、到期时间以及哪张为默认卡"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/payment-methods
+```
+
+列出已保存的卡片：卡组织、卡号后四位、到期时间以及哪张为默认卡。添加、移除和设置默认卡需在控制台中完成。
+
+<Note>
+**所需权限：** `credits:manage`
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/payment-methods' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Payment Method 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Payment Method 对象">
+    <ResponseField name="is_default" type="boolean">用于自动充值和续费</ResponseField>
+    <ResponseField name="type" type="string">支付方式类型，例如 `card`</ResponseField>
+    <ResponseField name="brand" type="string">卡组织，例如 `visa`</ResponseField>
+    <ResponseField name="exp_month" type="integer">到期月份，1–12</ResponseField>
+    <ResponseField name="exp_year" type="integer">到期年份</ResponseField>
+    <ResponseField name="last4" type="string">卡号后四位</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "is_default": true,
+        "type": "example",
+        "brand": "example",
+        "exp_month": 1,
+        "exp_year": 1,
+        "last4": "example"
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

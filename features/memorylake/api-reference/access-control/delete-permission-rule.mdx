@@ -1,0 +1,54 @@
+---
+title: "删除权限规则"
+description: "按 列出权限规则 返回的 `rule_id` 删除一条规则"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/permission-rules/{rule_id}
+```
+
+按[列出权限规则](/features/memorylake/api-reference/access-control/list-permission-rules)返回的 `rule_id` 删除一条规则。内置管理员和成员角色的规则不可删除（409）。
+
+<Note>
+**所需权限：** `policy:manage`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="rule_id" type="string" required>
+不透明标识符；将其传给[删除权限规则](/features/memorylake/api-reference/access-control/delete-permission-rule)。请勿解析。
+</ParamField>
+
+### 查询参数
+
+<ParamField query="reason" type="string">
+记录到审计日志中的可选原因
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/permission-rules/571c2fd12d2cb5e344070dfffa47860f' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

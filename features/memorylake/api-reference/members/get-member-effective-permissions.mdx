@@ -1,0 +1,161 @@
+---
+title: "查看成员有效权限"
+description: "返回成员可执行的操作以及每项权限的来源：角色、用户组或直接授予"
+---
+
+```
+GET /openapi/memorylake/admin/v1/members/{principal_id}/effective-permissions
+```
+
+返回成员可执行的操作以及每项权限的来源：角色、用户组或直接授予。
+
+<Note>
+**所需权限：** `access_group:view`
+</Note>
+
+### 路径参数
+
+<ParamField path="principal_id" type="string" required>
+成员的标识符（`principal_id`）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members/dbcf9a3aabee5042775269c9d137a2f8/effective-permissions' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Effective Permissions 对象">
+  <ResponseField name="display_name" type="string">成员的显示名称</ResponseField>
+  <ResponseField name="permissions" type="array">
+  有效操作及其来源
+  <Expandable title="Effective Permission 对象">
+    <ResponseField name="permission" type="string">操作</ResponseField>
+    <ResponseField name="sources" type="array">
+    此权限的来源
+    <Expandable title="Effective Source Ref 对象">
+      <ResponseField name="type" type="string">`role`、`access_group` 或 `personal`（直接设置在成员上的规则）</ResponseField>
+      <ResponseField name="id" type="string">角色键或用户组 ID；个人时省略</ResponseField>
+      <ResponseField name="name" type="string">角色或用户组的显示名称；`personal` 时省略</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="principal_id" type="string">成员</ResponseField>
+  <ResponseField name="role" type="string">成员的主角色</ResponseField>
+  <ResponseField name="scopes" type="array">
+  有效实例限制；未列出的类型不受限
+  <Expandable title="Effective Scope 对象">
+    <ResponseField name="resource_type" type="string">资源类型</ResponseField>
+    <ResponseField name="restricted" type="boolean">false 表示所有实例</ResponseField>
+    <ResponseField name="instances" type="array">
+    受限时可访问的实例
+    <Expandable title="Effective Scope Instance 对象">
+      <ResponseField name="id" type="string">实例 ID</ResponseField>
+      <ResponseField name="sources" type="array">
+      允许此实例的来源
+      <Expandable title="Effective Source Ref 对象">
+        <ResponseField name="type" type="string">`role`、`access_group` 或 `personal`（直接设置在成员上的规则）</ResponseField>
+        <ResponseField name="id" type="string">角色键或用户组 ID；个人时省略</ResponseField>
+        <ResponseField name="name" type="string">角色或用户组的显示名称；`personal` 时省略</ResponseField>
+      </Expandable>
+      </ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="sources" type="array">
+  按来源的明细
+  <Expandable title="Effective Permission Source 对象">
+    <ResponseField name="id" type="string">角色键或用户组 ID</ResponseField>
+    <ResponseField name="name" type="string">显示名称</ResponseField>
+    <ResponseField name="permissions" type="array">此来源授予的操作</ResponseField>
+    <ResponseField name="type" type="string">这些权限的来源。可选值：`role`、`access_group`。</ResponseField>
+    <ResponseField name="overridden_permissions" type="array">此来源授予、但被其他位置的拒绝规则从有效集合中移除的操作</ResponseField>
+    <ResponseField name="scopes" type="array">
+    此来源附带的实例限制
+    <Expandable title="Access Scope Entry 对象">
+      <ResponseField name="mode" type="string">`all` 表示所有实例；`instances` 表示仅列出的实例</ResponseField>
+      <ResponseField name="resource_type" type="string">资源类型，例如 `memorylake:project`（参见 `GET /permission-catalog`）</ResponseField>
+      <ResponseField name="available_actions" type="array">只读。成员角色对该类型授予的实例级操作——即范围条目最多可允许的操作。</ResponseField>
+      <ResponseField name="instances" type="array">
+      `mode` 为 `instances` 时的实例列表
+      <Expandable title="Access Scope Instance 对象">
+        <ResponseField name="id" type="string">实例 ID，与数据 API 返回的一致</ResponseField>
+        <ResponseField name="actions" type="array">该实例上允许的操作。省略则为该成员角色允许的全部操作。</ResponseField>
+        <ResponseField name="effective_actions" type="array">只读。成员当前角色仍授予的操作子集。</ResponseField>
+        <ResponseField name="permission_level" type="string">只读。当 `via_permission_level` 为 true 时的权限级别。可选值：`read`、`write`、`manage`。</ResponseField>
+        <ResponseField name="shadowed_actions" type="array">只读。此处存储但成员当前角色已不再授予的操作。</ResponseField>
+        <ResponseField name="via_permission_level" type="boolean">只读。成员通过在此实例上授予的权限级别访问该实例，而非通过此范围。写入时可原样回传；此类实例会被跳过。</ResponseField>
+        <ResponseField name="workspace_id" type="string">项目实例的父工作空间。写入项目实例时必填。</ResponseField>
+      </Expandable>
+      </ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "display_name": "Alice",
+    "permissions": [
+      {
+        "permission": "example",
+        "sources": [
+          {
+            "type": "role",
+            "id": "7ea9bf65e6937c3c168bc7a2a0f6fbf2",
+            "name": "Example name"
+          }
+        ]
+      }
+    ],
+    "principal_id": "a4f0086eca294846b3bb8b9086c30e2a",
+    "role": "tenant_member",
+    "scopes": [
+      {
+        "resource_type": "example",
+        "restricted": false,
+        "instances": [
+          {
+            "id": "66a8e03ad707a50641b92fac99929037",
+            "sources": []
+          }
+        ]
+      }
+    ],
+    "sources": [
+      {
+        "id": "eb619252391dd05caf4e338bf6fc7872",
+        "name": "Example name",
+        "permissions": [
+          "example"
+        ],
+        "type": "role",
+        "overridden_permissions": [
+          "example"
+        ],
+        "scopes": [
+          {
+            "mode": "all",
+            "resource_type": "example",
+            "available_actions": [],
+            "instances": []
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

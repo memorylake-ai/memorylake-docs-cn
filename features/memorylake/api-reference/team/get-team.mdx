@@ -1,0 +1,52 @@
+---
+title: "获取团队信息"
+description: "返回此 Key 所属的团队"
+hideFooterPagination: true
+---
+
+```
+GET /openapi/memorylake/admin/v1/team
+```
+
+返回此 Key 所属的团队。团队由 Key 确定——无法指定其他团队。任何成员均可读取。
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/team' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Team 对象">
+  <ResponseField name="created_at" type="integer">创建时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="id" type="string">此团队的稳定标识符</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="owner_principal_id" type="string">团队所有者的 `principal_id`（参见成员列表）</ResponseField>
+  <ResponseField name="type" type="string">`personal` 表示单用户空间，`org` 表示有成员的团队</ResponseField>
+  <ResponseField name="caller_role" type="string">调用所用 Key 在此团队中的角色：`tenant_owner` | `tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "created_at": 1760000000,
+    "id": "7d9e7032509bd2d43c2eeec93bae86a2",
+    "name": "Example name",
+    "owner_principal_id": "284c4662589661476271ee7c94015dec",
+    "type": "personal",
+    "caller_role": "tenant_member"
+  }
+}
+```
+</ResponseExample>

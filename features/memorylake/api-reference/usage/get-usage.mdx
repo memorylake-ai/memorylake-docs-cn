@@ -1,0 +1,203 @@
+---
+title: "获取用量"
+description: "返回当前额度快照以及所请求周期内的用量（最多 92 天）"
+---
+
+```
+GET /openapi/memorylake/admin/v1/usage
+```
+
+返回当前额度快照以及所请求周期内的用量（最多 92 天）。持有 `usage:view_all` 时数据覆盖整个团队；仅持有 `usage:view_self` 的调用方获得自己的用量（包括其 API Key），并由 `scope` 指明是哪一种。`bucket_width=1d` 会额外返回按天的序列；`group_by=member` 会额外返回按成员的明细，且需要 `usage:view_all`。
+
+<Note>
+**所需权限：** `usage:view_all`（全团队）或 `usage:view_self`（仅本人）
+
+- 传入 `group_by=member` 时：`usage:view_all`
+</Note>
+
+### 查询参数
+
+<ParamField query="start_date" type="string">
+要包含的第一天，YYYY-MM-DD，按 `period.timezone` 所示时区计算。默认为 `end_date` 前六天。
+</ParamField>
+
+<ParamField query="end_date" type="string">
+要包含的最后一天，YYYY-MM-DD，按 `period.timezone` 所示时区计算。默认为今天。
+</ParamField>
+
+<ParamField query="bucket_width" type="string">
+设为 `1d` 可同时获取 `buckets`：该周期内按天的时间序列。
+</ParamField>
+
+<ParamField query="group_by" type="array">
+可重复。`by_model` 始终针对该周期返回；`member` 会额外返回 `by_member`（需要 `usage:view_all`）。当 `bucket_width=1d` 时，每个桶也携带此处列出的明细。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/usage' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Usage 对象">
+  <ResponseField name="by_model" type="array">
+  该期间内按模型的明细
+  <Expandable title="Usage By Model 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="model" type="string">模型名称，或平台计量操作的名称（`files_process`、`memory_input`、`retrieval_call`、`search_call`）</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="period" type="object">
+  这些合计所覆盖的周期
+  <Expandable title="Usage Period 对象">
+    <ResponseField name="end_date" type="string">包含的最后一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="start_date" type="string">包含的第一天，YYYY-MM-DD</ResponseField>
+    <ResponseField name="timezone" type="string">划分日期所用的 IANA 时区（Asia/Shanghai）</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="quota" type="object">
+  账号级额度快照——不受统计时段限制
+  <Expandable title="Usage Quota 对象">
+    <ResponseField name="available_tokens" type="integer">当前可用 tokens（一次性额度加未过期的订阅额度）。账号级快照，不受统计时段限制。</ResponseField>
+    <ResponseField name="unlimited" type="boolean">为 true 时，`available_tokens` 无意义</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="scope" type="string">数据覆盖的消耗范围：`team`（调用方持有 `usage:view_all`）或 `self`（仅持有 `usage:view_self`——调用方本人的用量，包括其 API Key；2026-05-21 之前的 API Key 用量记录在 Key 本身名下，不计入 `self` 数据）</ResponseField>
+  <ResponseField name="totals" type="object">
+  该时间段内的累计消耗
+  <Expandable title="Usage Totals 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens——与 `quota.available_tokens` 单位相同。也包括平台操作，这些操作不含 prompt/completion tokens。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="buckets" type="array">
+  仅当 `bucket_width=1d` 时返回：计费周期内每天一条，按时间从早到晚排列，无用量的日期以零计入。每个桶携带 `group_by` 中指定的明细。
+  <Expandable title="Usage Bucket 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="date" type="string">日期，格式为 `YYYY-MM-DD`，按 `period.timezone` 计算</ResponseField>
+    <ResponseField name="end_time" type="integer">时间桶结束时间，Unix 秒级时间戳（不含）</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="start_time" type="integer">时间桶开始时间，Unix 秒级时间戳（含）</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+    <ResponseField name="by_member" type="array">
+    当 `group_by` 包含 `member` 时返回：当天按成员的明细
+    <Expandable title="Usage By Member 对象">
+      <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+      <ResponseField name="display_name" type="string">成员的显示名称。未设置时，所有者和管理员获得该成员的用户名；其他人获得空字符串</ResponseField>
+      <ResponseField name="principal_id" type="string">成员的标识符（`principal_id`）。对于 2026-05-21 之前的用量，API Key 的用量记录在该 Key 自身的身份下，并显示为单独的条目</ResponseField>
+      <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+      <ResponseField name="requests" type="integer">请求数</ResponseField>
+      <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="by_model" type="array">
+    当 `group_by` 包含 `model` 时返回：当天按模型的明细
+    <Expandable title="Usage By Model 对象">
+      <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+      <ResponseField name="model" type="string">模型名称，或平台计量操作的名称（`files_process`、`memory_input`、`retrieval_call`、`search_call`）</ResponseField>
+      <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+      <ResponseField name="requests" type="integer">请求数</ResponseField>
+      <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="by_member" type="array">
+  仅当 `group_by=member` 时返回（无人产生用量时为空数组）：按成员的明细，用量最大者在前。包含此后已离开团队的人员，因此请求数和 token 数之和与 `totals` 一致；`used_tokens` 按条目向下取整，因此其总和可能比 `totals.used_tokens` 少，每个条目差额不足一个 token
+  <Expandable title="Usage By Member 对象">
+    <ResponseField name="completion_tokens" type="integer">生成的补全 tokens</ResponseField>
+    <ResponseField name="display_name" type="string">成员的显示名称。未设置时，所有者和管理员获得该成员的用户名；其他人获得空字符串</ResponseField>
+    <ResponseField name="principal_id" type="string">成员的标识符（`principal_id`）。对于 2026-05-21 之前的用量，API Key 的用量记录在该 Key 自身的身份下，并显示为单独的条目</ResponseField>
+    <ResponseField name="prompt_tokens" type="integer">消耗的 Prompt tokens</ResponseField>
+    <ResponseField name="requests" type="integer">请求数</ResponseField>
+    <ResponseField name="used_tokens" type="integer">从余额中扣除的消耗，单位为 tokens</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "by_model": [
+      {
+        "completion_tokens": 1200000,
+        "model": "example",
+        "prompt_tokens": 1200000,
+        "requests": 1,
+        "used_tokens": 1200000
+      }
+    ],
+    "period": {
+      "end_date": "example",
+      "start_date": "example",
+      "timezone": "example"
+    },
+    "quota": {
+      "available_tokens": 1200000,
+      "unlimited": false
+    },
+    "scope": "team",
+    "totals": {
+      "completion_tokens": 1200000,
+      "prompt_tokens": 1200000,
+      "requests": 1,
+      "used_tokens": 1200000
+    },
+    "buckets": [
+      {
+        "completion_tokens": 1200000,
+        "date": "example",
+        "end_time": 1760000000,
+        "prompt_tokens": 1200000,
+        "requests": 1,
+        "start_time": 1760000000,
+        "used_tokens": 1200000,
+        "by_member": [
+          {
+            "completion_tokens": 1200000,
+            "display_name": "Alice",
+            "principal_id": "7eccf77fb75500eaacca3ce819c381f0",
+            "prompt_tokens": 1200000,
+            "requests": 1,
+            "used_tokens": 1200000
+          }
+        ],
+        "by_model": [
+          {
+            "completion_tokens": 1200000,
+            "model": "example",
+            "prompt_tokens": 1200000,
+            "requests": 1,
+            "used_tokens": 1200000
+          }
+        ]
+      }
+    ],
+    "by_member": [
+      {
+        "completion_tokens": 1200000,
+        "display_name": "Alice",
+        "principal_id": "7eccf77fb75500eaacca3ce819c381f0",
+        "prompt_tokens": 1200000,
+        "requests": 1,
+        "used_tokens": 1200000
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

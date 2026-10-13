@@ -1,0 +1,46 @@
+---
+title: "撤销邀请"
+description: "撤销一个待处理的邀请；其邮件链接随即失效"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/invitations/{id}
+```
+
+撤销一个待处理的邀请；其邮件链接随即失效。已接受的邀请无法撤销——请改为移除该成员。
+
+<Note>
+**所需权限：** `member:invite`
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+邀请的标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/invitations/9d971b8b5813eb1ecceec31354c101b4' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

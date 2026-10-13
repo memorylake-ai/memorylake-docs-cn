@@ -43,18 +43,41 @@ description: "理解和处理 API 错误"
 <Note>
   拒绝不会告诉您资源是否存在——`403` 只表示「不给您」，不含别的信息。删除也一样：先检查权限。权限通过后，删除已被删掉或本来就不存在的资源都返回 `200`，所以重复删除可以安全重试。如果您能删除某个资源，靠的只是单独授予在这个资源上的权限（而不是您的角色），这项授权会随资源一起删除，再删一次就会返回 `403`。删除不存在的知识条目目前返回 `400`。
 </Note>
+
+在团队、成员、邀请、API Key、访问控制、用量、计费与 IM 集成接口上，缺少权限时返回 `403`、`ACCESS_DENIED` 和消息 `permission denied`，不带 `data` 对象；每个接口所需的权限写在该接口的页面上。
+
+### 为保护管理员而拒绝
+
+有些改动会让某人获得管理员角色，或减少管理员的访问权限。这类改动只能由团队所有者或管理员执行；其他人会收到 `403` 和 `ACCESS_DENIED`，此时 `data.operation` 给出的是被拒绝的改动类型，而不是缺少的权限：
+
+```json
+{
+  "success": false,
+  "message": "only an owner or admin may change an admin's role",
+  "error_code": "ACCESS_DENIED",
+  "data": { "operation": "change_role" }
+}
+```
+
+`operation` 的取值为 `change_role`、`remove_member`、`remove_group_member`、`delete_group`、`reduce_admin_role_rules`、`narrow_admin_role_scope`、`narrow_admin_member_scope`、`downgrade_admin_member_tier`、`narrow_admin_via_group` 或 `remove_admin_member_rule`，今后可能增加。
+
 ## HTTP 状态码
 
 | 状态码 | 含义 | 常见原因 |
 |--------|------|----------|
 | 200 | 成功 | 请求成功完成 |
+| 201 | 已创建 | 资源创建成功 |
 | 400 | 错误请求 | 参数无效或请求格式错误 |
 | 401 | 未授权 | API 密钥缺失或无效 |
 | 402 | 需要付款 | 此操作的配额不足 |
 | 403 | 禁止访问 | 认证有效但权限不足 |
 | 404 | 未找到 | 资源不存在 |
+| 409 | 冲突 | 请求与当前状态冲突，例如名称重复或已达上限 |
+| 412 | 前置条件失败 | `If-Match` 的值已不匹配：您读取之后资源被改过 |
+| 422 | 无法处理 | 请求体或参数未通过校验 |
 | 429 | 请求过多 | 超出速率限制 |
 | 500 | 服务器内部错误 | 服务端错误 |
+| 503 | 服务不可用 | 依赖服务暂时不可用，请稍后重试 |
 
 ## 错误响应
 
@@ -92,6 +115,8 @@ description: "理解和处理 API 错误"
 | `SKILL_NOT_USABLE` | 创建 Agent 或 Agent 版本时引用的技能未通过安全审核、不存在或还没有技能包 |
 | `ACTOR_INACTIVE` | Actor 或 Agent 已被删除。它仍会列在工作空间里，记忆也仍可读取，但不能再参与写入 |
 | `AGENT_OPERATION_NOT_SUPPORTED` | 该操作需要由 MemoryLake 托管运行时的 Agent：版本、复制（fork）和 A2A 只对 `INTERNAL` Agent 可用，`EXTERNAL` Agent 不支持。与 `STATE_NOT_READY` 不同，重试不会成功 |
+| `TENANT_CREATION_LIMIT_REACHED` | Key 的所有者可创建的团队数已达上限 |
+| `ORG_TENANT_CREATION_DISABLED` | 当前部署不支持创建团队 |
 | `INTERNAL_ERROR` | 服务端意外错误 |
 
 ## 错误处理最佳实践

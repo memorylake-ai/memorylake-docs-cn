@@ -1,0 +1,138 @@
+---
+title: "设置角色访问范围"
+description: "为持有该角色的所有人替换每个所列资源类型的范围"
+---
+
+```
+PUT /openapi/memorylake/admin/v1/roles/{role_key}/access-scope
+```
+
+为持有该角色的所有人替换每个所列资源类型的范围。范围只做限制，授予的权限绝不会超出角色允许的范围。适用于 `tenant_admin`、`tenant_member` 和自定义角色——所有者角色无法被限制（409）。项目实例需要提供其 `workspace_id`。
+
+响应携带 `ETag` 头（与对该资源执行 GET 时返回的值相同）。将其放入 `If-Match` 回传即可使写入成为条件写入：若资源在此期间已被修改，写入将以 412 被拒绝，且不做任何更改。该校验能缩小但无法完全消除并发覆盖的窗口——两个在同一时刻通过校验的写入方都可能写入成功。
+
+<Note>
+**所需权限：** `policy:manage`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="role_key" type="string" required>
+`tenant_admin`、`tenant_member` 或自定义角色键
+</ParamField>
+
+### 请求头
+
+<ParamField header="If-Match" type="string">
+可选。先前读取此资源时获得的 ETag。若资源此后已变更，写入将以 412 拒绝；省略则无条件覆盖。
+</ParamField>
+
+### 请求体
+
+<ParamField body="reason" type="string" required>
+变更原因；记录在审计日志中。最多 255 字节（UTF-8）。
+</ParamField>
+
+<ParamField body="scopes" type="array" required>
+所列每种资源类型的访问范围替换为给定范围；未列出的类型保留当前访问范围。
+<Expandable title="Access Scope Entry 对象">
+  <ParamField body="scopes[].mode" type="string" required>`all` 表示所有实例；`instances` 表示仅列出的实例</ParamField>
+  <ParamField body="scopes[].resource_type" type="string" required>资源类型，例如 `memorylake:project`</ParamField>
+  <ParamField body="scopes[].instances" type="array">
+  当 `mode` 为 `instances` 时必填
+  <Expandable title="Access Scope Instance 对象">
+    <ParamField body="scopes[].instances[].id" type="string" required>实例 ID</ParamField>
+    <ParamField body="scopes[].instances[].actions" type="array">省略则为该成员角色允许的所有操作</ParamField>
+    <ParamField body="scopes[].instances[].via_permission_level" type="boolean">只读行的回显。标记为 `true` 的实例在写入时会被跳过——权限级别在资源上设置，而非通过访问范围设置。</ParamField>
+    <ParamField body="scopes[].instances[].workspace_id" type="string">父工作空间——项目实例必填</ParamField>
+  </Expandable>
+  </ParamField>
+</Expandable>
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X PUT 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles/data_analyst/access-scope' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "reason": "example",
+    "scopes": [
+      {
+        "mode": "all",
+        "resource_type": "example",
+        "instances": [
+          {
+            "id": "185afe41ca6ac4566fdc7a9adeabf5a0",
+            "actions": [],
+            "via_permission_level": false,
+            "workspace_id": "12404b77739317d2b08fc918a95f0be9"
+          }
+        ]
+      }
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Role Access Scope 对象">
+  <ResponseField name="role_key" type="string">角色</ResponseField>
+  <ResponseField name="scopes" type="array">
+  每个可设范围的资源类型一项
+  <Expandable title="Access Scope Entry 对象">
+    <ResponseField name="mode" type="string">`all` 表示所有实例；`instances` 表示仅列出的实例</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型，例如 `memorylake:project`（参见 `GET /permission-catalog`）</ResponseField>
+    <ResponseField name="available_actions" type="array">只读。成员角色对该类型授予的实例级操作——即范围条目最多可允许的操作。</ResponseField>
+    <ResponseField name="instances" type="array">
+    `mode` 为 `instances` 时的实例列表
+    <Expandable title="Access Scope Instance 对象">
+      <ResponseField name="id" type="string">实例 ID，与数据 API 返回的一致</ResponseField>
+      <ResponseField name="actions" type="array">该实例上允许的操作。省略则为该成员角色允许的全部操作。</ResponseField>
+      <ResponseField name="effective_actions" type="array">只读。成员当前角色仍授予的操作子集。</ResponseField>
+      <ResponseField name="permission_level" type="string">只读。当 `via_permission_level` 为 true 时的权限级别。可选值：`read`、`write`、`manage`。</ResponseField>
+      <ResponseField name="shadowed_actions" type="array">只读。此处存储但成员当前角色已不再授予的操作。</ResponseField>
+      <ResponseField name="via_permission_level" type="boolean">只读。成员通过在此实例上授予的权限级别访问该实例，而非通过此范围。写入时可原样回传；此类实例会被跳过。</ResponseField>
+      <ResponseField name="workspace_id" type="string">项目实例的父工作空间。写入项目实例时必填。</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "role_key": "tenant_member",
+    "scopes": [
+      {
+        "mode": "all",
+        "resource_type": "example",
+        "available_actions": [
+          "example"
+        ],
+        "instances": [
+          {
+            "id": "bc572b050c9920425b5fd75681eccbb2",
+            "actions": [],
+            "effective_actions": [],
+            "permission_level": "read",
+            "shadowed_actions": [],
+            "via_permission_level": false,
+            "workspace_id": "0fa2d21dc175adc7a003e0b37f156cb1"
+          }
+        ]
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

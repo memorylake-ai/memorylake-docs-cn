@@ -1,0 +1,140 @@
+---
+title: "列出审计日志"
+description: "列出团队的审计事件，按时间倒序：管理变更（类别 `management`）以及平台自行记录的事件（类别 `system`）"
+---
+
+```
+GET /openapi/memorylake/admin/v1/audit-logs
+```
+
+列出团队的审计事件，按时间倒序：管理变更（类别 `management`）以及平台自行记录的事件（类别 `system`）。通过此 API 使用 API Key 进行的变更会标明该 Key（`actor.type` 为 `api_key`）。持有 `log:read_all` 时列表覆盖整个团队；仅持有 `log:read_self` 的调用方只能看到自己执行的事件，按其他成员的 `actor_id` 筛选会被拒绝。时间窗口默认为最近 7 天，最长 92 天。与其他列表不同，此列表不返回总数——请使用 `continuation_token` 持续翻页，直到其不再返回。限流：默认每个 Key 每分钟 20 次请求，与其他所有操作分开计数。翻阅大量记录时，请使用最大的 `page_size`（100）。
+
+<Note>
+**所需权限：** `log:read_all`（全团队）或 `log:read_self`（仅本人）
+
+- 按其他成员的 `actor_id` 筛选时：`log:read_all`
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页条目数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌。不透明——请勿自行构造或解析。请同时发送相同的筛选条件。
+</ParamField>
+
+<ParamField query="category" type="string">
+`management`：人员对团队所做的变更及 Key 操作（成员、角色、Key、计费设置）。`system`：平台自行记录的事件（订阅结束、余额预警等）。省略则两者都包含。
+</ParamField>
+
+<ParamField query="action" type="array">
+仅返回这些操作，例如 `member:change_role`。如需多个，请重复该参数。
+</ParamField>
+
+<ParamField query="actor_id" type="array">
+仅返回由这些成员（`principal_id`）执行的事件。如需多个，请重复该参数。仅限查看自己事件的调用方只能传自己的 ID。
+</ParamField>
+
+<ParamField query="target_type" type="string">
+仅返回目标为此类型的事件，例如 `principal`、`service_account`。
+</ParamField>
+
+<ParamField query="target_id" type="string">
+仅返回目标为此 ID 的事件。
+</ParamField>
+
+<ParamField query="result" type="string">
+仅返回此结果的事件。可选值：`succeeded`、`failed`、`partial`。
+</ParamField>
+
+<ParamField query="start_time" type="integer">
+要包含的最早事件时间，Unix 秒级时间戳（含）。默认为 `end_time` 前 7 天。
+</ParamField>
+
+<ParamField query="end_time" type="integer">
+事件时间上限，Unix 秒级时间戳（不含）。默认为当前时间。时间窗口最长 92 天。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/audit-logs' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Audit Log Entry 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Audit Log Entry 对象">
+    <ResponseField name="action" type="string">发生了什么，格式为 `resource:verb`，例如 `member:change_role`</ResponseField>
+    <ResponseField name="actor" type="object">
+    操作人
+    <Expandable title="Audit Actor 对象">
+      <ResponseField name="type" type="string">`user`：在控制台中操作的成员。`api_key`：通过本 API 使用 API Key 发起的请求——该 Key 以其所有者身份操作，所有者由 `principal_id` 标识。`system`：平台本身，包括平台工作人员执行的操作。</ResponseField>
+      <ResponseField name="api_key_id" type="string">对于 `api_key`：发起请求的 Key 的 ID（与 GET /api-keys/\{id\} 中一致）</ResponseField>
+      <ResponseField name="display_name" type="string">该成员的显示名称</ResponseField>
+      <ResponseField name="principal_id" type="string">执行操作的成员（对于 `api_key`：该 Key 的所有者）</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="category" type="string">`management` 或 `system`</ResponseField>
+    <ResponseField name="created_at" type="integer">事件发生时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="id" type="string">事件 ID</ResponseField>
+    <ResponseField name="result" type="string">结果。可选值：`succeeded`、`failed`、`partial`。</ResponseField>
+    <ResponseField name="ip_address" type="string">客户端 IP 地址（如有记录）</ResponseField>
+    <ResponseField name="reason" type="string">记录的变更原因（如有）。通知邮件发送失败时：投递失败。</ResponseField>
+    <ResponseField name="request_id" type="string">请求 ID（如有记录）</ResponseField>
+    <ResponseField name="target" type="object">
+    操作的对象；事件没有对象时不返回
+    <Expandable title="Audit Target 对象">
+      <ResponseField name="id" type="string">目标 ID</ResponseField>
+      <ResponseField name="label" type="string">目标的可读标签。对于成员（类型 `principal`），为该成员当前的显示名称。对于余额预警邮件，为收件人地址，仅向所有者和管理员显示。对于邀请（类型 `tenant_invite`），为被邀请人的邮箱地址，向所有者、管理员以及可邀请成员（`member:invite`）的调用方显示——即在[列出邀请](/features/memorylake/api-reference/invitations/list-invitations)中能看到它的同一批人。对其他调用方省略。对于其他目标，为事件发生时的标签。</ResponseField>
+      <ResponseField name="type" type="string">目标类型，例如 `principal`、`service_account`、`tenant`</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "action": "example",
+        "actor": {
+          "type": "user",
+          "api_key_id": "c5e4528438590fa347c8ae2b466e33e8",
+          "display_name": "Alice",
+          "principal_id": "752e99b6135c679c09080138ad2549e3"
+        },
+        "category": "management",
+        "created_at": 1760000000,
+        "id": "12b58895efacbeef0b1c6b31eee8134e",
+        "result": "succeeded",
+        "ip_address": "example",
+        "reason": "example",
+        "request_id": "74f7c4f6b943cffea7baa88fe2fb6414",
+        "target": {
+          "id": "ecef0d16af212bf1fce75cf89f64eb6c",
+          "label": "example",
+          "type": "example"
+        }
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

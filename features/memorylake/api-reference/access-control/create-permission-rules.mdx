@@ -1,0 +1,113 @@
+---
+title: "创建权限规则"
+description: "为自定义角色或单个成员在某资源上允许一个或多个操作——每个操作一条规则"
+---
+
+```
+POST /openapi/memorylake/admin/v1/permission-rules
+```
+
+为自定义角色或单个成员在某资源上允许一个或多个操作——每个操作一条规则。仅可创建允许规则；拒绝规则（除所有者外，它会压过任何来源的允许规则）不可用——如需收回某项权限，请删除授予该权限的规则。内置角色不可更改，属于团队所有者的操作也不可授予。若某操作依赖主体尚未拥有的其他操作，除非设置了 `auto_grant_prerequisites`，否则请求将以 409 被拒绝。
+
+<Note>
+**所需权限：** `policy:manage`
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="actions" type="array" required>
+要在该资源上允许的操作；每个不同的操作对应一条规则
+</ParamField>
+
+<ParamField body="reason" type="string" required>
+变更原因；记录在审计日志中
+</ParamField>
+
+<ParamField body="resource" type="string" required>
+资源类型，例如 `memorylake:project`（参见 `GET /permission-catalog`），或某个实例，格式为 `<resource_type>:<instance_id>`。API Key 权限写在 `tenant:service_account:own` 或 `tenant:service_account:any` 上。
+</ParamField>
+
+<ParamField body="subject_id" type="string" required>
+本团队的自定义角色键，或某成员的 `principal_id`。内置角色不可更改。
+</ParamField>
+
+<ParamField body="subject_type" type="string" required>
+`role` 或 `member`
+</ParamField>
+
+<ParamField body="auto_grant_prerequisites" type="boolean">
+当某个操作依赖主体尚不具备的其他操作时（例如 `modify` 需要 `read`），一并添加这些操作。不设置时，此类请求会被拒绝并返回 `409`，指明缺少的内容。
+</ParamField>
+
+<ParamField body="effect" type="string" default="allow">
+`allow`。无法创建拒绝规则：如需撤除某项权限，请删除授予该权限的规则。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/permission-rules' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "actions": [
+      "example"
+    ],
+    "reason": "example",
+    "resource": "example",
+    "subject_id": "8488f48135da0a123c4c74cad0b8fbbc",
+    "subject_type": "role",
+    "auto_grant_prerequisites": false,
+    "effect": "allow"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Create Permission Rules 对象">
+  <ResponseField name="prerequisite_rule_count" type="integer">为前置权限额外添加的规则数（`auto_grant_prerequisites`）</ResponseField>
+  <ResponseField name="rules" type="array">
+  已创建的规则，每个不同的操作对应一条
+  <Expandable title="Permission Rule 对象">
+    <ResponseField name="action" type="string">操作</ResponseField>
+    <ResponseField name="editable" type="boolean">内置角色（`owner`、`admin`、`member`）的规则为 false，这些规则无法更改</ResponseField>
+    <ResponseField name="effect" type="string">`allow` 授予该操作；`deny` 撤除该操作，且优先于任何非所有者来源的允许规则。只能创建允许规则；旧数据中仍可能出现拒绝规则。</ResponseField>
+    <ResponseField name="resource" type="string">资源类型（参见 `GET /permission-catalog`），或其某个实例，格式为 `<resource_type>:<instance_id>`</ResponseField>
+    <ResponseField name="rule_id" type="string">不透明标识符；将其传给[删除权限规则](/features/memorylake/api-reference/access-control/delete-permission-rule)。请勿解析。</ResponseField>
+    <ResponseField name="subject_id" type="string">角色键，或成员的 `principal_id`</ResponseField>
+    <ResponseField name="subject_type" type="string">规则的适用对象。可选值：`role`、`member`。</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (201)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "prerequisite_rule_count": 1,
+    "rules": [
+      {
+        "action": "example",
+        "editable": false,
+        "effect": "allow",
+        "resource": "example",
+        "rule_id": "e15be74d9ecc690478b6de3c80b98886",
+        "subject_id": "e44cc30b3cc8c0e0c437912296ab9d73",
+        "subject_type": "role"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>

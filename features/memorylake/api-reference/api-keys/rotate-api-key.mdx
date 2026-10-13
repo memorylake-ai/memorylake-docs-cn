@@ -1,0 +1,66 @@
+---
+title: "轮换 API Key"
+description: "替换密钥材料并仅返回一次新值"
+---
+
+```
+POST /openapi/memorylake/admin/v1/api-keys/{id}/rotate
+```
+
+替换密钥材料并仅返回一次新值。旧值立即失效。
+
+<Warning>
+轮换本身不是幂等的：每次调用都会生成新 Key 并让上一个 Key 失效。在不稳定的网络下重试时，请务必带上 `Idempotency-Key`，否则盲目重试会让您刚拿到的 Key 失效。
+</Warning>
+
+<Note>
+**所需权限：** `service_account:update`（仅本人的 Key）或 `service_account:update`（全部 Key）
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+API Key 的标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果——不会再签发第二个 Key。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d971b8b5813eb1ecceec31354c101b4/rotate' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="API Key Created 对象">
+  <ResponseField name="id" type="string">此 API Key 的稳定标识符</ResponseField>
+  <ResponseField name="key" type="string">完整的 API Key，包含 `sk-` 前缀。请立即保存——读取类端点不会再返回它。</ResponseField>
+  <ResponseField name="key_prefix" type="string">Key 主体的前 8 个字符</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="key_suffix" type="string">Key 的后 4 个字符</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "id": "b62967384a5222f7709e7ee5220e565f",
+    "key": "sk-f6e5d4c3...redacted...b2a1",
+    "key_prefix": "f6e5d4c3",
+    "name": "Example name",
+    "key_suffix": "b2a1"
+  }
+}
+```
+</ResponseExample>

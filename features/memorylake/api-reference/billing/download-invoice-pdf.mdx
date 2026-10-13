@@ -1,0 +1,32 @@
+---
+title: "下载发票 PDF"
+description: "以 PDF 文件（`application/pdf`）形式直接返回发票——不经重定向"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/invoices/{invoice_id}/pdf
+```
+
+以 PDF 文件（`application/pdf`）形式直接返回发票——不经重定向。已保存开票信息时，返回包含这些信息的版本；否则返回支付服务商自己的版本。若服务商尚未为该发票生成 PDF，返回 409。
+
+<Note>
+**所需权限：** `invoice:read`
+</Note>
+
+### 路径参数
+
+<ParamField path="invoice_id" type="string" required>
+发票 ID（`invoice_id`）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/invoices/2501a637ff332794f7dc5edee0556e67/pdf' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+以 PDF 文件返回发票（`Content-Type: application/pdf`）。
+

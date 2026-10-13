@@ -1,0 +1,68 @@
+---
+title: "添加用户组成员"
+description: "单次调用最多向用户组添加 200 名成员，全部成功或全部不生效：只要有一个 ID 不是本团队成员，就不会添加任何人（404）"
+---
+
+```
+POST /openapi/memorylake/admin/v1/access-groups/{group_id}/members
+```
+
+单次调用最多向用户组添加 200 名成员，全部成功或全部不生效：只要有一个 ID 不是本团队成员，就不会添加任何人（404）。添加已在组内的成员不会报错。仅所有者或管理员可向基于 `tenant_admin` 的用户组添加成员。
+
+<Note>
+**所需权限：** `access_group:manage`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="group_id" type="string" required>
+标识符
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+### 请求体
+
+<ParamField body="principal_ids" type="array" required>
+要添加的成员（`principal_id`）。全有或全无：只要有一个未知 ID，就不会添加任何成员。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups/7013fb5c15cfb29411f040967354b8a3/members' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "principal_ids": [
+      "dbcf9a3aabee5042775269c9d137a2f8"
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Add Access Group Members 对象">
+  <ResponseField name="added" type="integer">添加的成员数（已在用户组中的成员也计入）</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "added": 1
+  }
+}
+```
+</ResponseExample>

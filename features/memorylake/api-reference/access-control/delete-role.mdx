@@ -1,0 +1,46 @@
+---
+title: "删除自定义角色"
+description: "删除自定义角色及其权限规则和访问范围"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/roles/{role_key}
+```
+
+删除自定义角色及其权限规则和访问范围。只要仍有成员持有该角色，请求将以 409 被拒绝；内置角色同样会被拒绝。
+
+<Note>
+**所需权限：** `policy:custom_role_manage`
+</Note>
+
+### 路径参数
+
+<ParamField path="role_key" type="string" required>
+自定义角色的角色键
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles/data_analyst' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

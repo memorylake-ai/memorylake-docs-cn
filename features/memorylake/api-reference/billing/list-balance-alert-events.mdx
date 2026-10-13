@@ -1,0 +1,96 @@
+---
+title: "列出余额预警记录"
+description: "列出已触发的预警级别，按时间倒序，包含触发时的余额及发送的邮件"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/credit-balance/alert/events
+```
+
+列出已触发的预警级别，按时间倒序，包含触发时的余额及发送的邮件。
+
+<Note>
+**所需权限：** `credits:view`
+</Note>
+
+### 查询参数
+
+<ParamField query="page_size" type="integer" default="20">
+每页条数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/credit-balance/alert/events' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Balance Alert Event 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Balance Alert Event 对象">
+    <ResponseField name="balance_tokens" type="integer">触发时的余额，以 tokens 计（透支后为负数）</ResponseField>
+    <ResponseField name="fired_at" type="integer">Unix 秒级时间戳</ResponseField>
+    <ResponseField name="id" type="integer">事件 ID</ResponseField>
+    <ResponseField name="recipients" type="array">
+    本次事件发送的邮件。多个级别同时触发时，仅最严重的级别发送邮件，其余级别不列出任何邮件
+    <Expandable title="Balance Alert Delivery 对象">
+      <ResponseField name="status" type="string">邮件是否已被接受投递。可选值：`sent`、`failed`。</ResponseField>
+      <ResponseField name="email" type="string">收件人地址。预警也会发送给团队所有者；该地址仅对所有者和管理员显示（与成员联系方式的规则相同）——对其他调用方，该条目仅包含其状态。</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="recovered" type="boolean">余额此后已回升至该水位之上</ResponseField>
+    <ResponseField name="threshold" type="object">
+    触发的水位
+    <Expandable title="Balance Alert Threshold 对象">
+      <ResponseField name="type" type="string">`percent_used` 表示订阅周期（无订阅时为累计充入的全部额度）的已用比例达到 `value` 百分比时预警；`tokens_remaining` 表示余额降至 `value` tokens 时预警</ResponseField>
+      <ResponseField name="value" type="integer">`percent_used` 取 1–99；`tokens_remaining` 取 1–1,000,000,000</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="recovered_at" type="integer">恢复时间，Unix 秒级时间戳</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "balance_tokens": 1200000,
+        "fired_at": 1760000000,
+        "id": 1,
+        "recipients": [
+          {
+            "status": "sent",
+            "email": "alice@example.com"
+          }
+        ],
+        "recovered": false,
+        "threshold": {
+          "type": "percent_used",
+          "value": 1
+        },
+        "recovered_at": 1760000000
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,74 @@
+---
+title: "列出可选权限级别"
+description: "您可以为某个成员或用户组在资源上设置的权限级别"
+---
+
+```
+GET /openapi/memorylake/admin/v1/access/{resource_type}/{resource_id}/permission-levels/{subject_type}/{subject_id}/options
+```
+
+返回您可以为某个成员或用户组在该资源上设置的权限级别，以及对方当前持有的级别。
+
+| `resource_type` | `resource_id` 取值 | 所需权限 |
+|---|---|---|
+| `workspaces` | `workspace_id` | `workspace:assign`（作用于 `workspace_id`）<br />同时需要：`workspace:read`（作用于 `workspace_id`） |
+| `projects` | `project_id` | `project:assign`（作用于 `project_id`）<br />同时需要：`project:read`（作用于 `project_id`） |
+| `actors` | `actor_id` | `actor:assign`（作用于 `actor_id`）<br />同时需要：`actor:read`（作用于 `actor_id`） |
+| `agents` | `agent_id` | `agent:assign`（作用于 `agent_id`）<br />同时需要：`agent:read`（作用于 `agent_id`） |
+| `skills` | `skill_id` | `skill:assign`（作用于 `skill_id`）<br />同时需要：`skill:read`（作用于 `skill_id`） |
+| `boundaries` | `boundary_id` | `boundary:assign`（作用于 `boundary_id`）<br />同时需要：`boundary:read`（作用于 `boundary_id`） |
+| `workspaces/{workspace_id}/actors` | `actor_id` | `workspace_actor:assign`（作用于 `workspace_id}/{actor_id`）<br />同时需要：`workspace_actor:read`（作用于 `workspace_id}/{actor_id`） |
+| `workspaces/{workspace_id}/agents` | `agent_id` | `workspace_agent:assign`（作用于 `workspace_id}/{agent_id`）<br />同时需要：`workspace_agent:read`（作用于 `workspace_id}/{agent_id`） |
+
+### 路径参数
+
+<ParamField path="resource_type" type="string" required>
+资源类型，取上表中的值之一
+</ParamField>
+
+<ParamField path="resource_id" type="string" required>
+资源 ID，取值见上表
+</ParamField>
+
+<ParamField path="subject_type" type="string" required>
+`members`（用户组不能持有权限级别）可选值：`members`、`access-groups`。
+</ParamField>
+
+<ParamField path="subject_id" type="string" required>
+成员的 `principal_id`
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access/workspaces/69e585312c30a734cd7727316b1918bd/permission-levels/members/89914667f74821b220f374d323f0f4b0/options' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Permission Level Options 对象">
+  <ResponseField name="can_set_none" type="boolean">调用方能否移除该成员的权限级别（级别 `none`）</ResponseField>
+  <ResponseField name="settable_levels" type="array">调用方可为该成员设置的级别（不含当前级别）</ResponseField>
+  <ResponseField name="blocked_reason" type="string">当前级别无法降低或移除的原因：`outranked` 表示该成员的级别不低于调用方；`last_manager` 表示该成员是最后一个可管理该资源的人；`no_permission` 表示调用方无法共享该资源</ResponseField>
+  <ResponseField name="current_level" type="string">在此实例上为该成员设置的权限级别；未设置时省略。可选值：`read`、`write`、`manage`。</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "can_set_none": true,
+    "settable_levels": [
+      "example"
+    ],
+    "blocked_reason": "outranked",
+    "current_level": "read"
+  }
+}
+```
+</ResponseExample>

@@ -1,0 +1,60 @@
+---
+title: "获取自动充值配置"
+description: "返回余额是否自动充值、在什么水位触发以及充值多少"
+---
+
+```
+GET /openapi/memorylake/admin/v1/billing/auto-topup
+```
+
+返回余额是否自动充值、在什么水位触发以及充值多少。更改需在控制台中完成。
+
+<Note>
+**所需权限：** `credits:view`
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/billing/auto-topup' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Auto Topup 对象">
+  <ResponseField name="amount" type="object">
+  每次充值收取
+  <Expandable title="Money 对象">
+    <ResponseField name="amount" type="integer">以该币种最小单位计的金额（`usd` 为美分）</ResponseField>
+    <ResponseField name="currency" type="string">小写的 ISO 4217 货币代码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="enabled" type="boolean">是否自动充值余额</ResponseField>
+  <ResponseField name="threshold_tokens" type="integer">一次性余额降至此 tokens 数时进行充值</ResponseField>
+  <ResponseField name="tokens" type="integer">每次充值增加的 tokens</ResponseField>
+  <ResponseField name="cooldown_until" type="integer">在此时间之前不自动充值，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="last_topup_at" type="integer">上次自动充值时间，Unix 秒级时间戳</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "amount": {
+      "amount": 1999,
+      "currency": "usd"
+    },
+    "enabled": true,
+    "threshold_tokens": 1200000,
+    "tokens": 1200000,
+    "cooldown_until": 1,
+    "last_topup_at": 1760000000
+  }
+}
+```
+</ResponseExample>

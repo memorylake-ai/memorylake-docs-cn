@@ -1,0 +1,48 @@
+---
+title: "移除成员"
+description: "将成员移出团队"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/members/{principal_id}
+```
+
+将成员移出团队。其在本团队中的 API Key 会被停用（而非删除）。团队所有者无法被移除，调用方也不能移除自己。
+
+<Note>
+**所需权限：** `member:remove`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 路径参数
+
+<ParamField path="principal_id" type="string" required>
+成员的标识符（`principal_id`）
+</ParamField>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果。
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members/dbcf9a3aabee5042775269c9d137a2f8' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>

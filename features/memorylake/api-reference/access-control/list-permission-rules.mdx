@@ -1,0 +1,84 @@
+---
+title: "列出权限规则"
+description: "列出您团队的权限规则——角色上的规则（包括内置角色）以及针对单个成员设置的规则"
+---
+
+```
+GET /openapi/memorylake/admin/v1/permission-rules
+```
+
+列出您团队的权限规则——角色上的规则（包括内置角色）以及针对单个成员设置的规则。可按 `subject_type` 筛选，并在其下按 `subject_id` 筛选。访问范围、资源上的权限级别以及用户组权限有各自的端点，不在此列出。
+
+<Note>
+**所需权限：** `policy:manage`
+</Note>
+
+### 查询参数
+
+<ParamField query="subject_type" type="string">
+仅返回此主体类型的规则。可选值：`role`、`member`。
+</ParamField>
+
+<ParamField query="subject_id" type="string">
+仅返回此主体的规则；需同时指定 `subject_type`
+</ParamField>
+
+<ParamField query="page_size" type="integer">
+每页条数，1–100（默认 20）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/permission-rules' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Permission Rule 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Permission Rule 对象">
+    <ResponseField name="action" type="string">操作</ResponseField>
+    <ResponseField name="editable" type="boolean">内置角色（`owner`、`admin`、`member`）的规则为 false，这些规则无法更改</ResponseField>
+    <ResponseField name="effect" type="string">`allow` 授予该操作；`deny` 撤除该操作，且优先于任何非所有者来源的允许规则。只能创建允许规则；旧数据中仍可能出现拒绝规则。</ResponseField>
+    <ResponseField name="resource" type="string">资源类型（参见 `GET /permission-catalog`），或其某个实例，格式为 `<resource_type>:<instance_id>`</ResponseField>
+    <ResponseField name="rule_id" type="string">不透明标识符；将其传给[删除权限规则](/features/memorylake/api-reference/access-control/delete-permission-rule)。请勿解析。</ResponseField>
+    <ResponseField name="subject_id" type="string">角色键，或成员的 `principal_id`</ResponseField>
+    <ResponseField name="subject_type" type="string">规则的适用对象。可选值：`role`、`member`。</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "action": "example",
+        "editable": false,
+        "effect": "allow",
+        "resource": "example",
+        "rule_id": "e15be74d9ecc690478b6de3c80b98886",
+        "subject_id": "e44cc30b3cc8c0e0c437912296ab9d73",
+        "subject_type": "role"
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>

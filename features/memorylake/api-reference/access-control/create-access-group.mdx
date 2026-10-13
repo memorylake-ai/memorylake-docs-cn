@@ -1,0 +1,131 @@
+---
+title: "创建用户组"
+description: "创建用户组"
+---
+
+```
+POST /openapi/memorylake/admin/v1/access-groups
+```
+
+创建用户组。其权限来自一个可选基础——角色（`base_role_key`）或另一个用户组（`base_access_group_id`），在创建时固定——加上其自身的权限列表。仅所有者或管理员可创建基于 `tenant_admin` 的用户组。每个团队最多 200 个用户组。
+
+<Note>
+**所需权限：** `access_group:manage`
+
+- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+</Note>
+
+### 请求头
+
+<ParamField header="Idempotency-Key" type="string">
+可选。使用相同值重试会重放首次结果，而不会创建第二个用户组。
+</ParamField>
+
+### 请求体
+
+<ParamField body="name" type="string" required>
+显示名称
+</ParamField>
+
+<ParamField body="base_access_group_id" type="string">
+可选，与 `base_role_key` 互斥。该用户组授予此用户组所授予的全部权限。
+</ParamField>
+
+<ParamField body="base_role_key" type="string">
+可选。该用户组授予此角色所授予的全部权限。授予 `tenant_admin` 需要所有者或管理员。可选值：`tenant_member`、`tenant_admin`。
+</ParamField>
+
+<ParamField body="description" type="string">
+可选描述
+</ParamField>
+
+<ParamField body="permissions" type="array">
+在基础之上额外授予的可选权限
+<Expandable title="Access Group Permission 对象">
+  <ParamField body="permissions[].action" type="string" required>操作</ParamField>
+  <ParamField body="permissions[].resource_type" type="string" required>资源类型（参见 `GET /permission-catalog?grantable_to=access_group`）</ParamField>
+</Expandable>
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/access-groups' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "name": "Example name",
+    "base_access_group_id": "654c7f7dfc968117cbb5a2e1e31a838e",
+    "base_role_key": "tenant_member",
+    "description": "Example description",
+    "permissions": [
+      {
+        "action": "example",
+        "resource_type": "example"
+      }
+    ]
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Access Group 对象">
+  <ResponseField name="created_at" type="integer">Unix 秒级时间戳</ResponseField>
+  <ResponseField name="created_by" type="string">创建者的 `principal_id`</ResponseField>
+  <ResponseField name="group_id" type="string">标识符</ResponseField>
+  <ResponseField name="member_count" type="integer">成员数</ResponseField>
+  <ResponseField name="name" type="string">显示名称</ResponseField>
+  <ResponseField name="permissions" type="array">
+  用户组在其基础角色或基础用户组之上额外授予的权限
+  <Expandable title="Access Group Permission 对象">
+    <ResponseField name="action" type="string">操作</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型（参见 `GET /permission-catalog?grantable_to=access_group`）</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="updated_at" type="integer">Unix 秒级时间戳</ResponseField>
+  <ResponseField name="base_access_group_id" type="string">该用户组授予此另一用户组所授予的全部权限。创建时确定，之后不可更改。</ResponseField>
+  <ResponseField name="base_role_key" type="string">该用户组授予此角色（`tenant_member` 或 `tenant_admin`）所授予的全部权限。创建时确定，之后不可更改。</ResponseField>
+  <ResponseField name="description" type="string">描述</ResponseField>
+  <ResponseField name="scope_summary" type="array">
+  用户组开放访问的实例，按资源类型计数
+  <Expandable title="Access Group Scope Count 对象">
+    <ResponseField name="instance_count" type="integer">用户组向其成员开放访问的此类型实例</ResponseField>
+    <ResponseField name="resource_type" type="string">资源类型</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (201)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "created_at": 1760000000,
+    "created_by": "example",
+    "group_id": "6f8976043c3a1d0040a5853315a3c843",
+    "member_count": 1,
+    "name": "Example name",
+    "permissions": [
+      {
+        "action": "example",
+        "resource_type": "example"
+      }
+    ],
+    "updated_at": 1760000000,
+    "base_access_group_id": "d62d704744ca464eeee07a49ef8c2877",
+    "base_role_key": "tenant_member",
+    "description": "Example description",
+    "scope_summary": [
+      {
+        "instance_count": 1,
+        "resource_type": "example"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
