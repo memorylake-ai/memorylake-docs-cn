@@ -1,0 +1,80 @@
+---
+title: "Memory Router API"
+description: "带着您的记忆调用 OpenAI 与 Anthropic 兼容模型"
+---
+
+Memory Router 让您在调用模型时自动带上 MemoryLake 中的记忆。继续使用 OpenAI 或 Anthropic SDK，只需替换 base URL，并在每个请求上加一个 `boundary_id`：调用模型前，相关记忆会被加入提示词。
+
+请求和响应保持模型厂商自己的格式。本参考只说明 Memory Router 新增的部分；其余字段请参阅模型厂商的 API 文档。分步上手请看[快速入门](/features/memory-router/quickstart)。
+
+## Base URL
+
+| SDK | Base URL |
+| --- | --- |
+| OpenAI | `https://app.memorylake.cn/openapi/memorylake/router/openai/v1` |
+| Anthropic | `https://app.memorylake.cn/openapi/memorylake/router/anthropic`（SDK 会自行拼上 `/v1/messages`） |
+
+Memory Router 与 MemoryLake API 其余部分使用同一个 Base URL `https://app.memorylake.cn/openapi/memorylake`，位于其中独立的 `/router` 段。
+
+<Note>
+早先的端点 `https://app.memorylake.cn/openai/v1/…` 与 `https://app.memorylake.cn/anthropic/v1/messages` 继续可用、行为相同。新接入请使用上面的路径。
+</Note>
+
+## 端点
+
+| 端点 | |
+| --- | --- |
+| [`POST /openapi/memorylake/router/openai/v1/chat/completions`](/features/memory-router/api-reference/chat-completions) | OpenAI Chat Completions |
+| [`POST /openapi/memorylake/router/openai/v1/responses`](/features/memory-router/api-reference/responses) | OpenAI Responses |
+| [`POST /openapi/memorylake/router/openai/v1/embeddings`](/features/memory-router/api-reference/embeddings) | OpenAI Embeddings |
+| [`POST /openapi/memorylake/router/anthropic/v1/messages`](/features/memory-router/api-reference/messages) | Anthropic Messages |
+| [`GET /openapi/memorylake/router/v1/models`](/features/memory-router/api-reference/list-models) | 可调用的模型及价格 |
+
+## 身份验证
+
+每个请求都需要一个 MemoryLake API Key（`sk-...`）。它放在哪里，取决于由谁的模型账号付费：
+
+| 模式 | 请求头 |
+| --- | --- |
+| **MemoryLake 托管** | MemoryLake 密钥放在原生鉴权头中：OpenAI 用 `Authorization: Bearer sk-...`，Anthropic 用 `x-api-key: sk-...` |
+| **BYOK**（自带密钥） | 您的模型厂商密钥放在原生鉴权头中，MemoryLake 密钥放在 `x-memorylake-api-key` 中 |
+
+您的模型厂商密钥只会转发给模型厂商，不会被保存。详见[部署模式](/features/memory-router/deployment-modes)。
+
+## 记忆
+
+`boundary_id` 是**查询参数**，不是请求头，也不是请求体字段：
+
+```
+POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/chat/completions?boundary_id=bnd-xxxxxx
+```
+
+Boundary 决定一个请求使用哪一份记忆。`boundary_id` 适用于 Chat Completions、Responses 和 Messages。不带 `boundary_id` 时，请求原样发给模型，不使用记忆；它仍会鉴权并计量。详见[工作原理](/features/memory-router/how-it-works)。
+
+## 模型
+
+使用模型的原生名称，例如 `gpt-4o-mini` 或 `claude-haiku-4-5`，不加厂商前缀。[列出模型](/features/memory-router/api-reference/list-models)会返回全部可调用的模型，以及各自经哪个 base URL 调用。OpenAI 与 Anthropic 的 `/v1/models` 端点不可用。
+
+## 流式输出
+
+设置 `stream: true` 即可按模型厂商的格式接收 server-sent events。事件到达即转发。
+
+## 链路追踪
+
+每个响应都带有 `X-Trace-ID` 响应头。发送 W3C `traceparent` 请求头，即可把该请求纳入您自己的链路。联系支持团队时请提供该 trace id。
+
+## 错误
+
+Memory Router 自身返回的错误：
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | MemoryLake API Key 缺失、无效、已停用或已过期 |
+| `402` | 余额不足。充值后重试 |
+| `403` | 该 Key 只允许从指定 IP 地址调用，而本次请求来自其他地址 |
+| `429` | 来自您 IP 地址的无效 Key 请求过多。请等待 `Retry-After` 给出的时间 |
+| `502` | Memory Router 无法连接到上游服务。请稍后重试 |
+
+`401` 和 `403` 使用 OpenAI 的错误格式（`{"error": {"message", "type"}}`）。`402` 返回 `{"success": false, "message": "insufficient quota"}`。`429` 返回 `{"success": false, "code": "AUTH_THROTTLED", "error": {"type", "message"}}`。推理端点的 `502` 返回纯文本，列出模型的 `502` 使用 OpenAI 的错误格式。
+
+其余错误由上游原样透传；来自模型厂商的错误保持厂商自有格式。

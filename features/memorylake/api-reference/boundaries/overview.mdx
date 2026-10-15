@@ -5,11 +5,7 @@ description: "Boundary 是一个有名字的记忆范围——工作空间、其
 
 **Boundary**（记忆边界）是一个工作空间内有名字的记忆范围。它记下某类流量涉及哪些项目、哪个人、哪个 Agent，使用它的一方就只读写这部分记忆。您不必在每次调用时都传这四类引用，只需传 Boundary 的 ID。
 
-在中国站，[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)使用 Boundary：客户端连接时，用户在 OAuth 授权页面上选择工作空间和 Boundary。
-
-<Note>
-国际站的 Memory Router 也通过 `?boundary_id=` 使用 Boundary，但中国站尚未开放 Memory Router，参见 [Memory Router 常见问题](/features/memory-router/faq)。
-</Note>
+[MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)和 [Memory Router](/features/memory-router/overview) 都使用 Boundary：MCP 客户端连接时，用户在 OAuth 授权页面上选择工作空间和 Boundary；Memory Router 在每个请求上通过 `?boundary_id=` 传入。
 
 您可以在控制台创建 Boundary，也可以用下面的端点管理。
 

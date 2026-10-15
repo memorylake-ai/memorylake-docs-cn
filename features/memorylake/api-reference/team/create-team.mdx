@@ -1,13 +1,13 @@
 ---
 title: "创建团队"
-description: "以 API Key 所有者身份创建新的组织团队"
+description: "创建一个新的组织团队，所有者为该 API Key 的所有者（而不是该 Key 所属的团队）"
 ---
 
 ```
 POST /openapi/memorylake/admin/v1/teams
 ```
 
-以 API Key 所有者身份创建新的组织团队。若 `issue_api_key` 为 `true`，响应中会包含该团队新的所有者 API Key，且仅返回一次。创建团队计入所有者的团队数量上限，并在可用时发放免费套餐。
+创建一个新的组织团队，所有者为该 API Key 的所有者（而不是该 Key 所属的团队）。所有者必须是能登录的真人：虚拟成员的 Key 会被拒绝（403）。若 `issue_api_key` 为 `true`，响应中会包含该团队新的所有者 API Key，其密钥仅在首次响应中返回——用同一个 `Idempotency-Key` 重试会重放团队与该 Key 的元数据，但不含密钥。不带 `Idempotency-Key` 重试会再创建一个团队。创建团队计入所有者的团队数量上限（达到上限时返回 409 `RESOURCE_LIMIT_EXCEEDED`），并在可用时发放免费套餐。本部署关闭了团队创建时同样返回 403。
 
 <Warning>
 **高风险操作。** 调用后立即生效。调用前请先读完上面说明的影响。
