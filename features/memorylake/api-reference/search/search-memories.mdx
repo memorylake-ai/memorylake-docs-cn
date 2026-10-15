@@ -3,15 +3,11 @@ title: "搜索记忆"
 description: "使用自然语言在工作空间中跨所有记忆源进行搜索"
 ---
 
-<ParamField body="agent_ids" type="array of strings">
-将搜索限定在指定 Agent 的记忆范围内。
-</ParamField>
-
 ```
 POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/search
 ```
 
-使用自然语言查询在工作空间中跨所有记忆源（文档和事实）进行搜索。结果按来源类型分组，便于你在 UI 中分别展示各类别或将其合并。使用可选筛选条件可将结果限定到特定项目、Actor 或记忆类型。
+使用自然语言查询在工作空间中跨所有记忆源（文档和事实）进行搜索。结果按来源类型分组，便于你在 UI 中分别展示各类别或将其合并。文档只在 `project_ids` 列出的项目中搜索；其余可选筛选条件用于指定 Actor、Agent 或记忆类型。
 
 <Note>
 **所需权限：** 工作空间上需要 `workspace:memory_search`，此外按您指名的对象各需一项——`project_ids` 里的每个项目需要 `project:mem_search` 与 `project:doc_search`；`actor_ids` 里的每个 Actor 需要 `workspace_actor:fact_search`；`agent_ids` 里的每个 Agent 需要 `workspace_agent:fact_search`。只要指名了您无权搜索的对象，整个请求会被拒绝。
@@ -30,11 +26,15 @@ POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/search
 </ParamField>
 
 <ParamField body="project_ids" type="array of strings">
-将搜索限定到特定项目。省略时将搜索工作空间中的所有项目。
+要搜索的项目。文档只在这里列出的项目中搜索：省略时不搜索任何项目，`documents` 返回空。事实仍会在请求指定的 Actor 和 Agent 中搜索；`actor_ids` 和 `agent_ids` 都未传时，搜索您自己的 Actor。
 </ParamField>
 
 <ParamField body="actor_ids" type="array of strings">
 将搜索限定到与特定 Actor 关联的记忆
+</ParamField>
+
+<ParamField body="agent_ids" type="array of strings">
+将搜索限定在指定 Agent 的记忆范围内。
 </ParamField>
 
 <ParamField body="memory_types" type="array of strings">
@@ -67,6 +67,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
   文档搜索结果，按源文档分组
   <Expandable title="DocumentSearchResult">
     <ResponseField name="document_id" type="string">文档标识符</ResponseField>
+    <ResponseField name="project_id" type="string">该文档所属项目的 ID，一定是您传入的 `project_ids` 之一。可与 `document_id` 一起定位该文档做后续操作，例如[获取](/features/memorylake/api-reference/v3-documents/get-document)或下载。</ResponseField>
     <ResponseField name="document_name" type="string">文档的显示名称</ResponseField>
     <ResponseField name="file_name" type="string">原始文件名</ResponseField>
     <ResponseField name="document_summary" type="string">文档摘要</ResponseField>
@@ -106,6 +107,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     "documents": [
       {
         "document_id": "doc-8ef7fb1915709b68aa2e8628f0fb9aab",
+        "project_id": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
         "document_name": "Q1 2024 Financial Report",
         "file_name": "q1_2024_report.pdf",
         "document_summary": "Quarterly financial report covering revenue, expenses, and projections for Q1 2024.",

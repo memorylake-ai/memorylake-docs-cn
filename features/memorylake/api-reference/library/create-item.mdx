@@ -46,6 +46,7 @@ POST /openapi/memorylake/api/v1/drives/items
 
 - `rename`（默认） — 追加数字后缀（`Q2 Reports_1`）。
 - `deny` — 以 `409 DRIVE_ITEM_CONFLICT` 失败。
+- `overwrite` / `replace` — 仅适用于文件（见「创建文件」页签）。用这两个值创建文件夹时，若已存在同名条目，请求会失败；否则照常创建文件夹。
 </ParamField>
 
 <ParamField body="x_attrs" type="object">
@@ -101,6 +102,8 @@ POST /openapi/memorylake/api/v1/drives/items
 - `deny` — 以 `409 DRIVE_ITEM_CONFLICT` 失败。
 - `overwrite` — 覆盖文件库中现有文件的内容。现有的 `item_id` **保持不变**。
 - `replace` — 删除现有文件并创建新文件。会签发**新的 `item_id`**；此前对旧 ID 的引用将失效。
+
+`overwrite` 和 `replace` 只作用于已存在的**文件**：同名条目是文件夹时，请求会失败。
 </ParamField>
 
 <Warning>
