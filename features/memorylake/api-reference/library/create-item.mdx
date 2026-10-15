@@ -106,7 +106,7 @@ POST /openapi/memorylake/api/v1/drives/items
 </ParamField>
 
 <Warning>
-`overwrite` 仅替换文件库中存储的文件字节 — **不会**重新处理或重新索引此前从该文件导入的任何项目文档。要将新内容同步到项目中，请在覆盖后再次调用[导入文档](/features/memorylake/api-reference/v3-documents/import-documents)（或改用一个新文件）。
+`overwrite` 仅替换文件库中存储的文件字节 — **不会**重新处理或重新索引此前从该文件导入的任何项目文档。要将新内容同步到项目中，请先[删除](/features/memorylake/api-reference/v3-documents/delete-documents)项目中由该文件导入的文档，再重新[导入](/features/memorylake/api-reference/v3-documents/import-documents)该文件。不删除就直接再次导入，会被视为重复（`duplicate`），不会有任何变化。
 </Warning>
 
 <ParamField body="x_attrs" type="object">
