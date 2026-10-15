@@ -1,0 +1,134 @@
+---
+title: "Chat Completions"
+description: "带着记忆调用 OpenAI 兼容的对话模型"
+---
+
+```
+POST /openai/v1/chat/completions
+```
+
+OpenAI Chat Completions。带上 `boundary_id` 时，会先把该 Boundary 中的相关记忆加入对话再调用模型。不带时，请求原样发给模型。
+
+设置 `stream` 为 `true` 即可按 OpenAI 格式接收 server-sent events。下面未列出的参数会原样传给模型。
+
+### 查询参数
+
+<ParamField query="boundary_id" type="string">
+本次请求使用哪个 Boundary 的记忆。省略则不使用记忆，直接调用模型。
+</ParamField>
+
+### 请求头
+
+<ParamField header="x-memorylake-api-key" type="string">
+使用自带的模型厂商密钥（BYOK）时，在这里放 MemoryLake API Key，模型厂商密钥则放在该厂商原生的鉴权头中。您的模型厂商密钥只会转发给模型厂商，不会被保存。
+</ParamField>
+
+<ParamField header="traceparent" type="string">
+W3C 链路上下文。带上后，请求会纳入您的链路，并在 `X-Trace-ID` 中返回同一个 trace id。
+</ParamField>
+
+### 请求体
+
+<ParamField body="messages" type="array" required>
+到目前为止的对话
+<Expandable title="Chat Message 对象">
+  <ParamField body="messages[].content" type="string | array" required>消息文本，或内容片段数组</ParamField>
+  <ParamField body="messages[].role" type="string" required>消息的作者角色。可选值：`system`、`developer`、`user`、`assistant`、`tool`。</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="model" type="string" required>
+模型名称，与控制台「可用模型」中列出的一致
+</ParamField>
+
+<ParamField body="max_completion_tokens" type="integer">
+最多生成的 token 数，包含推理。gpt-5 和 o 系列模型请用它代替 `max_tokens`。
+</ParamField>
+
+<ParamField body="max_tokens" type="integer">
+最多生成的 token 数
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+以 server-sent events 流式返回回复
+</ParamField>
+
+<ParamField body="temperature" type="number">
+采样温度
+</ParamField>
+
+<ParamField body="tools" type="array">
+模型可调用的工具，OpenAI 格式
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openai/v1/chat/completions?boundary_id=bnd-xxxxxx' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "messages": [
+      {
+        "content": "What did I say my favourite city was?",
+        "role": "user"
+      }
+    ],
+    "model": "gpt-4o-mini"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="choices" type="array">
+生成的回复
+<Expandable title="Choice 对象">
+  <ResponseField name="finish_reason" type="string">模型停止的原因，例如 `stop` 或 `length`</ResponseField>
+  <ResponseField name="index" type="integer">在列表中的位置</ResponseField>
+  <ResponseField name="message" type="object">
+  回复
+  <Expandable title="Message 对象">
+    <ResponseField name="content" type="string">回复文本</ResponseField>
+    <ResponseField name="role" type="string">固定为 `assistant`</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+<ResponseField name="created" type="integer">创建时间，Unix 秒级时间戳</ResponseField>
+<ResponseField name="id" type="string">补全 ID</ResponseField>
+<ResponseField name="model" type="string">作答的模型</ResponseField>
+<ResponseField name="object" type="string">固定为 `chat.completion`</ResponseField>
+<ResponseField name="usage" type="object">
+本次用量
+<Expandable title="Chat Usage 对象">
+  <ResponseField name="completion_tokens" type="integer">回复的 token 数</ResponseField>
+  <ResponseField name="prompt_tokens" type="integer">提示词的 token 数</ResponseField>
+  <ResponseField name="total_tokens" type="integer">提示词与回复之和</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "choices": [
+    {
+      "finish_reason": "stop",
+      "index": 0,
+      "message": {
+        "content": "You said your favourite city is Lisbon.",
+        "role": "assistant"
+      }
+    }
+  ],
+  "created": 1760000000,
+  "id": "chatcmpl-abc123",
+  "model": "gpt-4o-mini",
+  "object": "chat.completion",
+  "usage": {
+    "completion_tokens": 11,
+    "prompt_tokens": 412,
+    "total_tokens": 423
+  }
+}
+```
+</ResponseExample>

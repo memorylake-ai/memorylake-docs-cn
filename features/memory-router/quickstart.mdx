@@ -5,10 +5,6 @@ description: "三步为您的 LLM 调用加上持久记忆"
 
 三步即可跑通 Memory Router。您的应用只需改动三处：base URL、`boundary_id` 查询参数，以及——在 BYOK 模式下——一个请求头。
 
-<Note>
-Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关，下面的步骤和端点在中国站当前无法跑通——本页保留完整流程，供您提前评估接入方案。如需在中国站使用，请联系 [contact@data.cloud](mailto:contact@data.cloud) 了解开放计划；现在就要落地记忆，请改用 [REST API](/features/memorylake/api-reference/overview) 或 [MCP 服务器](/features/memorylake/mcp-servers/creating-api-keys)。
-</Note>
-
 ## 第 1 步：获取密钥和 Boundary
 
 1. 登录[控制台](https://app.memorylake.cn)，创建一个 MemoryLake API Key（以 `sk-` 开头）。
@@ -34,11 +30,11 @@ Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未�
 | OpenAI · Embeddings | `POST https://app.memorylake.cn/openai/v1/embeddings` |
 | Anthropic · Messages | `POST https://app.memorylake.cn/anthropic/v1/messages` |
 
-完整对比见[部署模式](/features/memory-router/deployment-modes)。
+目前还没有可用的向量模型，Embeddings 端点暂时无法使用。完整对比见[部署模式](/features/memory-router/deployment-modes)。
 
 ### MemoryLake 托管——一个密钥
 
-无需模型厂商账号。GPT、Claude 和 Qwen 系列模型均已内置；按原生模型名称调用任意模型即可。
+无需模型厂商账号。GPT、o 系列、Claude、Qwen、DeepSeek、GLM、Kimi 和 MiniMax 等模型均已内置；在控制台**可用模型**中挑选，按原生名称调用即可。
 
 <CodeGroup>
 ```ts TypeScript
@@ -217,7 +213,7 @@ console.log(completion.choices[0].message.content);
 BYOK 与托管模式的完整对比，以及支持的模型厂商。
 </Card>
 
-<Card title="可观测性" icon="activity" href="/features/memory-router/observability">
-追踪请求并理解错误约定。
+<Card title="API 参考" icon="code" href="/features/memory-router/api-reference/overview">
+每个端点、请求头和参数的详细说明。
 </Card>
 </CardGroup>

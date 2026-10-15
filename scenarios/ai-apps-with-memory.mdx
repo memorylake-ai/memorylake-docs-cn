@@ -14,9 +14,9 @@ MemoryLake 就是您的记忆后端。两种接入方式，共享同一个记忆
 | 方式 | 怎么用 | 适合场景 |
 |---|---|---|
 | **REST API**（中国站可用） | 显式调用 `https://app.memorylake.cn/openapi/memorylake` 上的 `add` / `search` / `trace` / `forget` | 完全掌控存什么、何时召回 |
-| **Memory Router**（中国站暂未开放） | 把现有的 OpenAI/Anthropic SDK 指向网关，为每个用户传入一个 `boundary_id` | 最快路径——无需改动调用点即可获得记忆 |
+| **Memory Router**（中国站可用） | 把现有的 OpenAI/Anthropic SDK 指向网关，为每个用户传入一个 `boundary_id` | 最快路径——无需改动调用点即可获得记忆 |
 
-两者写入同一个池：通过 Router 沉淀的记忆可以用 API 搜索到，反之亦然。**在中国站请从下面的路径 B（REST API）开始**——路径 A 保留在此供您了解与提前设计。
+两者写入同一个池：通过 Router 沉淀的记忆可以用 API 搜索到，反之亦然。
 
 ## 路径 A：Memory Router——改一行 base URL 就有记忆
 
@@ -41,9 +41,6 @@ def chat(user, message):
 
 每位用户的会话只读写属于自己的记忆——无需检索代码，无需提取管道，无需设计表结构。BYOK 模式让您继续沿用现有的厂商账号与计费。详见 [Memory Router 快速入门](/features/memory-router/quickstart)。
 
-<Note>
-Memory Router 在 MemoryLake **中国站暂未开放**——上面的端点在中国站当前无法调用，如需使用请联系商务了解开放计划。下方的 REST API 路径在中国站已正式可用。
-</Note>
 
 ## 路径 B：REST API——显式的记忆操作
 

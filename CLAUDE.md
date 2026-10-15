@@ -39,8 +39,8 @@ curl -s https://app.memorylake.cn/api/status | python3 -m json.tool
 
 ### 中国站当前状态（2026-07-27 实测，会变，以线上为准）
 
-- **可用**：MemoryLake 记忆平台、Model Router（含 Playground，Claude/Gemini 供应商）、OAuth2 MCP（`/memorylake/mcp/v2`）、Agent 插件（OpenClaw/QClaw/Hermes）、REST API、Claude/ChatGPT/Gemini/Chrome 扩展集成、Open Data、连接器（WPS/飞书/OneDrive/SharePoint/Dropbox）
-- **未开放**：Memory Router（网关未注册）、Memory Arena、NL2SQL/数据库查询、Actor UI、聊天记录导入、连接器中的 Google Drive/钉钉/百度网盘
+- **可用**：Memory Router（2026-10-15 实测：`features.memory_router.enabled = true`，四个端点已注册，托管模型含 GPT/Claude/Qwen/DeepSeek/GLM/Kimi/MiniMax，暂无向量模型）、MemoryLake 记忆平台、Model Router（含 Playground，Claude/Gemini 供应商）、OAuth2 MCP（`/memorylake/mcp/v2`）、Agent 插件（OpenClaw/QClaw/Hermes）、REST API、Claude/ChatGPT/Gemini/Chrome 扩展集成、Open Data、连接器（WPS/飞书/OneDrive/SharePoint/Dropbox）
+- **未开放**：Memory Arena、NL2SQL/数据库查询、Actor UI、聊天记录导入、连接器中的 Google Drive/钉钉/百度网盘
 - **IM 渠道集成（钉钉机器人）**：2026-08-11 实测已开放（`features.memorylake.im_channels.dingtalk = true`）。注意它与上一行「连接器中的钉钉」是**两个不同功能**：前者把 agent 接进钉钉聊天（工作空间 ▸ 集成），后者把钉钉文档挂进文件库（连接器页面，仍未开放）
 - 登录仅邮箱密码（无第三方登录），注册开启且当前无需邮箱验证
 - 计费按人民币显示；**不要写具体支付方式**，未经确认一律引导到控制台 Billing 或商务
@@ -63,7 +63,7 @@ Mintlify 的标题锚点由标题文本生成，**保留 `：`、`’`、`&` 等
 
 ## 生成的 API 页
 
-`features/memorylake/api-reference/` 下这几个目录里的页面由接口自身的 spec 生成：`team/`、`members/`、`invitations/`、`api-keys/`、`access-control/`、`usage/`、`billing/`、`integrations/`。**不要手改**，下次同步会覆盖。要改其中某页，请改 `memorylake-apiservice` 仓库里的 spec 或生成器（`cmd/docs-gen`：页面清单与顺序在 `pages.yaml`，中文在 `i18n/zh.yaml`），再运行 `task openapi:docs INTL=<memorylake-docs> CN=<本仓库>`，它会同时改写两个文档仓库。通用页（`overview`、`authentication`、`errors`、`rate-limits`）仍是手写。
+`features/memorylake/api-reference/` 下这几个目录里的页面由接口自身的 spec 生成：`team/`、`members/`、`invitations/`、`api-keys/`、`access-control/`、`usage/`、`billing/`、`integrations/`，以及 `features/memory-router/api-reference/`（Memory Router API，来自 `openapi/memory-router/spec/openapi.yaml`，页面清单在 `pages.memory-router.yaml`）。**不要手改**，下次同步会覆盖。要改其中某页，请改 `memorylake-apiservice` 仓库里的 spec 或生成器（`cmd/docs-gen`：页面清单与顺序在 `pages.yaml`，中文在 `i18n/zh.yaml`），再运行 `task openapi:docs INTL=<memorylake-docs> CN=<本仓库>`，它会同时改写两个文档仓库。通用页（`overview`、`authentication`、`errors`、`rate-limits`）仍是手写。
 
 旧的 `features/management-api/*` 地址已重定向到这些页（`docs.json` 的 `redirects`）。
 

@@ -3,10 +3,6 @@ title: "部署模式"
 description: "使用自己的模型厂商密钥（BYOK）接入，或使用 MemoryLake 托管模型——两种方式共享同一记忆层"
 ---
 
-<Note>
-Memory Router 在 MemoryLake **中国站暂未开放**。中国站部署尚未启用该记忆网关，下面列出的端点当前无法调用；本页描述的是该能力的完整形态，供您提前评估接入方案。如需在中国站使用，请联系 [contact@data.cloud](mailto:contact@data.cloud) 了解开放计划。
-</Note>
-
 Memory Router 支持两种接入方式。与那些强制您自带密钥的代理不同，您既可以保留自己的模型厂商账号，**也可以**让 MemoryLake 替您运行模型。两种模式共享相同的端点——区别只在于您发送哪些密钥。其他一切——提示词、流式输出、工具调用——都保持不变。
 
 ## 端点
@@ -18,7 +14,7 @@ Memory Router 支持两种接入方式。与那些强制您自带密钥的代理
 | OpenAI · Embeddings | `POST https://app.memorylake.cn/openai/v1/embeddings` |
 | Anthropic · Messages | `POST https://app.memorylake.cn/anthropic/v1/messages` |
 
-在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。
+在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。目前还没有可用的向量模型，Embeddings 端点暂时无法使用。全部参数见 [API 参考](/features/memory-router/api-reference/overview)。
 
 <Note>
 使用 Anthropic SDK 时，请将 `base_url` 设为 `https://app.memorylake.cn/anthropic`（不带 `/v1`）——SDK 会自行追加 `/v1/messages`。
@@ -29,7 +25,7 @@ Memory Router 支持两种接入方式。与那些强制您自带密钥的代理
 无需模型厂商账号。MemoryLake 替您运行主流模型，因此只需一个 MemoryLake API Key 即可开始。
 
 - 一个密钥搞定一切——不用再注册任何其他服务。
-- 内置 GPT、Claude 和 Qwen 系列模型，可直接按原生名称调用。
+- 内置GPT、o 系列、Claude、Qwen、DeepSeek、GLM、Kimi 和 MiniMax 等模型，可直接按原生名称调用。
 - 带记忆上线的最简路径。
 
 **密钥：**仅需 MemoryLake 密钥，放在原生鉴权头中（OpenAI 风格调用用 `Authorization: Bearer`，Anthropic 用 `x-api-key`）
@@ -50,8 +46,9 @@ const client = new OpenAI({
 使用您自己的模型厂商账号。您的模型厂商密钥在传输中加密，按次转发给模型厂商，且绝不存储在我们的服务器上。
 
 - 保留现有的 OpenAI / Anthropic 账号。
-- 您的密钥、您的账单、您的速率限制。
+- 模型用量计入您的模型厂商账号，受您的速率限制约束。
 - 密钥仅加密透传——绝不持久化，也不写入日志。
+- 可调用控制台**可用模型**中列出的模型。
 
 **密钥：**您的模型厂商密钥放在该厂商的**原生**鉴权头中 + MemoryLake 密钥放在 `x-memorylake-api-key` 头中
 
@@ -77,7 +74,8 @@ const client = new OpenAI({
 | --- | --- | --- |
 | 模型厂商账号 | 不需要 | 需要（您自己的） |
 | 密钥 | 仅 MemoryLake 密钥 | 模型厂商密钥 + MemoryLake 密钥 |
-| 账单与速率限制 | 由 MemoryLake 承担 | 留在您的模型厂商账号下 |
+| 模型账单与速率限制 | 由 MemoryLake 承担 | 留在您的模型厂商账号下 |
+| 记忆计费 | 您的 MemoryLake 余额 | 您的 MemoryLake 余额 |
 | 适合 | 最快带记忆上线 | 已有模型厂商合同和配额的团队 |
 
 ## 密钥安全，源于设计
@@ -92,9 +90,14 @@ const client = new OpenAI({
 | --- | --- | --- |
 | OpenAI / GPT（Chat Completions 与 Responses） | ✅ | ✅ |
 | Anthropic / Claude（Messages） | ✅ | ✅ |
-| 阿里 Qwen（OpenAI 兼容，经 `/openai/v1`） | — | ✅ |
+| Qwen、DeepSeek、GLM、Kimi、MiniMax（OpenAI 兼容，经 `/openai/v1`） | — | ✅ |
+| Embeddings | — | —（暂无模型） |
 
-我们会持续接入更多模型厂商和协议；控制台的 **Integrations → Memory Router API** 页面始终反映当前的支持清单。
+我们会持续接入更多模型厂商和协议；控制台的**可用模型**页面始终反映当前的支持清单。
+
+<Note>
+两种模式都需要 MemoryLake 余额：BYOK 模式下记忆同样从余额扣费，余额不足时调用会以 `402` 被拒绝。
+</Note>
 
 ## 后续步骤
 

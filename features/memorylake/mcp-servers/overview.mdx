@@ -17,7 +17,7 @@ description: "把 MemoryLake 记忆接入您的 Agent 和应用——OpenClaw �
 | **Claude / ChatGPT / Gemini 客户端** | ✅ 可用 | 控制台按客户端提供引导式配置 |
 | **Chrome 扩展** | ✅ 可用 | 控制台提供引导式安装与配置 |
 | **聊天历史导入** | ⛔ 中国站暂未开放 | 从 Claude / ChatGPT / Gemini 批量导入历史对话——中国站尚未启用 |
-| **Memory Router** | ⛔ 中国站暂未开放 | 调用级记忆网关，详见 [Memory Router](/features/memory-router/overview) |
+| **Memory Router** | ✅ 可用 | 调用级记忆网关，详见 [Memory Router](/features/memory-router/overview) |
 
 在[控制台](https://app.memorylake.cn)侧边栏打开 **Integrations**，即可查看您的账户已启用哪些集成——每张可用卡片都会生成预填了项目 id 和 API Key 的配置命令。控制台中实际显示的卡片即为当前中国站可用的范围。
 
@@ -70,7 +70,7 @@ OpenAI 协议的客户端（例如 ChatGPT）会自动获得这些工具的简�
 
 - **您使用支持 MCP 的客户端**（Claude Code、Codex、Cursor、Claude Desktop）→ 选 MCP。一条命令、OAuth2，无需存储任何密钥。
 - **您希望编程 Agent 自动获得记忆** → 选 OpenClaw/QClaw 插件。自动召回、自动捕获与自动上传胜过手工调用工具。
-- **您在构建产品** → 选 REST API（中国站正式可用）。调用级记忆的 [Memory Router](/features/memory-router/overview) 在中国站暂未开放。
+- **您在构建产品** → 选 REST API（中国站正式可用），或用 [Memory Router](/features/memory-router/overview) 实现调用级记忆。
 - **您还想用上 MemoryLake 的模型** → 再加上 [Model Router](/features/model-router/overview)——同一个 Key、OpenAI 兼容端点，并可为 OpenClaw 安装 `memorylake-models-openclaw` 插件。
 
 ## 后续步骤

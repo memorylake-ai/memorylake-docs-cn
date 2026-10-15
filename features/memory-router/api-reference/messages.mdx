@@ -1,0 +1,123 @@
+---
+title: "Messages"
+description: "带着记忆调用 Anthropic 模型"
+---
+
+```
+POST /anthropic/v1/messages
+```
+
+Anthropic Messages。带上 `boundary_id` 时，会先把该 Boundary 中的相关记忆加入对话再调用模型。不带时，请求原样发给模型。
+
+使用 Anthropic SDK 时，base URL 填以 `/anthropic` 结尾的地址，SDK 会自行拼上 `/v1/messages`。设置 `stream` 为 `true` 即可按 Anthropic 格式接收 server-sent events。下面未列出的参数会原样传给模型。
+
+### 查询参数
+
+<ParamField query="boundary_id" type="string">
+本次请求使用哪个 Boundary 的记忆。省略则不使用记忆，直接调用模型。
+</ParamField>
+
+### 请求头
+
+<ParamField header="x-memorylake-api-key" type="string">
+使用自带的模型厂商密钥（BYOK）时，在这里放 MemoryLake API Key，模型厂商密钥则放在该厂商原生的鉴权头中。您的模型厂商密钥只会转发给模型厂商，不会被保存。
+</ParamField>
+
+<ParamField header="anthropic-version" type="string">
+Anthropic API 版本。Anthropic SDK 会自动发送。
+</ParamField>
+
+<ParamField header="traceparent" type="string">
+W3C 链路上下文。带上后，请求会纳入您的链路，并在 `X-Trace-ID` 中返回同一个 trace id。
+</ParamField>
+
+### 请求体
+
+<ParamField body="max_tokens" type="integer" required>
+最多生成的 token 数
+</ParamField>
+
+<ParamField body="messages" type="array" required>
+到目前为止的对话
+<Expandable title="Message 对象">
+  <ParamField body="messages[].content" type="string | array" required>消息文本，或内容块数组</ParamField>
+  <ParamField body="messages[].role" type="string" required>消息的作者角色。可选值：`user`、`assistant`。</ParamField>
+</Expandable>
+</ParamField>
+
+<ParamField body="model" type="string" required>
+模型名称，与控制台「可用模型」中列出的一致
+</ParamField>
+
+<ParamField body="stream" type="boolean" default="false">
+以 server-sent events 流式返回回复
+</ParamField>
+
+<ParamField body="system" type="string | array">
+系统提示词
+</ParamField>
+
+<ParamField body="temperature" type="number">
+采样温度
+</ParamField>
+
+<ParamField body="tools" type="array">
+模型可调用的工具，Anthropic 格式
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/anthropic/v1/messages?boundary_id=bnd-xxxxxx' \
+  -H 'x-api-key: sk_xxxxxx' \
+  -H 'anthropic-version: 2023-06-01' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "max_tokens": 1024,
+    "messages": [
+      {
+        "content": "What did I say my favourite city was?",
+        "role": "user"
+      }
+    ],
+    "model": "claude-haiku-4-5"
+  }'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="content" type="array">回复的内容块，例如文本和工具调用</ResponseField>
+<ResponseField name="id" type="string">消息 ID</ResponseField>
+<ResponseField name="model" type="string">作答的模型</ResponseField>
+<ResponseField name="role" type="string">固定为 `assistant`</ResponseField>
+<ResponseField name="stop_reason" type="string">模型停止的原因，例如 `end_turn` 或 `max_tokens`</ResponseField>
+<ResponseField name="type" type="string">固定为 `message`</ResponseField>
+<ResponseField name="usage" type="object">
+本次用量
+<Expandable title="Usage 对象">
+  <ResponseField name="input_tokens" type="integer">输入的 token 数</ResponseField>
+  <ResponseField name="output_tokens" type="integer">生成的 token 数</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "content": [
+    {
+      "text": "You said your favourite city is Lisbon.",
+      "type": "text"
+    }
+  ],
+  "id": "msg_abc123",
+  "model": "claude-haiku-4-5",
+  "role": "assistant",
+  "stop_reason": "end_turn",
+  "type": "message",
+  "usage": {
+    "input_tokens": 412,
+    "output_tokens": 11
+  }
+}
+```
+</ResponseExample>
