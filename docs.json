@@ -665,7 +665,8 @@
               "features/memory-router/api-reference/chat-completions",
               "features/memory-router/api-reference/responses",
               "features/memory-router/api-reference/embeddings",
-              "features/memory-router/api-reference/messages"
+              "features/memory-router/api-reference/messages",
+              "features/memory-router/api-reference/list-models"
             ]
           }
         ]
