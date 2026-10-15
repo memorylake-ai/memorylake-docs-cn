@@ -86,6 +86,13 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     <ResponseField name="metadata" type="object">与事实关联的附加元数据</ResponseField>
     <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
     <ResponseField name="updated_at" type="string">最后更新时间戳</ResponseField>
+    <ResponseField name="owner" type="object">
+    该事实所属的项目、Actor 或 Agent，`id` 为请求中指定它时所用的 ID。请求未传 `actor_ids` 和 `agent_ids` 时，即使传了 `project_ids`，也会一并搜索您自己的 Actor，其中的事实归属为该 Actor。可用它定位该事实做后续操作，例如读取；更新或删除事实还要求其归属对象仍然存在。
+    <Expandable title="归属对象">
+      <ResponseField name="type" type="string">归属类型：`project`、`actor` 或 `agent`</ResponseField>
+      <ResponseField name="id" type="string">归属 ID：当 `type` 为 `project` 时为项目 ID，为 `actor` 时为 Actor ID，为 `agent` 时为 Agent ID</ResponseField>
+    </Expandable>
+    </ResponseField>
   </Expandable>
   </ResponseField>
 </Expandable>
@@ -119,7 +126,11 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
         "score": 0.92,
         "metadata": {},
         "created_at": "2024-04-01T09:00:00Z",
-        "updated_at": "2024-04-01T09:00:00Z"
+        "updated_at": "2024-04-01T09:00:00Z",
+        "owner": {
+          "type": "project",
+          "id": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"
+        }
       }
     ]
   }

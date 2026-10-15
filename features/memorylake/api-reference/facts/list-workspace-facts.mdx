@@ -76,10 +76,10 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8
     <ResponseField name="metadata" type="object">附加到事实的任意键值元数据</ResponseField>
     <ResponseField name="expired" type="boolean">事实是否已被遗忘</ResponseField>
     <ResponseField name="owner" type="object">
-    该事实所属的项目或 Actor
+    该事实所属的项目、Actor 或 Agent
     <Expandable title="归属对象">
-      <ResponseField name="type" type="string">归属类型：`project` 或 `actor`</ResponseField>
-      <ResponseField name="id" type="string">归属 ID：当 `type` 为 `project` 时为项目 ID，为 `actor` 时为 Actor ID</ResponseField>
+      <ResponseField name="type" type="string">归属类型：`project`、`actor` 或 `agent`</ResponseField>
+      <ResponseField name="id" type="string">归属 ID：当 `type` 为 `project` 时为项目 ID，为 `actor` 时为 Actor ID，为 `agent` 时为 Agent ID</ResponseField>
     </Expandable>
     </ResponseField>
     <ResponseField name="expiration_date" type="string|null">计划的过期日期，如果事实不会过期则为 `null`</ResponseField>
