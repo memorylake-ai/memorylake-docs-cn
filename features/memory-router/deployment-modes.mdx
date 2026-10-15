@@ -9,15 +9,15 @@ Memory Router 支持两种接入方式。与那些强制您自带密钥的代理
 
 | 协议 | 端点 |
 | --- | --- |
-| OpenAI · Chat Completions | `POST https://app.memorylake.cn/openai/v1/chat/completions` |
-| OpenAI · Responses | `POST https://app.memorylake.cn/openai/v1/responses` |
-| OpenAI · Embeddings | `POST https://app.memorylake.cn/openai/v1/embeddings` |
-| Anthropic · Messages | `POST https://app.memorylake.cn/anthropic/v1/messages` |
+| OpenAI · Chat Completions | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/chat/completions` |
+| OpenAI · Responses | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/responses` |
+| OpenAI · Embeddings | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/embeddings` |
+| Anthropic · Messages | `POST https://app.memorylake.cn/openapi/memorylake/router/anthropic/v1/messages` |
 
-在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。目前还没有可用的向量模型，Embeddings 端点暂时无法使用。全部参数见 [API 参考](/features/memory-router/api-reference/overview)。
+在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。目前还没有可用的向量模型，Embeddings 端点暂时无法使用。全部参数见 [API 参考](/features/memory-router/api-reference/overview)。早先不带 `/openapi/memorylake/router` 的端点（如 `https://app.memorylake.cn/openai/v1`）继续可用、行为相同；新接入请使用上面的路径。
 
 <Note>
-使用 Anthropic SDK 时，请将 `base_url` 设为 `https://app.memorylake.cn/anthropic`（不带 `/v1`）——SDK 会自行追加 `/v1/messages`。
+使用 Anthropic SDK 时，请将 `base_url` 设为 `https://app.memorylake.cn/openapi/memorylake/router/anthropic`（不带 `/v1`）——SDK 会自行追加 `/v1/messages`。
 </Note>
 
 ## MemoryLake 托管
@@ -34,7 +34,7 @@ Memory Router 支持两种接入方式。与那些强制您自带密钥的代理
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "https://app.memorylake.cn/openai/v1",
+  baseURL: "https://app.memorylake.cn/openapi/memorylake/router/openai/v1",
   apiKey: process.env.MEMORYLAKE_API_KEY,
 });
 
@@ -56,7 +56,7 @@ const client = new OpenAI({
 import OpenAI from "openai";
 
 const client = new OpenAI({
-  baseURL: "https://app.memorylake.cn/openai/v1",
+  baseURL: "https://app.memorylake.cn/openapi/memorylake/router/openai/v1",
   apiKey: process.env.OPENAI_API_KEY,        // 您的模型厂商密钥
   defaultHeaders: {
     "x-memorylake-api-key": process.env.MEMORYLAKE_API_KEY,
@@ -90,7 +90,7 @@ const client = new OpenAI({
 | --- | --- | --- |
 | OpenAI / GPT（Chat Completions 与 Responses） | ✅ | ✅ |
 | Anthropic / Claude（Messages） | ✅ | ✅ |
-| Qwen、DeepSeek、GLM、Kimi、MiniMax（OpenAI 兼容，经 `/openai/v1`） | — | ✅ |
+| Qwen、DeepSeek、GLM、Kimi、MiniMax（OpenAI 兼容，经 `/openapi/memorylake/router/openai/v1`） | — | ✅ |
 | Embeddings | — | —（暂无模型） |
 
 我们会持续接入更多模型厂商和协议；控制台的**可用模型**页面始终反映当前的支持清单。

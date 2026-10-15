@@ -4,7 +4,7 @@ description: "通过 Responses API 带着记忆调用 OpenAI 模型"
 ---
 
 ```
-POST /openai/v1/responses
+POST /openapi/memorylake/router/openai/v1/responses
 ```
 
 OpenAI Responses。带上 `boundary_id` 时，会先把该 Boundary 中的相关记忆加入输入再调用模型。不带时，请求原样发给模型。
@@ -51,7 +51,7 @@ W3C 链路上下文。带上后，请求会纳入您的链路，并在 `X-Trace-
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://app.memorylake.cn/openai/v1/responses?boundary_id=bnd-xxxxxx' \
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/router/openai/v1/responses?boundary_id=bnd-xxxxxx' \
   -H 'Authorization: Bearer sk_xxxxxx' \
   -H 'Content-Type: application/json' \
   -d '{

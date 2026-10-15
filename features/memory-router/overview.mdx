@@ -51,7 +51,7 @@ Memory Router 把这一切压缩成一次 base URL 变更加一个查询参数�
 Router 上的记忆是**按请求显式开启**的。**Boundary** 将一段会话绑定到它的记忆范围——一个工作空间、一个或多个项目、一个人类 Actor 和一个助手 Actor。您在控制台创建一次 Boundary，随后在每次调用时传入它的 id：
 
 ```text
-POST /openai/v1/chat/completions?boundary_id=<your-boundary-id>
+POST /openapi/memorylake/router/openai/v1/chat/completions?boundary_id=<your-boundary-id>
 ```
 
 - **带 `boundary_id`**——该范围内的记忆会被召回并注入，会话产生的新记忆也会写回其中。

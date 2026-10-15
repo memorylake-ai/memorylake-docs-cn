@@ -4,16 +4,16 @@ description: "列出可调用的模型及其价格"
 ---
 
 ```
-GET /memory-router/v1/models
+GET /openapi/memorylake/router/v1/models
 ```
 
-列出可通过 Memory Router 调用的模型及其价格，按协议分组：`openai` 组的模型经 `/openai/v1` 调用，`anthropic` 组的模型经 `/anthropic/v1` 调用。每个站点的模型目录各自独立。
+列出可通过 Memory Router 调用的模型及其价格，按协议分组：`openai` 组的模型经 `/router/openai/v1` 调用，`anthropic` 组的模型经 `/router/anthropic/v1` 调用。每个站点的模型目录各自独立。
 
 价格按每 100 万 token 计，同时给出美元价和余额 token 数（从余额扣除的数量）。未列出的价格项表示该模型不适用这一项，不代表免费。没有 `price` 时表示该模型暂无价格，仍可调用。
 
 <RequestExample>
 ```bash cURL
-curl -X GET 'https://app.memorylake.cn/memory-router/v1/models' \
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
   -H 'Authorization: Bearer sk_xxxxxx'
 ```
 </RequestExample>
@@ -21,7 +21,7 @@ curl -X GET 'https://app.memorylake.cn/memory-router/v1/models' \
 ### 响应
 
 <ResponseField name="anthropic" type="array">
-经 `/anthropic/v1` 调用的模型，按名称排序
+经 `/router/anthropic/v1` 调用的模型，按名称排序
 <Expandable title="Catalog Model 对象">
   <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
   <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>
@@ -134,7 +134,7 @@ curl -X GET 'https://app.memorylake.cn/memory-router/v1/models' \
 </Expandable>
 </ResponseField>
 <ResponseField name="openai" type="array">
-经 `/openai/v1` 调用的模型，按名称排序
+经 `/router/openai/v1` 调用的模型，按名称排序
 <Expandable title="Catalog Model 对象">
   <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
   <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>

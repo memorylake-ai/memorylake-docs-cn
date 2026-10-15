@@ -11,18 +11,24 @@ Memory Router 让您在调用模型时自动带上 MemoryLake 中的记忆。继
 
 | SDK | Base URL |
 | --- | --- |
-| OpenAI | `https://app.memorylake.cn/openai/v1` |
-| Anthropic | `https://app.memorylake.cn/anthropic`（SDK 会自行拼上 `/v1/messages`） |
+| OpenAI | `https://app.memorylake.cn/openapi/memorylake/router/openai/v1` |
+| Anthropic | `https://app.memorylake.cn/openapi/memorylake/router/anthropic`（SDK 会自行拼上 `/v1/messages`） |
+
+Memory Router 与 MemoryLake API 其余部分使用同一个 Base URL `https://app.memorylake.cn/openapi/memorylake`，位于其中独立的 `/router` 段。
+
+<Note>
+早先的端点 `https://app.memorylake.cn/openai/v1/…` 与 `https://app.memorylake.cn/anthropic/v1/messages` 继续可用、行为相同。新接入请使用上面的路径。
+</Note>
 
 ## 端点
 
 | 端点 | |
 | --- | --- |
-| [`POST /openai/v1/chat/completions`](/features/memory-router/api-reference/chat-completions) | OpenAI Chat Completions |
-| [`POST /openai/v1/responses`](/features/memory-router/api-reference/responses) | OpenAI Responses |
-| [`POST /openai/v1/embeddings`](/features/memory-router/api-reference/embeddings) | OpenAI Embeddings |
-| [`POST /anthropic/v1/messages`](/features/memory-router/api-reference/messages) | Anthropic Messages |
-| [`GET /memory-router/v1/models`](/features/memory-router/api-reference/list-models) | 可调用的模型及价格 |
+| [`POST /openapi/memorylake/router/openai/v1/chat/completions`](/features/memory-router/api-reference/chat-completions) | OpenAI Chat Completions |
+| [`POST /openapi/memorylake/router/openai/v1/responses`](/features/memory-router/api-reference/responses) | OpenAI Responses |
+| [`POST /openapi/memorylake/router/openai/v1/embeddings`](/features/memory-router/api-reference/embeddings) | OpenAI Embeddings |
+| [`POST /openapi/memorylake/router/anthropic/v1/messages`](/features/memory-router/api-reference/messages) | Anthropic Messages |
+| [`GET /openapi/memorylake/router/v1/models`](/features/memory-router/api-reference/list-models) | 可调用的模型及价格 |
 
 ## 身份验证
 
@@ -40,7 +46,7 @@ Memory Router 让您在调用模型时自动带上 MemoryLake 中的记忆。继
 `boundary_id` 是**查询参数**，不是请求头，也不是请求体字段：
 
 ```
-POST https://app.memorylake.cn/openai/v1/chat/completions?boundary_id=bnd-xxxxxx
+POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/chat/completions?boundary_id=bnd-xxxxxx
 ```
 
 Boundary 决定一个请求使用哪一份记忆。`boundary_id` 适用于 Chat Completions、Responses 和 Messages。不带 `boundary_id` 时，请求原样发给模型，不使用记忆；它仍会鉴权并计量。详见[工作原理](/features/memory-router/how-it-works)。

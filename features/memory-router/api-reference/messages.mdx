@@ -4,7 +4,7 @@ description: "带着记忆调用 Anthropic 模型"
 ---
 
 ```
-POST /anthropic/v1/messages
+POST /openapi/memorylake/router/anthropic/v1/messages
 ```
 
 Anthropic Messages。带上 `boundary_id` 时，会先把该 Boundary 中的相关记忆加入对话再调用模型。不带时，请求原样发给模型。
@@ -67,7 +67,7 @@ W3C 链路上下文。带上后，请求会纳入您的链路，并在 `X-Trace-
 
 <RequestExample>
 ```bash cURL
-curl -X POST 'https://app.memorylake.cn/anthropic/v1/messages?boundary_id=bnd-xxxxxx' \
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/router/anthropic/v1/messages?boundary_id=bnd-xxxxxx' \
   -H 'x-api-key: sk_xxxxxx' \
   -H 'anthropic-version: 2023-06-01' \
   -H 'Content-Type: application/json' \
