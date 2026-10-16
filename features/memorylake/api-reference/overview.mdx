@@ -137,7 +137,7 @@ https://app.memorylake.cn/openapi/memorylake
 - `page_size`：每页条数
 - `continuation_token`：上一次响应返回的令牌，用于获取下一页
 
-当响应中的 `continuation_token` 为 `null` 时，表示没有更多页。
+当响应中没有 `continuation_token` 时，表示没有更多页。
 
 ### 幂等请求
 

@@ -7,7 +7,9 @@ description: "列出可调用的模型及其价格"
 GET /openapi/memorylake/router/v1/models
 ```
 
-列出可通过 Memory Router 调用的模型及其价格，按协议分组：`openai` 组的模型经 `/router/openai/v1` 调用，`anthropic` 组的模型经 `/router/anthropic/v1` 调用。每个站点的模型目录各自独立。
+列出可通过 Memory Router 调用的模型及其价格，按名称排序。`provider_type` 表示该模型走哪个 Base URL：`openai` 的模型经 `/router/openai/v1` 调用，`anthropic` 的模型经 `/router/anthropic/v1` 调用。每个站点的模型目录各自独立。
+
+与推理接口不同，本接口使用 MemoryLake API 的响应格式：模型清单在 `data.items` 中，出错时返回 `success`、`message` 和 `error_code`。
 
 价格按每 100 万 token 计，同时给出美元价和余额 token 数（从余额扣除的数量）。未列出的价格项表示该模型不适用这一项，不代表免费。没有 `price` 时表示该模型暂无价格，仍可调用。
 
@@ -20,228 +22,47 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
 
 ### 响应
 
-<ResponseField name="anthropic" type="array">
-经 `/router/anthropic/v1` 调用的模型，按名称排序
-<Expandable title="Catalog Model 对象">
-  <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
-  <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>
-  <ResponseField name="price" type="object">
-  该模型的价格。暂无价格时没有此字段。
-  <Expandable title="Model Price 对象">
-    <ResponseField name="details" type="object">
-    该模型的其余各项价格。只列出适用的价格。
-    <Expandable title="Price Details 对象">
-      <ResponseField name="batch" type="object">
-      批量请求的价格
-      <Expandable title="Batch Price 对象">
+<ResponseField name="data" type="object">
+<Expandable title="Model Catalog 对象">
+  <ResponseField name="items" type="array">
+  可调用的全部模型，按名称排序。没有可用模型时为空列表。
+  <Expandable title="Catalog Model 对象">
+    <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
+    <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>
+    <ResponseField name="price" type="object">
+    该模型的价格。暂无价格时没有此字段。
+    <Expandable title="Model Price 对象">
+      <ResponseField name="details" type="object">
+      该模型的其余各项价格。只列出适用的价格。
+      <Expandable title="Price Details 对象">
+        <ResponseField name="batch" type="object">批量请求的价格</ResponseField>
         <ResponseField name="cache_read" type="object">从缓存读取的输入 token</ResponseField>
         <ResponseField name="cache_read_explicit" type="object">从显式创建的缓存读取的输入 token</ResponseField>
         <ResponseField name="cache_write" type="object">写入缓存的输入 token</ResponseField>
         <ResponseField name="cache_write_1h" type="object">写入 1 小时缓存的输入 token</ResponseField>
         <ResponseField name="cache_write_5m" type="object">写入 5 分钟缓存的输入 token</ResponseField>
-        <ResponseField name="input" type="object">输入 token</ResponseField>
-        <ResponseField name="output" type="object">输出 token</ResponseField>
+        <ResponseField name="hosted_tools" type="object">内置工具的价格</ResponseField>
         <ResponseField name="output_thinking" type="object">推理输出 token</ResponseField>
-        <ResponseField name="tiers" type="array">按输入长度分档的批量价格，分档结构与 `tiers` 相同</ResponseField>
+        <ResponseField name="tiers" type="array">按输入长度分档的价格</ResponseField>
       </Expandable>
       </ResponseField>
-      <ResponseField name="cache_read" type="object">
-      从缓存读取的输入 token
+      <ResponseField name="input" type="object">
+      输入 token
       <Expandable title="Price Tier 对象">
         <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
         <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
       </Expandable>
       </ResponseField>
-      <ResponseField name="cache_read_explicit" type="object">
-      从显式创建的缓存读取的输入 token
+      <ResponseField name="output" type="object">
+      输出 token
       <Expandable title="Price Tier 对象">
         <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
         <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
       </Expandable>
       </ResponseField>
-      <ResponseField name="cache_write" type="object">
-      写入缓存的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_write_1h" type="object">
-      写入 1 小时缓存的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_write_5m" type="object">
-      写入 5 分钟缓存的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="hosted_tools" type="object">
-      内置工具的价格
-      <Expandable title="Hosted Tools Price 对象">
-        <ResponseField name="file_search" type="object">文件搜索调用，以 `usd_per_thousand_calls`（每千次调用的美元价）计</ResponseField>
-        <ResponseField name="image_generation" type="array">图像生成价格，每个图像模型一项：`model`，以及与 `input` 同结构的 `text_input`、`image_input`、`text_output`、`image_output`</ResponseField>
-        <ResponseField name="image_generation_batch" type="array">批量图像生成价格，每个图像模型一项：`model`，以及与 `input` 同结构的 `text_input`、`image_input`、`text_output`、`image_output`</ResponseField>
-        <ResponseField name="web_search" type="object">网页搜索调用，以 `usd_per_thousand_calls`（每千次调用的美元价）计</ResponseField>
-        <ResponseField name="web_search_preview" type="object">网页搜索（预览版）调用，以 `usd_per_thousand_calls`（每千次调用的美元价）计</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="output_thinking" type="object">
-      推理输出 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="tiers" type="array">
-      按输入长度分档的价格
-      <Expandable title="Price Band 对象">
-        <ResponseField name="min_input_tokens" type="integer">该档输入长度下限（token 数）</ResponseField>
-        <ResponseField name="cache_read" type="object">从缓存读取的输入 token</ResponseField>
-        <ResponseField name="cache_read_explicit" type="object">从显式创建的缓存读取的输入 token</ResponseField>
-        <ResponseField name="cache_write" type="object">写入缓存的输入 token</ResponseField>
-        <ResponseField name="cache_write_1h" type="object">写入 1 小时缓存的输入 token</ResponseField>
-        <ResponseField name="cache_write_5m" type="object">写入 5 分钟缓存的输入 token</ResponseField>
-        <ResponseField name="input" type="object">输入 token</ResponseField>
-        <ResponseField name="max_input_tokens" type="integer">该档输入长度上限（token 数）。最后一档没有此字段。</ResponseField>
-        <ResponseField name="output" type="object">输出 token</ResponseField>
-        <ResponseField name="output_thinking" type="object">推理输出 token</ResponseField>
-      </Expandable>
-      </ResponseField>
+      <ResponseField name="tiered" type="boolean">价格随输入长度变化时为 `true`：此时 `input` 和 `output` 是最低一档，各档价格见 `details.tiers`</ResponseField>
     </Expandable>
     </ResponseField>
-    <ResponseField name="input" type="object">
-    输入 token
-    <Expandable title="Price Tier 对象">
-      <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-      <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-    </Expandable>
-    </ResponseField>
-    <ResponseField name="output" type="object">
-    输出 token
-    <Expandable title="Price Tier 对象">
-      <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-      <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-    </Expandable>
-    </ResponseField>
-    <ResponseField name="tiered" type="boolean">价格随输入长度变化时为 `true`：此时 `input` 和 `output` 是最低一档，各档价格见 `details.tiers`</ResponseField>
-  </Expandable>
-  </ResponseField>
-</Expandable>
-</ResponseField>
-<ResponseField name="openai" type="array">
-经 `/router/openai/v1` 调用的模型，按名称排序
-<Expandable title="Catalog Model 对象">
-  <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
-  <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>
-  <ResponseField name="price" type="object">
-  该模型的价格。暂无价格时没有此字段。
-  <Expandable title="Model Price 对象">
-    <ResponseField name="details" type="object">
-    该模型的其余各项价格。只列出适用的价格。
-    <Expandable title="Price Details 对象">
-      <ResponseField name="batch" type="object">
-      批量请求的价格
-      <Expandable title="Batch Price 对象">
-        <ResponseField name="cache_read" type="object">从缓存读取的输入 token</ResponseField>
-        <ResponseField name="cache_read_explicit" type="object">从显式创建的缓存读取的输入 token</ResponseField>
-        <ResponseField name="cache_write" type="object">写入缓存的输入 token</ResponseField>
-        <ResponseField name="cache_write_1h" type="object">写入 1 小时缓存的输入 token</ResponseField>
-        <ResponseField name="cache_write_5m" type="object">写入 5 分钟缓存的输入 token</ResponseField>
-        <ResponseField name="input" type="object">输入 token</ResponseField>
-        <ResponseField name="output" type="object">输出 token</ResponseField>
-        <ResponseField name="output_thinking" type="object">推理输出 token</ResponseField>
-        <ResponseField name="tiers" type="array">按输入长度分档的批量价格，分档结构与 `tiers` 相同</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_read" type="object">
-      从缓存读取的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_read_explicit" type="object">
-      从显式创建的缓存读取的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_write" type="object">
-      写入缓存的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_write_1h" type="object">
-      写入 1 小时缓存的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="cache_write_5m" type="object">
-      写入 5 分钟缓存的输入 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="hosted_tools" type="object">
-      内置工具的价格
-      <Expandable title="Hosted Tools Price 对象">
-        <ResponseField name="file_search" type="object">文件搜索调用，以 `usd_per_thousand_calls`（每千次调用的美元价）计</ResponseField>
-        <ResponseField name="image_generation" type="array">图像生成价格，每个图像模型一项：`model`，以及与 `input` 同结构的 `text_input`、`image_input`、`text_output`、`image_output`</ResponseField>
-        <ResponseField name="image_generation_batch" type="array">批量图像生成价格，每个图像模型一项：`model`，以及与 `input` 同结构的 `text_input`、`image_input`、`text_output`、`image_output`</ResponseField>
-        <ResponseField name="web_search" type="object">网页搜索调用，以 `usd_per_thousand_calls`（每千次调用的美元价）计</ResponseField>
-        <ResponseField name="web_search_preview" type="object">网页搜索（预览版）调用，以 `usd_per_thousand_calls`（每千次调用的美元价）计</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="output_thinking" type="object">
-      推理输出 token
-      <Expandable title="Price Tier 对象">
-        <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-        <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-      </Expandable>
-      </ResponseField>
-      <ResponseField name="tiers" type="array">
-      按输入长度分档的价格
-      <Expandable title="Price Band 对象">
-        <ResponseField name="min_input_tokens" type="integer">该档输入长度下限（token 数）</ResponseField>
-        <ResponseField name="cache_read" type="object">从缓存读取的输入 token</ResponseField>
-        <ResponseField name="cache_read_explicit" type="object">从显式创建的缓存读取的输入 token</ResponseField>
-        <ResponseField name="cache_write" type="object">写入缓存的输入 token</ResponseField>
-        <ResponseField name="cache_write_1h" type="object">写入 1 小时缓存的输入 token</ResponseField>
-        <ResponseField name="cache_write_5m" type="object">写入 5 分钟缓存的输入 token</ResponseField>
-        <ResponseField name="input" type="object">输入 token</ResponseField>
-        <ResponseField name="max_input_tokens" type="integer">该档输入长度上限（token 数）。最后一档没有此字段。</ResponseField>
-        <ResponseField name="output" type="object">输出 token</ResponseField>
-        <ResponseField name="output_thinking" type="object">推理输出 token</ResponseField>
-      </Expandable>
-      </ResponseField>
-    </Expandable>
-    </ResponseField>
-    <ResponseField name="input" type="object">
-    输入 token
-    <Expandable title="Price Tier 对象">
-      <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-      <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-    </Expandable>
-    </ResponseField>
-    <ResponseField name="output" type="object">
-    输出 token
-    <Expandable title="Price Tier 对象">
-      <ResponseField name="tokens_per_million" type="integer">每 100 万 token 从余额扣除的 token 数</ResponseField>
-      <ResponseField name="usd_per_million" type="number">每 100 万 token 的美元价</ResponseField>
-    </Expandable>
-    </ResponseField>
-    <ResponseField name="tiered" type="boolean">价格随输入长度变化时为 `true`：此时 `input` 和 `output` 是最低一档，各档价格见 `details.tiers`</ResponseField>
   </Expandable>
   </ResponseField>
 </Expandable>
@@ -250,54 +71,68 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
 <ResponseExample>
 ```json Success (200)
 {
-  "anthropic": [
-    {
-      "name": "claude-haiku-4-5",
-      "price": {
-        "details": {
-          "cache_read": {
-            "tokens_per_million": 32000,
-            "usd_per_million": 0.1
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "name": "claude-haiku-4-5",
+        "price": {
+          "details": {
+            "cache_read": {
+              "tokens_per_million": 32000,
+              "usd_per_million": 0.1
+            },
+            "cache_write_5m": {
+              "tokens_per_million": 400000,
+              "usd_per_million": 1.25
+            }
           },
-          "cache_write_5m": {
-            "tokens_per_million": 400000,
-            "usd_per_million": 1.25
+          "input": {
+            "tokens_per_million": 320000,
+            "usd_per_million": 1
+          },
+          "output": {
+            "tokens_per_million": 1600000,
+            "usd_per_million": 5
           }
         },
-        "input": {
-          "tokens_per_million": 320000,
-          "usd_per_million": 1
-        },
-        "output": {
-          "tokens_per_million": 1600000,
-          "usd_per_million": 5
-        }
+        "provider_type": "anthropic"
       },
-      "provider_type": "anthropic"
-    }
-  ],
-  "openai": [
-    {
-      "name": "gpt-4o-mini",
-      "price": {
-        "details": {
-          "cache_read": {
-            "tokens_per_million": 24000,
-            "usd_per_million": 0.075
+      {
+        "name": "gpt-4o-mini",
+        "price": {
+          "details": {
+            "cache_read": {
+              "tokens_per_million": 24000,
+              "usd_per_million": 0.075
+            }
+          },
+          "input": {
+            "tokens_per_million": 48000,
+            "usd_per_million": 0.15
+          },
+          "output": {
+            "tokens_per_million": 192000,
+            "usd_per_million": 0.6
           }
         },
-        "input": {
-          "tokens_per_million": 48000,
-          "usd_per_million": 0.15
-        },
-        "output": {
-          "tokens_per_million": 192000,
-          "usd_per_million": 0.6
-        }
-      },
-      "provider_type": "openai"
-    }
-  ]
+        "provider_type": "openai"
+      }
+    ]
+  }
 }
 ```
 </ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | MemoryLake API Key 缺失、无效、已停用或已过期。`error_code` 为 `UNAUTHORIZE`。 |
+| `403` | 该 Key 仅允许从指定 IP 地址调用，而本次请求来自其他地址。`error_code` 为 `ACCESS_DENIED`。 |
+| `429` | 来自您 IP 地址的无效 Key 请求过多。`error_code` 为 `RATE_LIMIT_EXCEEDED`。请按 `Retry-After` 等待后重试。 |
+| `502` | 暂时无法获取模型清单。`error_code` 为 `INTERNAL_ERROR`。请稍后重试。 |
+| `503` | 服务暂时不可用，例如正在维护。`error_code` 为 `SERVICE_UNAVAILABLE`。请稍后重试；已知需等待的时长时会返回 `Retry-After`。 |
