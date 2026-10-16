@@ -7,7 +7,7 @@ description: "永久删除一个 Actor"
 DELETE /openapi/memorylake/api/v3/actors/{id}
 ```
 
-永久删除一个 Actor。该 Actor 的所有工作空间绑定也会被移除。
+永久删除一个 Actor。该 Actor 的工作空间绑定**不会**被移除：它们仍会出现在[列出工作空间 Actor](/features/memorylake/api-reference/actors/list-workspace-actors)的结果中，`status` 为 `INACTIVE`。处于 `INACTIVE` 的绑定是只读的——该 Actor 在该工作空间已有的记忆仍可读取，但不再参与写入。如需移除绑定，请调用[从工作空间解绑 Actor](/features/memorylake/api-reference/actors/unbind-actor)，删除 Actor 之后也可以调用。
 
 <Note>
 **所需权限：** `actor:delete`

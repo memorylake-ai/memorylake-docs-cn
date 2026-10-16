@@ -8,7 +8,7 @@ DELETE /openapi/memorylake/api/v3/agents/{id}
 ```
 
 <Warning>
-这是一个破坏性操作。Agent 及其所有版本将被永久删除。该 Agent 的所有工作空间绑定也将被删除。
+这是一个破坏性操作。Agent 及其所有版本将被永久删除。该 Agent 的工作空间绑定**不会**被删除：它们仍会出现在[列出工作空间 Agent](/features/memorylake/api-reference/agents/list-workspace-agents)的结果中，`status` 为 `INACTIVE`——只读，该 Agent 已有的记忆仍可读取。如需移除绑定，请调用[从工作空间解绑 Agent](/features/memorylake/api-reference/agents/unbind-agent)。
 </Warning>
 
 永久删除一个 Agent。此操作不可撤销。
