@@ -136,3 +136,20 @@ curl -X PUT 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles/data_an
 }
 ```
 </ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `400` | 参数或请求体无效 |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `409` | 请求与当前状态冲突，例如重复或已达上限 |
+| `412` | `If-Match` 不再匹配：读取之后资源已被修改 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |
+| `503` | 暂时不可用，请稍后重试 |

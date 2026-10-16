@@ -90,3 +90,16 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/integrations/
 }
 ```
 </ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

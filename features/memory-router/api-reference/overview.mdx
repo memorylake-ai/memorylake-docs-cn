@@ -65,7 +65,9 @@ Boundary 决定一个请求使用哪一份记忆。`boundary_id` 适用于 Chat 
 
 ## 错误
 
-Memory Router 自身返回的错误：
+[列出模型](/features/memory-router/api-reference/list-models)与其他 MemoryLake 接口一样，使用 MemoryLake API 的响应格式：出错时返回 `success: false`、`message` 和 `error_code`。详见[错误码](/features/memorylake/api-reference/errors)。
+
+推理端点保持模型厂商的格式。这些端点上由 Memory Router 自身返回的错误：
 
 | 状态码 | 含义 |
 | --- | --- |
@@ -74,7 +76,8 @@ Memory Router 自身返回的错误：
 | `403` | 该 Key 只允许从指定 IP 地址调用，而本次请求来自其他地址 |
 | `429` | 来自您 IP 地址的无效 Key 请求过多。请等待 `Retry-After` 给出的时间 |
 | `502` | Memory Router 无法连接到上游服务。请稍后重试 |
+| `503` | Memory Router 暂时不可用，例如正在维护。请稍后重试 |
 
-`401` 和 `403` 使用 OpenAI 的错误格式（`{"error": {"message", "type"}}`）。`402` 返回 `{"success": false, "message": "insufficient quota"}`。`429` 返回 `{"success": false, "code": "AUTH_THROTTLED", "error": {"type", "message"}}`。推理端点的 `502` 返回纯文本，列出模型的 `502` 使用 OpenAI 的错误格式。
+`401` 和 `403` 使用 OpenAI 的错误格式（`{"error": {"message", "type"}}`）。`402` 返回 `{"success": false, "message": "insufficient quota"}`。`429` 返回 `{"success": false, "code": "AUTH_THROTTLED", "action", "error": {"type", "message"}}`。`502` 返回纯文本。`503` 返回 `{"success": false, "message", "code": "REQUEST_BLOCKED"}`。
 
 其余错误由上游原样透传；来自模型厂商的错误保持厂商自有格式。

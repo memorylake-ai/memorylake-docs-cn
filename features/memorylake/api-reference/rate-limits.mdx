@@ -33,10 +33,12 @@ API 请求受速率限制，以确保公平使用和系统稳定性。限制在�
 ```json
 {
   "success": false,
-  "message": "Rate limit exceeded. Please retry later.",
+  "message": "Rate limit exceeded, please retry after 30 seconds.",
   "error_code": "RATE_LIMIT_EXCEEDED"
 }
 ```
+
+每日邀请上限是额度而非请求速率：触发时返回 `429` 和 `QUOTA_EXCEEDED`。
 
 ## 处理速率限制
 

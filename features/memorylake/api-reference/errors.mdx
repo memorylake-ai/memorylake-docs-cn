@@ -77,6 +77,7 @@ description: "理解和处理 API 错误"
 | 422 | 无法处理 | 请求体或参数未通过校验 |
 | 429 | 请求过多 | 超出速率限制 |
 | 500 | 服务器内部错误 | 服务端错误 |
+| 502 | 网关错误 | API 背后的服务无法连接，请稍后重试 |
 | 503 | 服务不可用 | 依赖服务暂时不可用，请稍后重试 |
 
 ## 错误响应
@@ -91,6 +92,12 @@ description: "理解和处理 API 错误"
 }
 ```
 
+所有 MemoryLake API 接口都按这一格式返回错误，包括请求到达服务之前就被拒绝的情况：API Key 缺失或无效（`401`）、Key 从不被允许的地址调用（`403`）、超出速率限制（`429`）、服务无法连接（`502`）以及维护中（`503`）。唯一的例外是 [Memory Router](/features/memory-router/api-reference/overview) 的推理端点：它们保持模型厂商的格式。就某个请求联系支持团队时，请提供它的 `X-Trace-ID` 响应头。
+
+<Note>
+2026 年 10 月之前，上述拒绝使用的是另一种响应体 `{"error": {"message", "type"}}`。如果您的代码读取的是 `error.message`，请改为读取 `message` 和 `error_code`。
+</Note>
+
 ## 错误代码
 
 | 错误代码 | 描述 |
@@ -102,6 +109,8 @@ description: "理解和处理 API 错误"
 | `STATE_NOT_READY` | 资源存在但当前状态不允许执行此操作 |
 | `ACCESS_DENIED` | 调用方无权访问该资源 |
 | `QUOTA_EXCEEDED` | 配额或使用限制已超出 |
+| `RATE_LIMIT_EXCEEDED` | 请求过多。请按 `Retry-After` 响应头等待后重试，详见[速率限制](/features/memorylake/api-reference/rate-limits) |
+| `SERVICE_UNAVAILABLE` | 服务暂时不可用，例如正在维护。请稍后重试；已知需等待的时长时会返回 `Retry-After` |
 | `DATASET_TABLE_LIMIT_EXCEEDED` | NL2SQL 数据集中的表数量超过允许上限 |
 | `DB_CONNECTION_FAILED` | 无法用所给的连接参数连上数据库：主机不可达、凭据被拒绝，或数据库不存在。用同样的参数重试不会成功 |
 | `RESOURCE_LIMIT_EXCEEDED` | 超出了为您账户配置的数量上限，例如一个工作空间内的项目数，或一次请求中 `project_ids` 的个数 |
