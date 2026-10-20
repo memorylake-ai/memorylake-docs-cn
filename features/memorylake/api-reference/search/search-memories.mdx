@@ -45,6 +45,16 @@ POST /openapi/memorylake/api/v3/workspaces/{workspaceId}/memories/search
 返回结果的总数上限（1–1000）。所有被搜索的记忆类型共用这一个上限，而不是每种类型各自的上限：`top_k=5` 可能返回 5 条文档，也可能返回 3 条文档加 2 条事实，具体组合只取决于哪些结果与您的查询最相关。实际返回数量可能少于该值。
 </ParamField>
 
+<ParamField body="search_effort" type="string">
+搜索的深入程度，用结果质量换取速度：
+
+- `max` — 执行完整搜索。
+- `high` — 不根据已存储的事实扩展查询，并使用更轻量的最终排序。通常比 `max` 明显更快。
+- `low` — 在 `high` 的基础上，不再用模型理解查询，并收窄召回范围，速度最快。
+
+级别越低，同一查询返回的结果可能更少或有所不同。省略时使用默认级别。传入其他值返回 `400`。
+</ParamField>
+
 <RequestExample>
 ```bash cURL
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-8001856949ad4f6a5b6226f415ffa877/memories/search' \
