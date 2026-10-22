@@ -176,6 +176,7 @@
                   "features/memorylake/api-reference/library/create-upload",
                   "features/memorylake/api-reference/library/create-item",
                   "features/memorylake/api-reference/library/delete-item",
+                  "features/memorylake/api-reference/library/batch-delete-items",
                   "features/memorylake/api-reference/library/set-item-xattrs",
                   "features/memorylake/api-reference/library/delete-item-xattrs"
                 ]
