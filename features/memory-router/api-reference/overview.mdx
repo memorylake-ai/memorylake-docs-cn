@@ -27,6 +27,7 @@ Memory Router 与 MemoryLake API 其余部分使用同一个 Base URL `https://a
 | [`POST /openapi/memorylake/router/openai/v1/chat/completions`](/features/memory-router/api-reference/chat-completions) | OpenAI Chat Completions |
 | [`POST /openapi/memorylake/router/openai/v1/responses`](/features/memory-router/api-reference/responses) | OpenAI Responses |
 | [`POST /openapi/memorylake/router/openai/v1/embeddings`](/features/memory-router/api-reference/embeddings) | OpenAI Embeddings |
+| [`POST /openapi/memorylake/router/openai/v1/images/generations`](/features/memory-router/api-reference/images) | OpenAI Images |
 | [`POST /openapi/memorylake/router/anthropic/v1/messages`](/features/memory-router/api-reference/messages) | Anthropic Messages |
 | [`GET /openapi/memorylake/router/v1/models`](/features/memory-router/api-reference/list-models) | 可调用的模型及价格 |
 
@@ -53,7 +54,7 @@ Boundary 决定一个请求使用哪一份记忆。`boundary_id` 适用于 Chat 
 
 ## 模型
 
-使用模型的原生名称，例如 `gpt-4o-mini` 或 `claude-haiku-4-5`，不加厂商前缀。[列出模型](/features/memory-router/api-reference/list-models)会返回全部可调用的模型，以及各自经哪个 base URL 调用。OpenAI 与 Anthropic 的 `/v1/models` 端点不可用。
+使用模型的原生名称，例如 `gpt-4o-mini` 或 `claude-haiku-4-5`，不加厂商前缀。[列出模型](/features/memory-router/api-reference/list-models)会返回全部可调用的模型，以及各自经哪个 base URL 调用。OpenAI 与 Anthropic 的 `/v1/models` 端点不可用。图像模型（例如 `gpt-image-1`）及其价格见控制台的**可用模型**。
 
 ## 流式输出
 
