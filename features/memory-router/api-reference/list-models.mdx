@@ -29,6 +29,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
   <Expandable title="Catalog Model 对象">
     <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
     <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>
+    <ResponseField name="input_modalities" type="array">模型接受的输入类型。未知时不返回。</ResponseField>
     <ResponseField name="price" type="object">
     该模型的价格。暂无价格时没有此字段。
     <Expandable title="Model Price 对象">
@@ -39,6 +40,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
         <ResponseField name="cache_read" type="object">从缓存读取的输入 token</ResponseField>
         <ResponseField name="cache_read_explicit" type="object">从显式创建的缓存读取的输入 token</ResponseField>
         <ResponseField name="cache_write" type="object">写入缓存的输入 token</ResponseField>
+        <ResponseField name="cache_write_12h" type="object">写入 12 小时缓存的输入 token</ResponseField>
         <ResponseField name="cache_write_1h" type="object">写入 1 小时缓存的输入 token</ResponseField>
         <ResponseField name="cache_write_5m" type="object">写入 5 分钟缓存的输入 token</ResponseField>
         <ResponseField name="hosted_tools" type="object">内置工具的价格</ResponseField>
