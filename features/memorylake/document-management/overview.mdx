@@ -1,6 +1,6 @@
 ---
 title: "文档管理"
-description: "以层级导航和评论功能存储、组织和管理文件与文件夹"
+description: "以层级导航存储、组织和管理文件与文件夹"
 ---
 
 ## 概述
@@ -9,20 +9,14 @@ MemoryLake 的文档管理系统为组织文件和文件夹提供了强大而直
 
 在控制台中，您会在两个位置接触到文档：
 
-- **文件库**（侧边栏 → Advanced → Library）：您完整的个人文件存储，包含文件夹树、评论和连接器空间
+- **文件库**（侧边栏 → Advanced → Library）：您完整的个人文件存储，包含文件夹树和连接器空间
 - **项目的「文件」标签页**：关联到某个具体项目的文档，以及它们的处理状态——参见[文档关联](/features/memorylake/project-management/document-association)
 
 ## 核心能力
 
-<CardGroup cols={2}>
 <Card title="文件与文件夹操作" icon="folder" href="/features/memorylake/document-management/file-folder-operations">
 创建文件夹、上传文件、重命名、移动、删除，并通过拖放整理您的文档层级。
 </Card>
-
-<Card title="评论" icon="comment" href="/features/memorylake/document-management/metadata-comments">
-为任意文件或文件夹添加富文本 Markdown 评论，补充上下文信息。
-</Card>
-</CardGroup>
 
 ## 主要功能
 
@@ -65,13 +59,6 @@ MemoryLake 会自动可靠地处理大文件上传。
 - **更新**：重命名文件和文件夹、移动条目
 - **删除**：删除文件和文件夹，并带确认提示
 
-### 评论
-- **Markdown 评论**：添加支持格式、列表和链接的富文本评论
-- **实时预览**：即时查看 Markdown 渲染效果
-- **自动保存**：草稿保护，防止数据丢失
-
-{/* SCREENSHOT: Comment panel with Markdown editor and preview */}
-
 ### 树视图功能
 - **可调节界面**：调整树面板宽度以适配您的工作流
 - **右键菜单**：通过右键快速调用各类操作
@@ -82,31 +69,27 @@ MemoryLake 会自动可靠地处理大文件上传。
 <Accordion title="整理研究资料">
 1. 创建项目文件夹结构（例如 "Research/Topic/Sources"）
 2. 使用文件夹上传方式上传文档以保留结构
-3. 为关键文档添加包含摘要或洞见的 Markdown 评论
-4. 将文件夹关联到项目，供 AI 访问
+3. 将文件夹关联到项目，供 AI 访问
 </Accordion>
 
 <Accordion title="团队文档仓库">
 1. 为每个团队或部门创建文件夹
 2. 上传共享文档和资源
-3. 添加 Markdown 评论，按类别或状态为文档打标
-4. 将合适的文件夹关联到团队项目，让成员的助手共享同一份上下文
+3. 将合适的文件夹关联到团队项目，让成员的助手共享同一份上下文
 </Accordion>
 
 <Accordion title="搭建知识库">
 1. 用清晰的文件夹结构按主题组织文档
-2. 添加详尽的 Markdown 评论，说明上下文与关联关系
-3. 批量上传相关文档
-4. 创建项目，将相关文档归组
-5. 生成 MCP 服务器密钥，让 AI 访问您的知识库
+2. 批量上传相关文档
+3. 创建项目，将相关文档归组
+4. 生成 MCP 服务器密钥，让 AI 访问您的知识库
 </Accordion>
 
 <Accordion title="从外部服务迁移">
 1. 从外部服务下载文档结构
 2. 使用文件夹上传导入，保持结构完整
 3. 通过进度跟踪确认所有文件均已成功上传
-4. 按需补充元数据和评论
-5. 通过连接器直接接入外部服务，以便后续同步
+4. 通过连接器直接接入外部服务，以便后续同步
 </Accordion>
 </AccordionGroup>
 
@@ -141,17 +124,11 @@ MemoryLake 针对海量文档集合做了优化，即使有数千个文件也能
 
 ## 开始使用
 
-准备开始整理文档了吗？请从下方选择一份指南：
+准备开始整理文档了吗？从这份指南开始：
 
-<CardGroup cols={2}>
 <Card title="文件与文件夹操作" icon="folder-open" href="/features/memorylake/document-management/file-folder-operations">
 了解创建文件夹、上传文件和组织内容的基础操作。
 </Card>
-
-<Card title="评论" icon="pen-to-square" href="/features/memorylake/document-management/metadata-comments">
-用富文本 Markdown 评论丰富您的文档。
-</Card>
-</CardGroup>
 
 ## 最佳实践
 
@@ -168,13 +145,6 @@ MemoryLake 针对海量文档集合做了优化，即使有数千个文件也能
 - 需要时使用 ISO 格式日期（YYYY-MM-DD）
 - 避免可能引起问题的特殊字符
 - 在同一项目或文件夹内保持一致
-</Accordion>
-
-<Accordion title="元数据使用">
-- 为需要补充上下文的文档添加评论
-- 使用 Markdown 格式提升可读性
-- 加入指向相关文档的链接
-- 文档用途变化时更新评论
 </Accordion>
 
 <Accordion title="性能建议">
