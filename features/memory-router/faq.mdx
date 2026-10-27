@@ -13,7 +13,11 @@ Boundary（记忆范围）是一段会话的记忆范围——它把请求绑定
 </Accordion>
 
 <Accordion title="支持哪些模型厂商和模型？">
-支持 OpenAI（Chat Completions、Responses）和 Anthropic（Messages）协议。在托管模式下，GPT、o 系列、Claude、Qwen、DeepSeek、GLM、Kimi 和 MiniMax 等模型均已内置，可按原生名称调用，完整清单见控制台的**可用模型**。目前还没有可用的向量模型。当前支持矩阵见[部署模式](/features/memory-router/deployment-modes#支持的模型厂商)。
+支持 OpenAI（Chat Completions、Responses、Images）和 Anthropic（Messages）协议。在托管模式下，GPT、o 系列、Claude、Qwen、DeepSeek、GLM、Kimi 和 MiniMax 等模型，以及 `gpt-image-1` 等图像模型均已内置，可按原生名称调用，完整清单见控制台的**可用模型**。目前还没有可用的向量模型。当前支持矩阵见[部署模式](/features/memory-router/deployment-modes#支持的模型厂商)。
+</Accordion>
+
+<Accordion title="可以生成图片吗？">
+可以。通过 OpenAI Images 端点（OpenAI SDK 中的 `images.generate`）调用 `gpt-image-1` 等图像模型，base URL 和密钥与对话模型相同。图像生成不使用记忆。参见[图像生成](/features/memory-router/image-generation)。
 </Accordion>
 
 <Accordion title="BYOK 和 MemoryLake 托管有什么区别？">

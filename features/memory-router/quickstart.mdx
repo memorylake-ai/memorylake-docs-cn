@@ -28,9 +28,10 @@ description: "三步为您的 LLM 调用加上持久记忆"
 | OpenAI · Chat Completions | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/chat/completions` |
 | OpenAI · Responses | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/responses` |
 | OpenAI · Embeddings | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/embeddings` |
+| OpenAI · Images | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/images/generations` |
 | Anthropic · Messages | `POST https://app.memorylake.cn/openapi/memorylake/router/anthropic/v1/messages` |
 
-目前还没有可用的向量模型，Embeddings 端点暂时无法使用。完整对比见[部署模式](/features/memory-router/deployment-modes)。
+目前还没有可用的向量模型，Embeddings 端点暂时无法使用。Images 端点用图像模型生成图片，不使用记忆，参见[图像生成](/features/memory-router/image-generation)。完整对比见[部署模式](/features/memory-router/deployment-modes)。
 
 ### MemoryLake 托管——一个密钥
 

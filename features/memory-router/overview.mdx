@@ -12,7 +12,7 @@ Memory Router 是一个透明网关，位于您的应用与模型之间。将现
 - **共享记忆池**——Router 与 [MemoryLake API](/features/memorylake/overview) 读写同一份记忆，因此只有一个真实来源
 
 <Info>
-Memory Router 原生支持 OpenAI 与 Anthropic 协议。您的提示词、流式输出和工具调用完全不变。
+Memory Router 原生支持 OpenAI 与 Anthropic 协议。您的提示词、流式输出和工具调用完全不变。同一个 base URL 还提供 OpenAI 图像模型，参见[图像生成](/features/memory-router/image-generation)。
 </Info>
 
 ## 它解决什么问题
@@ -44,6 +44,7 @@ Memory Router 把这一切压缩成一次 base URL 变更加一个查询参数�
 | **自动记忆** | 调用前召回并注入相关记忆；调用后异步提取新记忆——绝不拖慢响应。 |
 | **按 Boundary 划定范围** | [Boundary](#boundary：记忆范围) 精确定义一段会话的记忆归属于哪个工作空间、哪些项目和哪些 Actor。 |
 | **共享记忆池** | Router 与 MemoryLake API 读写同一份记忆——只有一个真实来源。 |
+| **图像生成** | 用同一个密钥，通过 OpenAI Images 接口调用 `gpt-image-1` 等图像模型。参见[图像生成](/features/memory-router/image-generation)。 |
 | **可追溯** | 每个响应都带有 `X-Trace-ID` 头，每次调用都会进入控制台 Logs，包含模型、Token 和密钥来源等明细。 |
 
 ## Boundary：记忆范围
@@ -89,6 +90,10 @@ POST /openapi/memorylake/router/openai/v1/chat/completions?boundary_id=<your-bou
 
 <Card title="部署模式" icon="key" href="/features/memory-router/deployment-modes">
 对比 BYOK 与 MemoryLake 托管，了解端点、支持的模型厂商和密钥安全性。
+</Card>
+
+<Card title="图像生成" icon="image" href="/features/memory-router/image-generation">
+通过 OpenAI Images 接口调用托管的图像模型生成图片。
 </Card>
 
 <Card title="可观测性" icon="activity" href="/features/memory-router/observability">

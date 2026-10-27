@@ -54,7 +54,7 @@ Boundary 决定一个请求使用哪一份记忆。`boundary_id` 适用于 Chat 
 
 ## 模型
 
-使用模型的原生名称，例如 `gpt-4o-mini` 或 `claude-haiku-4-5`，不加厂商前缀。[列出模型](/features/memory-router/api-reference/list-models)会返回全部可调用的模型，以及各自经哪个 base URL 调用。OpenAI 与 Anthropic 的 `/v1/models` 端点不可用。图像模型（例如 `gpt-image-1`）及其价格见控制台的**可用模型**。
+使用模型的原生名称，例如 `gpt-4o-mini` 或 `claude-haiku-4-5`，不加厂商前缀。[列出模型](/features/memory-router/api-reference/list-models)会返回全部可调用的模型，以及各自经哪个 base URL 调用。OpenAI 与 Anthropic 的 `/v1/models` 端点不可用。图像模型（例如 `gpt-image-1`）也在其中，带 `kind: image_generation`，经[图像生成](/features/memory-router/api-reference/images)接口调用。
 
 ## 流式输出
 
