@@ -92,8 +92,7 @@
                 "group": "文档管理",
                 "pages": [
                   "features/memorylake/document-management/overview",
-                  "features/memorylake/document-management/file-folder-operations",
-                  "features/memorylake/document-management/metadata-comments"
+                  "features/memorylake/document-management/file-folder-operations"
                 ]
               },
               {
@@ -732,6 +731,10 @@
     {
       "source": "/features/management-api/:slug*",
       "destination": "/features/memorylake/api-reference/:slug*"
+    },
+    {
+      "source": "/features/memorylake/document-management/metadata-comments",
+      "destination": "/features/memorylake/document-management/overview"
     }
   ]
 }
