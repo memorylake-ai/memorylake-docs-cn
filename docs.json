@@ -39,6 +39,7 @@
               "features/memory-router/how-it-works",
               "features/memory-router/quickstart",
               "features/memory-router/deployment-modes",
+              "features/memory-router/image-generation",
               "features/memory-router/observability",
               "features/memory-router/faq"
             ]

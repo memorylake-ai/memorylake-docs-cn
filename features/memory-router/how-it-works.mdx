@@ -36,6 +36,7 @@ Router 在该 Boundary 的范围内检索历史记忆，只把相关上下文注
 - 一个用户对一个助手？一个 Boundary。
 - 同一个产品服务大量用户？为每个用户（或每个用户—助手组合）建一个 Boundary，记忆就绝不会在用户之间泄漏。
 - **不带** `boundary_id` 的请求会完全跳过记忆层，直接透传给模型。
+- [图像生成](/features/memory-router/image-generation)请求不使用记忆：`boundary_id` 只适用于 Chat Completions、Responses 和 Messages。
 
 <Info>
 记忆的提取与存储是**异步**进行的。模型响应一旦就绪即刻返回；写入新记忆绝不会给调用增加延迟。

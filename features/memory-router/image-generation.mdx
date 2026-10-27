@@ -1,0 +1,126 @@
+---
+title: "图像生成"
+description: "通过 OpenAI Images 接口调用托管的图像模型生成图片"
+---
+
+Memory Router 同样提供 OpenAI 图像模型，例如 `gpt-image-1`。使用 OpenAI SDK 的 Images 接口调用即可，base URL 和 API Key 与调用对话模型时相同。
+
+| | |
+| --- | --- |
+| **端点** | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/images/generations` |
+| **协议** | OpenAI Images（OpenAI SDK 中的 `images.generate`） |
+| **密钥** | 与对话模型相同：您的 MemoryLake 密钥；或在 [BYOK 模式](/features/memory-router/deployment-modes)下使用您的 OpenAI 密钥，并加上 `x-memorylake-api-key` |
+| **记忆** | 不使用。`boundary_id` 不适用于图像生成 |
+
+## 第 1 步：找到图像模型
+
+图像模型和对话模型列在同一份模型清单中，带有 `kind: image_generation`：
+
+```bash
+curl -s "https://app.memorylake.cn/openapi/memorylake/router/v1/models" \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  | jq -r '.data.items[] | select(.kind == "image_generation") | .name'
+```
+
+控制台的**可用模型**页面也会列出图像模型及其价格。完整的响应格式见[列出模型](/features/memory-router/api-reference/list-models)。
+
+## 第 2 步：生成图片
+
+把 OpenAI SDK 的 base URL 指向 Memory Router，调用 `images.generate`。每张图片以 base64 编码返回在 `data[].b64_json` 中。
+
+<CodeGroup>
+```ts TypeScript
+import OpenAI from "openai";
+import { writeFileSync } from "node:fs";
+
+const client = new OpenAI({
+  baseURL: "https://app.memorylake.cn/openapi/memorylake/router/openai/v1",
+  apiKey: process.env.MEMORYLAKE_API_KEY,
+});
+
+const result = await client.images.generate({
+  model: "gpt-image-1-mini",
+  prompt: "A watercolor lighthouse at dawn",
+  size: "1024x1024",
+  quality: "low",
+});
+
+writeFileSync("lighthouse.png", Buffer.from(result.data![0].b64_json!, "base64"));
+```
+```py Python
+import base64
+import os
+
+from openai import OpenAI
+
+client = OpenAI(
+    base_url="https://app.memorylake.cn/openapi/memorylake/router/openai/v1",
+    api_key=os.environ["MEMORYLAKE_API_KEY"],
+)
+
+result = client.images.generate(
+    model="gpt-image-1-mini",
+    prompt="A watercolor lighthouse at dawn",
+    size="1024x1024",
+    quality="low",
+)
+
+with open("lighthouse.png", "wb") as f:
+    f.write(base64.b64decode(result.data[0].b64_json))
+```
+```bash cURL
+curl -s "https://app.memorylake.cn/openapi/memorylake/router/openai/v1/images/generations" \
+  -H "Authorization: Bearer $MEMORYLAKE_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "gpt-image-1-mini",
+    "prompt": "A watercolor lighthouse at dawn",
+    "size": "1024x1024",
+    "quality": "low"
+  }' \
+  | jq -r '.data[0].b64_json' | base64 --decode > lighthouse.png
+```
+</CodeGroup>
+
+如果要使用您自己的 OpenAI 密钥，把它作为 API Key 传入，并加上 `x-memorylake-api-key` 头，与调用对话模型的方式完全相同。参见[部署模式](/features/memory-router/deployment-modes)。
+
+## 参数
+
+| 参数 | 作用 |
+| --- | --- |
+| `model` | 图像模型名称，例如 `gpt-image-1-mini`。必填 |
+| `prompt` | 图片的文字描述。必填 |
+| `n` | 生成图片的数量 |
+| `size` | 图片尺寸，例如 `1024x1024` |
+| `quality` | `low`、`medium`、`high` 或 `auto` |
+| `output_format` | `png`、`jpeg` 或 `webp` |
+| `background` | `transparent`、`opaque` 或 `auto` |
+
+其他参数会原样传给模型。详见 API 参考中的[图像生成](/features/memory-router/api-reference/images)。
+
+## 价格
+
+图像模型按 token 计费，输入和输出的文本 token 与图像 token 分别计价。尺寸越大、质量越高，生成的图像 token 越多，费用也越高。每次调用消耗的 token 见响应中的 `usage` 字段。
+
+价格见控制台的**可用模型**页面，以及[列出模型](/features/memory-router/api-reference/list-models)返回的 `price.details.image_generation`。计费规则与对话模型相同，参见[选择模式](/features/memory-router/deployment-modes#如何选择模式)。
+
+## 注意事项
+
+- **仅支持生成。** 不支持图片编辑（`/images/edits`）和变体。
+- **不使用记忆。** `boundary_id` 只适用于 Chat Completions、Responses 和 Messages。图像请求不会读取或写入记忆。
+- **只走 OpenAI base URL。** 图像模型经 `/openapi/memorylake/router/openai/v1` 调用，不能经 Anthropic 的 base URL 调用。
+- **Playground 不支持。** 控制台的 Playground 中无法选择图像模型，请通过 API 调用。
+- **响应体较大。** 一张图片的 base64 可能远超 1 MB，请为客户端设置足够长的超时。
+- **可追踪。** 每次调用都会返回 `X-Trace-ID`，并出现在控制台的 **Logs** 中。错误处理与其他端点一致，参见[错误约定](/features/memory-router/observability#错误约定)。
+
+## 后续步骤
+
+<CardGroup cols={2}>
+<Card title="图像生成 API" icon="image" href="/features/memory-router/api-reference/images">
+全部请求与响应字段。
+</Card>
+
+<Card title="列出模型" icon="list" href="/features/memory-router/api-reference/list-models">
+查找图像模型及其价格。
+</Card>
+</CardGroup>

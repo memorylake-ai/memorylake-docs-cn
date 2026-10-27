@@ -7,7 +7,7 @@ description: "列出可调用的模型及其价格"
 GET /openapi/memorylake/router/v1/models
 ```
 
-列出可通过 Memory Router 调用的模型及其价格，按名称排序。`provider_type` 表示该模型走哪个 Base URL：`openai` 的模型经 `/router/openai/v1` 调用，`anthropic` 的模型经 `/router/anthropic/v1` 调用。每个站点的模型目录各自独立。
+列出可通过 Memory Router 调用的模型及其价格，按名称排序。`provider_type` 表示该模型走哪个 Base URL：`openai` 的模型经 `/router/openai/v1` 调用，`anthropic` 的模型经 `/router/anthropic/v1` 调用。图像模型带 `kind: image_generation`，经 `/router/openai/v1/images/generations` 调用；对话模型没有 `kind`。每个站点的模型目录各自独立。
 
 与推理接口不同，本接口使用 MemoryLake API 的响应格式：模型清单在 `data.items` 中，出错时返回 `success`、`message` 和 `error_code`。
 
@@ -30,6 +30,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
     <ResponseField name="name" type="string">调用时填入 `model` 的模型名</ResponseField>
     <ResponseField name="provider_type" type="string">调用该模型所用的协议。可选值：`openai`、`anthropic`。</ResponseField>
     <ResponseField name="input_modalities" type="array">模型接受的输入类型。未知时不返回。</ResponseField>
+    <ResponseField name="kind" type="string">非对话模型才有此字段。`image_generation` 模型经 `/router/openai/v1/images/generations` 调用。对话模型没有此字段。</ResponseField>
     <ResponseField name="price" type="object">
     该模型的价格。暂无价格时没有此字段。
     <Expandable title="Model Price 对象">
@@ -44,6 +45,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/router/v1/models' \
         <ResponseField name="cache_write_1h" type="object">写入 1 小时缓存的输入 token</ResponseField>
         <ResponseField name="cache_write_5m" type="object">写入 5 分钟缓存的输入 token</ResponseField>
         <ResponseField name="hosted_tools" type="object">内置工具的价格</ResponseField>
+        <ResponseField name="image_generation" type="object">图像模型的价格，按文本 token 与图像 token 分别计价。仅图像模型（`image_generation`）有此字段。</ResponseField>
         <ResponseField name="output_thinking" type="object">推理输出 token</ResponseField>
         <ResponseField name="tiers" type="array">按输入长度分档的价格</ResponseField>
       </Expandable>

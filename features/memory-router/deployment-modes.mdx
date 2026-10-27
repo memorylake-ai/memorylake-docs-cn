@@ -12,9 +12,10 @@ Memory Router 支持两种接入方式。与那些强制您自带密钥的代理
 | OpenAI · Chat Completions | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/chat/completions` |
 | OpenAI · Responses | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/responses` |
 | OpenAI · Embeddings | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/embeddings` |
+| OpenAI · Images | `POST https://app.memorylake.cn/openapi/memorylake/router/openai/v1/images/generations` |
 | Anthropic · Messages | `POST https://app.memorylake.cn/openapi/memorylake/router/anthropic/v1/messages` |
 
-在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。目前还没有可用的向量模型，Embeddings 端点暂时无法使用。全部参数见 [API 参考](/features/memory-router/api-reference/overview)。早先不带 `/openapi/memorylake/router` 的端点（如 `https://app.memorylake.cn/openai/v1`）继续可用、行为相同；新接入请使用上面的路径。
+在请求上追加 `?boundary_id=<id>` 即可启用记忆——参见[工作原理](/features/memory-router/how-it-works#boundary-定义范围)。`boundary_id` 不适用于 Images 端点。目前还没有可用的向量模型，Embeddings 端点暂时无法使用。全部参数见 [API 参考](/features/memory-router/api-reference/overview)。早先不带 `/openapi/memorylake/router` 的端点（如 `https://app.memorylake.cn/openai/v1`）继续可用、行为相同；新接入请使用上面的路径。
 
 <Note>
 使用 Anthropic SDK 时，请将 `base_url` 设为 `https://app.memorylake.cn/openapi/memorylake/router/anthropic`（不带 `/v1`）——SDK 会自行追加 `/v1/messages`。
@@ -25,7 +26,7 @@ Memory Router 支持两种接入方式。与那些强制您自带密钥的代理
 无需模型厂商账号。MemoryLake 替您运行主流模型，因此只需一个 MemoryLake API Key 即可开始。
 
 - 一个密钥搞定一切——不用再注册任何其他服务。
-- 内置GPT、o 系列、Claude、Qwen、DeepSeek、GLM、Kimi 和 MiniMax 等模型，可直接按原生名称调用。
+- 内置GPT、o 系列、Claude、Qwen、DeepSeek、GLM、Kimi 和 MiniMax 等模型，可直接按原生名称调用；另有 `gpt-image-1` 等图像模型可用于[图像生成](/features/memory-router/image-generation)。
 - 带记忆上线的最简路径。
 
 **密钥：**仅需 MemoryLake 密钥，放在原生鉴权头中（OpenAI 风格调用用 `Authorization: Bearer`，Anthropic 用 `x-api-key`）
@@ -90,6 +91,7 @@ const client = new OpenAI({
 | --- | --- | --- |
 | OpenAI / GPT（Chat Completions 与 Responses） | ✅ | ✅ |
 | Anthropic / Claude（Messages） | ✅ | ✅ |
+| OpenAI 图像模型（Images） | ✅ | ✅ |
 | Qwen、DeepSeek、GLM、Kimi、MiniMax（OpenAI 兼容，经 `/openapi/memorylake/router/openai/v1`） | — | ✅ |
 | Embeddings | — | —（暂无模型） |
 
