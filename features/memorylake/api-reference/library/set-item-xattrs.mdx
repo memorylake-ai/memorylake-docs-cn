@@ -28,7 +28,7 @@ PUT /openapi/memorylake/api/v1/drives/items/{item_id}/xattrs
 ### 请求体
 
 <ParamField body="x_attrs" type="object" required>
-要写入该条目的 `字符串 → 字符串` 映射（存在则更新，不存在则新增）。每一项对应一个扩展属性。允许传入空映射，但不会产生任何变更。
+要写入该条目的 `字符串 → 字符串` 映射（存在则更新，不存在则新增）。每一项对应一个扩展属性。至少包含一项：传入空映射会返回 `400 INVALID_ARGUMENT`。
 </ParamField>
 
 <RequestExample>
