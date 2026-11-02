@@ -84,7 +84,7 @@ Agent 工作所在的项目（`proj-` 加 32 位十六进制字符）。Agent �
 - **一个会话只绑定一个项目。** 会话（`contextId`）的第一条消息绑定项目，之后的消息可以不传，沿用该项目。传入不同的项目，或者给一个开始时没有项目的会话补上项目，都会返回 `400`。
 - **只能是同一工作空间的项目。** 其他工作空间的项目返回 `404`。
 - **权限：** 需要对该项目有 `project:mem_add`、`project:doc_add`、`project:mem_search` 和 `project:doc_search`，在会话开始时校验。
-- **带文件时必填。** 消息里的文件（`drive://` 引用或 inline 字节）会作为文档导入这个项目。带文件的消息必须自己写明项目，不能靠从会话继承，否则请求返回 `400`。
+- **带文件时必填。** 消息里的文件（文件库里的文件或 inline 内容，见[附带文件](#附带文件)）会作为文档导入这个项目，inline 文件还会另存到文件库。带文件的消息必须自己写明项目，不能靠从会话继承，否则请求返回 `400`。
 </ParamField>
 
 <ParamField body="readOnlyProjectIds" type="string[]">
@@ -424,6 +424,109 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
   }'
 ```
 </CodeGroup>
+
+## 附带文件
+
+消息可以在文字之外附带文件，有两种方式：
+
+- **文件库里的文件。** 传入文件的 `uri`（`drive://…`），即[列出条目](/features/memorylake/api-reference/library/list-items)或[获取条目](/features/memorylake/api-reference/library/get-item)返回的值。
+- **inline 内容。** 传入文件字节的 base64 编码（标准或 URL-safe 都可以，也接受 `data:<type>;base64,` 前缀）。请给文件一个带扩展名的 `name`，或者给出它的 MIME 类型，MemoryLake 据此判断它是哪种文档。
+
+两种方式下，文件都会作为文档导入消息的 `readWriteProjectId` 项目，agent 从那里读取。注意：
+
+- **必须有项目。** 带文件的消息必须自己写明 `readWriteProjectId`，即使会话已经绑定了项目也一样，否则请求返回 `400`。
+- **inline 文件每次发送都会另存到文件库。** 每个 inline 文件除了导入项目，还会作为一个新文件保存在工作空间根目录（`MY_SPACE`）的顶层。同一个文件再发一次就再存一份；重名时自动加后缀：`report.pdf`、`report_1.pdf`、`report_2.pdf`，依此类推。这些副本不会去重，也不会自动清理，不再需要的可以用[删除条目](/features/memorylake/api-reference/library/delete-item)删掉。保存需要 [`drive:item_add`](/features/team-collaboration/permission-reference#上传和创建文件) 权限。如果不想每次都多存一份，先把文件上传到文件库，再传它的 `uri`。
+- **支持的类型**包括 PDF、Word、Excel、PowerPoint、CSV 与 TSV、纯文本、Markdown，以及图片（PNG、JPEG、GIF、BMP、WebP、TIFF）。其他类型的文件返回 `400`。inline 文件的类型先看 `name` 的扩展名，扩展名不受支持时再看 MIME 类型。
+
+四族路由的 file part 写法各不相同。下面每个示例都附带同样的两个文件，一个来自文件库，一个是 inline 内容：
+
+<CodeGroup>
+```json v1.0 REST（message:send、message:stream）
+{
+  "message": {
+    "role": "ROLE_USER",
+    "parts": [
+      { "text": "对比这两份报告。" },
+      { "url": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7", "filename": "report.pdf", "mediaType": "application/pdf" },
+      { "raw": "JVBERi0xLjcKJcfsj6IK...", "filename": "q3-summary.pdf", "mediaType": "application/pdf" }
+    ]
+  },
+  "metadata": {
+    "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+  }
+}
+```
+
+```json v1.0 JSON-RPC（SendMessage、SendStreamingMessage）
+{
+  "jsonrpc": "2.0",
+  "id": "req-5",
+  "method": "SendMessage",
+  "params": {
+    "message": {
+      "messageId": "msg-5",
+      "role": "ROLE_USER",
+      "parts": [
+        { "text": "对比这两份报告。" },
+        { "url": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7", "filename": "report.pdf", "mediaType": "application/pdf" },
+        { "raw": "JVBERi0xLjcKJcfsj6IK...", "filename": "q3-summary.pdf", "mediaType": "application/pdf" }
+      ]
+    },
+    "metadata": {
+      "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+    }
+  }
+}
+```
+
+```json v0.3 REST（/v1/message:send、/v1/message:stream）
+{
+  "message": {
+    "role": "ROLE_USER",
+    "content": [
+      { "text": "对比这两份报告。" },
+      { "file": { "fileWithUri": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7", "name": "report.pdf", "mimeType": "application/pdf" } },
+      { "file": { "fileWithBytes": "JVBERi0xLjcKJcfsj6IK...", "name": "q3-summary.pdf", "mimeType": "application/pdf" } }
+    ]
+  },
+  "configuration": { "blocking": true },
+  "metadata": {
+    "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+  }
+}
+```
+
+```json v0.3 JSON-RPC（message/send、message/stream）
+{
+  "jsonrpc": "2.0",
+  "id": "req-7",
+  "method": "message/send",
+  "params": {
+    "message": {
+      "messageId": "msg-7",
+      "role": "user",
+      "parts": [
+        { "kind": "text", "text": "对比这两份报告。" },
+        { "kind": "file", "file": { "uri": "drive://items/sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7", "name": "report.pdf", "mimeType": "application/pdf" } },
+        { "kind": "file", "file": { "bytes": "JVBERi0xLjcKJcfsj6IK...", "name": "q3-summary.pdf", "mimeType": "application/pdf" } }
+      ]
+    },
+    "configuration": { "blocking": true },
+    "metadata": {
+      "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+    }
+  }
+}
+```
+</CodeGroup>
+
+| 路由族 | 文件库里的文件 | inline 内容 | 名称与类型 |
+|---|---|---|---|
+| v1.0 REST 与 JSON-RPC | `url` | `raw` | `filename`、`mediaType` |
+| v0.3 REST | `file.fileWithUri`（也可写作 `file_with_uri` 或 `uri`） | `file.fileWithBytes`（也可写作 `file_with_bytes` 或 `bytes`） | `file.name`、`file.mimeType`（也可写作 `mime_type`） |
+| v0.3 JSON-RPC | `file.uri` | `file.bytes` | `file.name`、`file.mimeType` |
+
+每个 file part 只能给两种来源中的一种。在 v0.3 REST 上，一个 part 还必须且只能设置 `text`、`file`、`data` 中的一项。违反任一条的 part，例如只有 `name` 和 `mimeType` 的 `file`、两种来源都给了的 `file`、或者空 part，都会在保存任何内容、发给 agent 之前返回 `400 INVALID_ARGUMENT`，错误信息会指出是哪个 part，例如 `message.content[1].file`。在 v1.0 上，既没有 `url` 也没有 `raw` 的 part 不会被当作文件。
 
 ## 响应
 
