@@ -504,6 +504,31 @@
                 ]
               },
               {
+                "group": "已授权的应用",
+                "pages": [
+                  "features/memorylake/api-reference/authorized-apps/list-my-authorized-apps",
+                  "features/memorylake/api-reference/authorized-apps/revoke-my-authorized-app"
+                ]
+              },
+              {
+                "group": "Webhook",
+                "pages": [
+                  "features/memorylake/api-reference/webhooks/list-webhooks",
+                  "features/memorylake/api-reference/webhooks/create-webhook",
+                  "features/memorylake/api-reference/webhooks/get-webhook",
+                  "features/memorylake/api-reference/webhooks/update-webhook",
+                  "features/memorylake/api-reference/webhooks/delete-webhook",
+                  "features/memorylake/api-reference/webhooks/enable-webhook",
+                  "features/memorylake/api-reference/webhooks/disable-webhook",
+                  "features/memorylake/api-reference/webhooks/rotate-webhook-secret",
+                  "features/memorylake/api-reference/webhooks/send-webhook-test-event",
+                  "features/memorylake/api-reference/webhooks/list-webhook-event-types",
+                  "features/memorylake/api-reference/webhooks/list-webhook-deliveries",
+                  "features/memorylake/api-reference/webhooks/get-webhook-delivery",
+                  "features/memorylake/api-reference/webhooks/resend-webhook-delivery"
+                ]
+              },
+              {
                 "group": "访问控制",
                 "pages": [
                   "features/memorylake/api-reference/access-control/overview",

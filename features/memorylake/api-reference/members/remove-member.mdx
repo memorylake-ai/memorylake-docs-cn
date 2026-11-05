@@ -7,11 +7,12 @@ description: "将成员移出团队"
 DELETE /openapi/memorylake/admin/v1/members/{principal_id}
 ```
 
-将成员移出团队。其在本团队中的 API Key 会被停用（而非删除）。团队所有者无法被移除，调用方也不能移除自己。
+将成员移出团队。其在本团队中的 API Key 会被停用（而非删除）。团队所有者无法被移除，调用方也不能移除自己。您只能移除级别低于您的成员：管理员不能移除另一名管理员，除所有者外任何人都不能移除管理员（403 `MEMBER_NOT_BELOW_CALLER`）。通过用户组持有管理员基线的成员，只能由所有者或持有管理员基线的成员移除（403 `ACCESS_DENIED`，`data.operation` 为 `remove_member`）。控制台遵循相同规则。
 
 <Note>
 **所需权限：** `member:remove`
 
+- 该成员级别不低于您：管理员，或持有管理员级自定义角色的成员（403 `MEMBER_NOT_BELOW_CALLER`）时：仅团队所有者
 - 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
 </Note>
 

@@ -7,14 +7,15 @@ description: "更改成员的角色和/或成员级用量上限"
 PATCH /openapi/memorylake/admin/v1/members/{principal_id}
 ```
 
-更改成员的角色和/或成员级用量上限。仅更改您发送的字段；不接受 `null`。此处不可分配所有者角色，也不可更改所有者本人的角色和您自己的角色——如需把团队交给另一名成员，请使用[转让所有权](/features/memorylake/api-reference/team/transfer-ownership)。
+更改成员的角色和/或成员级用量上限。仅更改您发送的字段；不接受 `null`。此处不可分配所有者角色，也不可更改所有者本人的角色和您自己的角色——如需把团队交给另一名成员，请使用[转让所有权](/features/memorylake/api-reference/team/transfer-ownership)。您只能更改级别低于您的成员：管理员不能更改另一名管理员，除所有者外任何人都不能更改管理员（403 `MEMBER_NOT_BELOW_CALLER`）——角色与用量上限都是如此。管理员级角色（见 GET /roles 的 `admin_grant_only`）只能由所有者授予（403 `ROLE_REQUIRES_OWNER`），且永远不能授予虚拟成员（400 `ROLE_NOT_FOR_VIRTUAL_MEMBER`）。控制台遵循相同规则。
 
 <Note>
 **所需权限：** 取决于您发送的内容：
 
 - 发送了 `role` 时：`member:change_role`
 - 发送了 `max_tokens` 时：`member:set_quota`
-- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+- 所分配的角色属于管理员级：`tenant_admin`，或持有任一仅限管理员的团队操作的自定义角色时：仅团队所有者
+- 该成员级别不低于您：所有者、管理员，或持有管理员级自定义角色的成员（403 `MEMBER_NOT_BELOW_CALLER`）——角色与 `max_tokens` 都是如此时：仅团队所有者
 </Note>
 
 ### 路径参数

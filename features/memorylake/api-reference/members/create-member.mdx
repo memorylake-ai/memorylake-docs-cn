@@ -7,12 +7,10 @@ description: "创建虚拟成员——一种无需登录的托管身份，会出
 POST /openapi/memorylake/admin/v1/members
 ```
 
-创建虚拟成员——一种无需登录的托管身份，会出现在成员名单中、持有角色，且仅通过为其签发的 API Key 进行操作（`POST /api-keys` 并传入 `member_principal_id`）。真人成员只能通过邀请加入。
+创建虚拟成员——一种无需登录的托管身份，会出现在成员名单中、持有角色，且仅通过为其签发的 API Key 进行操作（`POST /api-keys` 并传入 `member_principal_id`）。真人成员只能通过邀请加入。虚拟成员不能持有管理员级角色（见 GET /roles 的 `admin_grant_only`）——无论由谁发起，都返回 400 `ROLE_NOT_FOR_VIRTUAL_MEMBER`。
 
 <Note>
 **所需权限：** `member:manage_virtual`
-
-- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
 </Note>
 
 ### 请求头
@@ -51,12 +49,13 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members' \
   <ResponseField name="display_name" type="string">成员的显示名称</ResponseField>
   <ResponseField name="joined_at" type="integer">此成员加入的时间，Unix 秒级时间戳</ResponseField>
   <ResponseField name="member_type" type="string">`human` 表示通过邀请加入，`virtual` 表示由所有者/管理员创建的托管身份</ResponseField>
+  <ResponseField name="month_used_tokens" type="integer">该成员本自然月已消耗的 tokens（即与 `max_tokens` 比较的数值）；每月初为 0</ResponseField>
   <ResponseField name="principal_id" type="string">此成员的稳定标识符</ResponseField>
   <ResponseField name="role" type="string">在本团队中的主角色：`tenant_owner` | `tenant_admin` | `tenant_member` | &lt;自定义角色&gt;</ResponseField>
   <ResponseField name="status" type="string">成员状态。可选值：`active`、`inactive`。</ResponseField>
-  <ResponseField name="used_tokens" type="integer">此成员消耗的 tokens</ResponseField>
+  <ResponseField name="used_tokens" type="integer">该成员自加入以来消耗的 tokens（累计，从不重置）</ResponseField>
   <ResponseField name="email" type="string">仅返回给团队所有者和管理员</ResponseField>
-  <ResponseField name="max_tokens" type="integer">每位成员的上限，单位 tokens。成员无上限时省略。</ResponseField>
+  <ResponseField name="max_tokens" type="integer">每位成员每月的用量上限，单位 tokens（每月 1 日重置）。成员无上限时省略。</ResponseField>
   <ResponseField name="username" type="string">仅返回给团队所有者和管理员</ResponseField>
 </Expandable>
 </ResponseField>
@@ -70,6 +69,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/members' \
     "display_name": "Alice",
     "joined_at": 1760000000,
     "member_type": "human",
+    "month_used_tokens": 1200000,
     "principal_id": "42fbbd89934900ebbc74814c49f009d2",
     "role": "tenant_member",
     "status": "active",

@@ -41,7 +41,7 @@ PUT /openapi/memorylake/admin/v1/access-groups/{group_id}/access-scope
   <ParamField body="scopes[].mode" type="string" required>`all` 表示所有实例；`instances` 表示仅列出的实例</ParamField>
   <ParamField body="scopes[].resource_type" type="string" required>资源类型，例如 `memorylake:project`</ParamField>
   <ParamField body="scopes[].instances" type="array">
-  当 `mode` 为 `instances` 时必填
+  `mode` 为 `instances` 时的实例列表，可以为空
   <Expandable title="Access Scope Instance 对象">
     <ParamField body="scopes[].instances[].id" type="string" required>实例 ID</ParamField>
     <ParamField body="scopes[].instances[].actions" type="array">省略则为该成员角色允许的所有操作</ParamField>

@@ -1,13 +1,13 @@
 ---
 title: "轮换 API Key"
-description: "替换密钥材料并仅返回一次新值"
+description: "替换密钥内容并仅返回一次新值"
 ---
 
 ```
 POST /openapi/memorylake/admin/v1/api-keys/{id}/rotate
 ```
 
-替换密钥材料并仅返回一次新值。旧值立即失效。
+替换密钥内容并仅返回一次新值。旧值立即失效。重新生成 Key 的人会看到其新值，因此只能重新生成您自己的 Key 和虚拟成员的 Key——他人的 Key 会被拒绝（403 `API_KEY_OF_ANOTHER_MEMBER`），创建人已离开团队的 Key 须先转移（409 `STATE_NOT_READY`），虚拟成员的 Key 需要 `member:manage_virtual`（或所有者身份）且该成员级别低于您（403 `MEMBER_NOT_BELOW_CALLER`）。控制台遵循相同规则。
 
 <Warning>
 轮换本身不是幂等的：每次调用都会生成新 Key 并让上一个 Key 失效。在不稳定的网络下重试时，请务必带上 `Idempotency-Key`，否则盲目重试会让您刚拿到的 Key 失效。
@@ -15,6 +15,9 @@ POST /openapi/memorylake/admin/v1/api-keys/{id}/rotate
 
 <Note>
 **所需权限：** `service_account:update`（仅本人的 Key）或 `service_account:update`（全部 Key）
+
+- 该 Key 不是由虚拟成员创建：只能重新生成您自己的 Key——他人的 Key 对所有人都会拒绝，所有者也不例外（403 `API_KEY_OF_ANOTHER_MEMBER`；其创建人已离开团队时返回 409）时：`service_account:update`（仅本人的 Key）或 `service_account:update`（仅本人的 Key）
+- 该 Key 由级别低于您的虚拟成员创建：需要 `member:manage_virtual` 或所有者身份，以代替更新权限时：仅团队所有者 或 `member:manage_virtual`
 </Note>
 
 ### 路径参数
@@ -29,11 +32,21 @@ API Key 的标识符
 可选。使用相同值重试会重放首次结果——不会再签发第二个 Key。
 </ParamField>
 
+### 请求体
+
+<ParamField body="old_key_expires_in" type="string">
+被替换的旧 Key 何时失效。`now`（默认）= 立即失效。`1h` / `24h` / `7d` = 在此之前新旧两个 Key 都可用。旧 Key 仍可用时再次轮换，会立即终止该旧 Key——同一时间最多两个 Key 可用。
+</ParamField>
+
 <RequestExample>
 ```bash cURL
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d971b8b5813eb1ecceec31354c101b4/rotate' \
   -H 'Authorization: Bearer sk_xxxxxx' \
-  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0'
+  -H 'Idempotency-Key: 7c1d2e3f-0a9b-4c8d-b7e6-f5a4d3c2b1a0' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "old_key_expires_in": "now"
+  }'
 ```
 </RequestExample>
 

@@ -1,0 +1,63 @@
+---
+title: "列出事件类型"
+description: "按显示顺序列出 Webhook 可以接收的事件类型"
+---
+
+```
+GET /openapi/memorylake/admin/v1/webhooks/event-types
+```
+
+按显示顺序列出 Webhook 可以接收的事件类型。今后可能新增类型；接收方应忽略不认识的类型。
+
+<Note>
+**所需权限：** `webhook:manage`
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/webhooks/event-types' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Webhook Event Types 对象">
+  <ResponseField name="event_types" type="array">
+  <Expandable title="Webhook Event Type 对象">
+    <ResponseField name="group" type="string">该类型所在的分组。可选值：`api_key`、`member`、`balance`、`subscription`、`export`。</ResponseField>
+    <ResponseField name="type" type="string">事件类型，与推送内容中 `type` 字段的值相同</ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "event_types": [
+      {
+        "group": "api_key",
+        "type": "example"
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

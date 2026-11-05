@@ -1,0 +1,112 @@
+---
+title: "列出投递记录"
+description: "列出某个 Webhook 最近 15 天的投递记录，按事件发生时间倒序"
+---
+
+```
+GET /openapi/memorylake/admin/v1/webhooks/{webhook_id}/deliveries
+```
+
+列出某个 Webhook 最近 15 天的投递记录，按事件发生时间倒序。一条投递记录是发往该 Webhook 的一个事件；自动重试与重新发送都是同一条记录的后续尝试。
+
+<Note>
+**所需权限：** `webhook:manage`
+</Note>
+
+### 路径参数
+
+<ParamField path="webhook_id" type="string" required>
+Webhook 的标识
+</ParamField>
+
+### 查询参数
+
+<ParamField query="result" type="string">
+只看该结果的投递记录；`failed` 包含仍在重试的。可选值：`succeeded`、`failed`、`skipped`。
+</ParamField>
+
+<ParamField query="event_type" type="string">
+只看该事件类型
+</ParamField>
+
+<ParamField query="page_size" type="integer" default="20">
+每页条数（1–100）
+</ParamField>
+
+<ParamField query="continuation_token" type="string">
+上一页返回的令牌
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/webhooks/16522a01eaa7b9feef48caafb0b487a5/deliveries' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Load More Response Webhook Delivery 对象">
+  <ResponseField name="items" type="array">
+  当前页的条目列表
+  <Expandable title="Webhook Delivery 对象">
+    <ResponseField name="attempts" type="integer">目前已尝试的次数</ResponseField>
+    <ResponseField name="created_at" type="integer">事件发生时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="delivery_id" type="integer">投递记录的标识</ResponseField>
+    <ResponseField name="event_id" type="string">事件编号，随 `webhook-id` 请求头发送；自动重试与重新发送时不变</ResponseField>
+    <ResponseField name="event_type" type="string">事件类型；测试事件为 `webhook.test`</ResponseField>
+    <ResponseField name="status" type="string">`pending` = 已排队，尚无结果；`retrying` = 已失败，下一次重试在 `next_attempt_at`；`skipped` = Webhook 已停用，未发送。可选值：`pending`、`retrying`、`succeeded`、`failed`、`skipped`。</ResponseField>
+    <ResponseField name="duration_ms" type="integer">最近一次尝试的耗时，单位毫秒</ResponseField>
+    <ResponseField name="error_kind" type="string">最近一次尝试没有拿到响应的原因。可选值：`timeout`、`connect`。</ResponseField>
+    <ResponseField name="last_attempt_at" type="integer">最近一次尝试的时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="next_attempt_at" type="integer">下一次自动重试的时间，Unix 秒级时间戳</ResponseField>
+    <ResponseField name="status_code" type="integer">最近一次响应的 HTTP 状态码</ResponseField>
+  </Expandable>
+  </ResponseField>
+  <ResponseField name="continuation_token" type="string">用于获取下一页的令牌；最后一页不返回</ResponseField>
+  <ResponseField name="total" type="integer">所有分页中符合筛选条件的条目总数；无法获取计数时省略</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "attempts": 1,
+        "created_at": 1760000000,
+        "delivery_id": 1,
+        "event_id": "8085a81b91bad7009b3fd09854461edf",
+        "event_type": "example",
+        "status": "pending",
+        "duration_ms": 1,
+        "error_kind": "timeout",
+        "last_attempt_at": 1760000000,
+        "next_attempt_at": 1760000000,
+        "status_code": 1
+      }
+    ],
+    "continuation_token": "eyJvZmZzZXQiOjIwfQ",
+    "total": 1
+  }
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `400` | 参数或请求体无效 |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

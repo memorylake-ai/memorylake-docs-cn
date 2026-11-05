@@ -41,6 +41,10 @@ API Key 的标识符
 新显示名称。用量明细按每次请求时 Key 的名称保存，因此重命名会使该 Key 的历史记录分开。
 </ParamField>
 
+<ParamField body="read_only" type="boolean">
+`true` = 只读（写操作会被拒绝，返回 403 `API_KEY_READ_ONLY`）；`false` = 完全访问。本次请求所用的 Key 不能把自己设为只读。
+</ParamField>
+
 <ParamField body="status" type="string">
 启用或停用该 Key。已过期的 Key 只有同时设置一个未来的 `expires_at` 时才能启用。可选值：`enabled`、`disabled`。
 </ParamField>
@@ -58,6 +62,7 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d
     "expires_at": 1760000000,
     "group": "example",
     "name": "Example name",
+    "read_only": false,
     "status": "enabled"
   }'
 ```
@@ -87,6 +92,8 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d
     <ResponseField name="principal_id" type="string">成员的 `principal_id`（参见 GET /members）</ResponseField>
   </Expandable>
   </ResponseField>
+  <ResponseField name="previous_key_expires_at" type="integer">带 `old_key_expires_in` 轮换后，被替换的旧 Key 失效的时间，Unix 秒级时间戳。没有仍可用的旧 Key 时省略。</ResponseField>
+  <ResponseField name="read_only" type="boolean">`true` = 只读 Key：创建、更改或删除任何内容的请求都会被拒绝，返回 403 `API_KEY_READ_ONLY`。省略 = 完全访问。</ResponseField>
 </Expandable>
 </ResponseField>
 
@@ -114,7 +121,9 @@ curl -X PATCH 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys/9d
       "display_name": "Alice",
       "member_type": "human",
       "principal_id": "61083f9552ae2ae6bd9105e4e2763c7b"
-    }
+    },
+    "previous_key_expires_at": 1760000000,
+    "read_only": false
   }
 }
 ```
