@@ -7,13 +7,14 @@ description: "替换每个所列资源类型的范围"
 PUT /openapi/memorylake/admin/v1/members/{principal_id}/access-scope
 ```
 
-替换每个所列资源类型的范围。范围用于限制成员，授予的权限绝不会超出成员角色允许的范围。项目实例需要提供其 `workspace_id`。受限类型必须为成员保留至少一个可访问的实例。
+替换每个所列资源类型的范围。范围用于限制成员，授予的权限绝不会超出成员角色允许的范围。项目实例需要提供其 `workspace_id`。受限类型可以不列任何实例：成员将无法访问该类型的任何实例。
 
 响应携带 `ETag` 头（与对该资源执行 GET 时返回的值相同）。将其放入 `If-Match` 回传即可使写入成为条件写入：若资源在此期间已被修改，写入将以 412 被拒绝，且不做任何更改。该校验能缩小但无法完全消除并发覆盖的窗口——两个在同一时刻通过校验的写入方都可能写入成功。
 
 <Note>
 **所需权限：** `member:set_scope`
 
+- 该成员级别不低于您：所有者、管理员，或持有管理员级自定义角色的成员——只有所有者可以限制管理员时：仅团队所有者
 - 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
 </Note>
 
@@ -41,7 +42,7 @@ PUT /openapi/memorylake/admin/v1/members/{principal_id}/access-scope
   <ParamField body="scopes[].mode" type="string" required>`all` 表示所有实例；`instances` 表示仅列出的实例</ParamField>
   <ParamField body="scopes[].resource_type" type="string" required>资源类型，例如 `memorylake:project`</ParamField>
   <ParamField body="scopes[].instances" type="array">
-  当 `mode` 为 `instances` 时必填
+  `mode` 为 `instances` 时的实例列表，可以为空
   <Expandable title="Access Scope Instance 对象">
     <ParamField body="scopes[].instances[].id" type="string" required>实例 ID</ParamField>
     <ParamField body="scopes[].instances[].actions" type="array">省略则为该成员角色允许的所有操作</ParamField>

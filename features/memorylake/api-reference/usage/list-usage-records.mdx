@@ -49,6 +49,10 @@ GET /openapi/memorylake/admin/v1/usage/records
 仅返回此请求 ID 的记录。
 </ParamField>
 
+<ParamField query="trace_id" type="string">
+仅返回该 trace id（响应头 `X-Trace-ID`）的记录，即该请求的全部计费。与其他筛选条件一样受时间范围限制。
+</ParamField>
+
 <RequestExample>
 ```bash cURL
 curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/usage/records' \

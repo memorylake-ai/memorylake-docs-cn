@@ -7,13 +7,13 @@ description: "创建 API Key，并仅返回一次完整值"
 POST /openapi/memorylake/admin/v1/api-keys
 ```
 
-创建 API Key，并仅返回一次完整值。传入 `member_principal_id` 可为虚拟成员签发 Key（该 Key 将以该成员身份操作）；不能为真人成员签发。
+创建 API Key，并仅返回一次完整值。传入 `member_principal_id` 可为虚拟成员签发 Key（该 Key 将以该成员身份操作）；不能为真人成员签发。为成员签发 Key 即代表该成员操作：您只能为级别低于您的虚拟成员签发（403 `MEMBER_NOT_BELOW_CALLER`），为持有管理员级角色的虚拟成员签发须是团队所有者（403 `ROLE_REQUIRES_OWNER`）。
 
 <Note>
 **所需权限：** `service_account:create`（全部 Key）
 
 - 设置了 `member_principal_id` 时：`member:manage_virtual`
-- 如果改动会让某人获得管理员角色，或会缩小管理员能访问的范围，还需要由团队所有者或管理员操作。
+- 目标虚拟成员级别不低于您：其持有 `tenant_admin` 或管理员级自定义角色（403 `MEMBER_NOT_BELOW_CALLER` / `ROLE_REQUIRES_OWNER`）时：仅团队所有者
 </Note>
 
 ### 请求头
@@ -48,6 +48,10 @@ Key 的显示名称
 可选。为此虚拟成员（来自 POST /members）签发 Key；该 Key 代表该成员。不能指定真人成员。
 </ParamField>
 
+<ParamField body="read_only" type="boolean">
+可选。`true` = 只读 Key：创建、更改或删除任何内容的请求都会被拒绝，返回 403 `API_KEY_READ_ONLY`。默认 `false`（完全访问）。
+</ParamField>
+
 <RequestExample>
 ```bash cURL
 curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys' \
@@ -62,7 +66,8 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/api-keys' \
     "backup_group": "example",
     "expires_at": 1760000000,
     "group": "example",
-    "member_principal_id": "3c044ef28d3c60180490868efdce0ca8"
+    "member_principal_id": "3c044ef28d3c60180490868efdce0ca8",
+    "read_only": false
   }'
 ```
 </RequestExample>

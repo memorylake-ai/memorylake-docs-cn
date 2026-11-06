@@ -1,0 +1,52 @@
+---
+title: "删除 Webhook"
+description: "停止向该接收地址发送，并删除该 Webhook 及其投递记录"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/webhooks/{webhook_id}
+```
+
+停止向该接收地址发送，并删除该 Webhook 及其投递记录。
+
+<Note>
+**所需权限：** `webhook:manage`
+</Note>
+
+### 路径参数
+
+<ParamField path="webhook_id" type="string" required>
+Webhook 的标识
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/webhooks/16522a01eaa7b9feef48caafb0b487a5' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {}
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

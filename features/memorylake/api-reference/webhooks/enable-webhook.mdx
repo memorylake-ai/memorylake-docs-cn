@@ -1,0 +1,86 @@
+---
+title: "启用 Webhook"
+description: "重新启用已停用的 Webhook，包括因连续失败被自动停用的"
+---
+
+```
+POST /openapi/memorylake/admin/v1/webhooks/{webhook_id}/enable
+```
+
+重新启用已停用的 Webhook，包括因连续失败被自动停用的。停用期间发生的事件不会自动补发；可从投递记录中重新发送。
+
+<Note>
+**所需权限：** `webhook:manage`
+</Note>
+
+### 路径参数
+
+<ParamField path="webhook_id" type="string" required>
+Webhook 的标识
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/webhooks/16522a01eaa7b9feef48caafb0b487a5/enable' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Webhook 对象">
+  <ResponseField name="all_events" type="boolean">`true` = 发送全部事件类型，包括以后新增的类型；此时 `events` 是关闭该开关后要恢复的勾选</ResponseField>
+  <ResponseField name="created_at" type="integer">添加该 Webhook 的时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="description" type="string">说明；未填写时为空</ResponseField>
+  <ResponseField name="events" type="array">所选的事件类型（见[列出事件类型](/features/memorylake/api-reference/webhooks/list-webhook-event-types)）</ResponseField>
+  <ResponseField name="secret_last4" type="string">当前签名密钥的末四位。完整密钥只在[添加 Webhook](/features/memorylake/api-reference/webhooks/create-webhook)与[更换签名密钥](/features/memorylake/api-reference/webhooks/rotate-webhook-secret)的响应中返回。</ResponseField>
+  <ResponseField name="status" type="string">`auto_disabled` = 连续 3 天投递全部失败后被自动停用；修好接收端后请重新启用。可选值：`enabled`、`disabled`、`auto_disabled`。</ResponseField>
+  <ResponseField name="url" type="string">事件发往的接收地址</ResponseField>
+  <ResponseField name="webhook_id" type="string">Webhook 的标识</ResponseField>
+  <ResponseField name="created_by_member_id" type="string">添加该 Webhook 的成员</ResponseField>
+  <ResponseField name="last_delivery_at" type="integer">最近一次尝试的时间，Unix 秒级时间戳；尚未发送过时不返回</ResponseField>
+  <ResponseField name="last_delivery_succeeded" type="boolean">最近一次投递是否成功</ResponseField>
+  <ResponseField name="previous_secret_expires_at" type="integer">更换后旧密钥继续参与签名的截止时间，Unix 秒级时间戳；不在该期间时不返回</ResponseField>
+  <ResponseField name="secret_rotated_at" type="integer">签名密钥最近一次更换的时间，Unix 秒级时间戳；从未更换时不返回</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "all_events": false,
+    "created_at": 1760000000,
+    "description": "Example description",
+    "events": [
+      "example"
+    ],
+    "secret_last4": "example",
+    "status": "enabled",
+    "url": "https://example.com/url",
+    "webhook_id": "b5f1a133e89a12f450352f1f50843c42",
+    "created_by_member_id": "cb17cae3f79d7fd264472475d7d5d2fe",
+    "last_delivery_at": 1760000000,
+    "last_delivery_succeeded": false,
+    "previous_secret_expires_at": 1760000000,
+    "secret_rotated_at": 1760000000
+  }
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

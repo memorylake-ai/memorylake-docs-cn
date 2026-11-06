@@ -1,0 +1,59 @@
+---
+title: "撤销已授权的应用"
+description: "撤销一次授权：在用户从应用里重新授权之前，该应用无法再访问这个记忆边界"
+---
+
+```
+DELETE /openapi/memorylake/admin/v1/me/authorized-apps/{id}
+```
+
+撤销一次授权：在用户从应用里重新授权之前，该应用无法再访问这个记忆边界。它的刷新令牌和已持有的访问令牌立即失效。同一应用在其他记忆边界上的授权不受影响。幂等：已失效（已撤销、已过期）的 id 返回 200，revoked 为 false。
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+</Note>
+
+### 路径参数
+
+<ParamField path="id" type="string" required>
+授权的标识（来自[列出我的已授权应用](/features/memorylake/api-reference/authorized-apps/list-my-authorized-apps)）
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X DELETE 'https://app.memorylake.cn/openapi/memorylake/admin/v1/me/authorized-apps/9d971b8b5813eb1ecceec31354c101b4' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Revoke Authorized App 对象">
+  <ResponseField name="revoked" type="boolean">false 表示没有这个 id 的有效授权（已撤销或已过期）；结果相同</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "revoked": false
+  }
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

@@ -30,7 +30,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/roles/data_an
 
 <ResponseField name="data" type="object">
 <Expandable title="Role Detail 对象">
-  <ResponseField name="admin_grant_only" type="boolean">为 true 时，仅团队所有者或持有管理员基线的成员（通过其角色或用户组）可授予此角色。这是角色本身的属性，对所有调用方相同；不同于控制台角色列表中按调用方计算的可分配标记。</ResponseField>
+  <ResponseField name="admin_grant_only" type="boolean">为 `true` 时，该角色属于管理员级：只有团队所有者可以授予（更改角色或邀请），虚拟成员不能持有。这是角色本身的属性，对所有调用方都相同；不同于控制台角色列表中按调用方计算的可分配标志。</ResponseField>
   <ResponseField name="assignable" type="boolean">成员与邀请的写操作是否接受此角色——对所有调用方相同。所有者角色始终不接受。与控制台的角色列表不同，此字段不表示您本人能否授予该角色：如需判断，请结合 `admin_grant_only` 与您自己的角色。</ResponseField>
   <ResponseField name="built_in" type="boolean">每个团队都有的三个角色为 true；在本团队中创建的角色为 false</ResponseField>
   <ResponseField name="key" type="string">成员与邀请写操作的角色字段所接受的值</ResponseField>

@@ -1,0 +1,99 @@
+---
+title: "列出我的已授权应用"
+description: "列出调用方（Key 的所有者）在本团队通过 MCP OAuth 授权、目前仍可访问其记忆的应用：每个应用与记忆边界一项"
+---
+
+```
+GET /openapi/memorylake/admin/v1/me/authorized-apps
+```
+
+列出调用方（Key 的所有者）在本团队通过 MCP OAuth 授权、目前仍可访问其记忆的应用：每个应用与记忆边界一项。只列出您自己的授权，任何人都无法列出其他成员的授权。部署未开启 MCP OAuth 时为空。
+
+<Note>
+**所需权限：** 无——团队任一成员的 Key 都可以调用
+</Note>
+
+<RequestExample>
+```bash cURL
+curl -X GET 'https://app.memorylake.cn/openapi/memorylake/admin/v1/me/authorized-apps' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Authorized Apps 对象">
+  <ResponseField name="items" type="array">
+  按最近使用由近到远排列，未使用的排在最后
+  <Expandable title="Authorized App 对象">
+    <ResponseField name="app_name" type="string">应用注册时自报的名称；未提供时为空。未经验证。</ResponseField>
+    <ResponseField name="authorized_at" type="integer">首次授权时间，Unix 秒</ResponseField>
+    <ResponseField name="authorized_before" type="boolean">true 表示 authorized_at 是能查到的最早记录，首次授权更早</ResponseField>
+    <ResponseField name="boundary" type="object">
+    应用可以读写的记忆边界
+    <Expandable title="Authorized App Name 对象">
+      <ResponseField name="deleted" type="boolean">已被删除。授权仍然存在，但已无法访问任何记忆，可以撤销。</ResponseField>
+      <ResponseField name="name" type="string">当前名称；暂时无法查询或已删除时为 null</ResponseField>
+    </Expandable>
+    </ResponseField>
+    <ResponseField name="id" type="string">这次授权的稳定标识（应用 × 团队 × 记忆边界）</ResponseField>
+    <ResponseField name="last_used_at" type="integer">应用最近一次续取访问的时间，Unix 秒；0 表示授权后尚未续取</ResponseField>
+    <ResponseField name="logo_uri" type="string">应用注册时提供的图标（仅 https）；没有时为空</ResponseField>
+    <ResponseField name="source_host" type="string">授权完成后跳回的主机名；source_local 为 true 时为空</ResponseField>
+    <ResponseField name="source_local" type="boolean">应用运行在用户的设备上（跳回环回地址或自定义协议）</ResponseField>
+    <ResponseField name="verified" type="boolean">恒为 false：MCP 应用均为自行注册，未经验证</ResponseField>
+    <ResponseField name="workspace" type="object">
+    记忆边界所在的工作空间
+    <Expandable title="Authorized App Name 对象">
+      <ResponseField name="deleted" type="boolean">已被删除。授权仍然存在，但已无法访问任何记忆，可以撤销。</ResponseField>
+      <ResponseField name="name" type="string">当前名称；暂时无法查询或已删除时为 null</ResponseField>
+    </Expandable>
+    </ResponseField>
+  </Expandable>
+  </ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "items": [
+      {
+        "app_name": "Example app",
+        "authorized_at": 1760000000,
+        "authorized_before": false,
+        "boundary": {
+          "deleted": false,
+          "name": "Example name"
+        },
+        "id": "c7ff648cfec4d3959017fa69c2c25bc9",
+        "last_used_at": 1760000000,
+        "logo_uri": "example",
+        "source_host": "example",
+        "source_local": false,
+        "verified": false,
+        "workspace": {
+          "deleted": false,
+          "name": "Example name"
+        }
+      }
+    ]
+  }
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |

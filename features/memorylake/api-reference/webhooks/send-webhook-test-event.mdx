@@ -1,0 +1,80 @@
+---
+title: "发送测试事件"
+description: "向接收地址排队发送一个 `webhook.test` 事件，Webhook 停用时也可以发送"
+---
+
+```
+POST /openapi/memorylake/admin/v1/webhooks/{webhook_id}/test
+```
+
+向接收地址排队发送一个 `webhook.test` 事件，Webhook 停用时也可以发送。只发送一次（不重试），也不计入连续失败自动停用的判断；可用[获取投递记录](/features/memorylake/api-reference/webhooks/get-webhook-delivery)查看结果。
+
+<Note>
+**所需权限：** `webhook:manage`
+</Note>
+
+### 路径参数
+
+<ParamField path="webhook_id" type="string" required>
+Webhook 的标识
+</ParamField>
+
+<RequestExample>
+```bash cURL
+curl -X POST 'https://app.memorylake.cn/openapi/memorylake/admin/v1/webhooks/16522a01eaa7b9feef48caafb0b487a5/test' \
+  -H 'Authorization: Bearer sk_xxxxxx'
+```
+</RequestExample>
+
+### 响应
+
+<ResponseField name="data" type="object">
+<Expandable title="Webhook Delivery 对象">
+  <ResponseField name="attempts" type="integer">目前已尝试的次数</ResponseField>
+  <ResponseField name="created_at" type="integer">事件发生时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="delivery_id" type="integer">投递记录的标识</ResponseField>
+  <ResponseField name="event_id" type="string">事件编号，随 `webhook-id` 请求头发送；自动重试与重新发送时不变</ResponseField>
+  <ResponseField name="event_type" type="string">事件类型；测试事件为 `webhook.test`</ResponseField>
+  <ResponseField name="status" type="string">`pending` = 已排队，尚无结果；`retrying` = 已失败，下一次重试在 `next_attempt_at`；`skipped` = Webhook 已停用，未发送。可选值：`pending`、`retrying`、`succeeded`、`failed`、`skipped`。</ResponseField>
+  <ResponseField name="duration_ms" type="integer">最近一次尝试的耗时，单位毫秒</ResponseField>
+  <ResponseField name="error_kind" type="string">最近一次尝试没有拿到响应的原因。可选值：`timeout`、`connect`。</ResponseField>
+  <ResponseField name="last_attempt_at" type="integer">最近一次尝试的时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="next_attempt_at" type="integer">下一次自动重试的时间，Unix 秒级时间戳</ResponseField>
+  <ResponseField name="status_code" type="integer">最近一次响应的 HTTP 状态码</ResponseField>
+</Expandable>
+</ResponseField>
+
+<ResponseExample>
+```json Success (200)
+{
+  "success": true,
+  "message": "Operation completed successfully",
+  "data": {
+    "attempts": 1,
+    "created_at": 1760000000,
+    "delivery_id": 1,
+    "event_id": "8085a81b91bad7009b3fd09854461edf",
+    "event_type": "example",
+    "status": "pending",
+    "duration_ms": 1,
+    "error_kind": "timeout",
+    "last_attempt_at": 1760000000,
+    "next_attempt_at": 1760000000,
+    "status_code": 1
+  }
+}
+```
+</ResponseExample>
+
+### 错误
+
+出错时返回 `success: false`、`message` 和 `error_code`。全部错误码见[错误码](/features/memorylake/api-reference/errors)。
+
+| 状态码 | 含义 |
+| --- | --- |
+| `401` | API Key 缺失、无效、已停用或已过期 |
+| `403` | 该 Key 无权执行此操作 |
+| `404` | 资源不存在 |
+| `422` | 请求体或参数未通过校验 |
+| `429` | 请求过多，请按 `Retry-After` 等待后重试 |
+| `500` | 服务端错误 |
