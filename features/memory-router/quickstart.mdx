@@ -1,6 +1,6 @@
 ---
 title: "快速入门"
-description: "三步为您的 LLM 调用加上持久记忆"
+description: "三步在 LLM 调用中用上 MemoryLake 里的记忆"
 ---
 
 三步即可跑通 Memory Router。您的应用只需改动三处：base URL、`boundary_id` 查询参数，以及——在 BYOK 模式下——一个请求头。
@@ -190,7 +190,7 @@ curl "https://app.memorylake.cn/openapi/memorylake/router/anthropic/v1/messages?
 
 ## 第 3 步：照常调用
 
-像今天一样发送请求。附上 `boundary_id` 后，相关记忆会自动召回并注入提示词，新记忆则异步提取并存储——响应绝不会被延迟。
+像今天一样发送请求。附上 `boundary_id` 后，相关记忆会自动召回并注入提示词。Router 不会把会话存为记忆；请通过控制台或 [MemoryLake API](/features/memorylake/api-reference/core-memory/overview) 添加记忆。
 
 ```ts TypeScript
 const completion = await client.chat.completions.create({

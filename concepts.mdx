@@ -68,7 +68,7 @@ Workspace                    ← 顶层容器与隔离边界
 
 **Boundary** 是 API 流量和 MCP 客户端所使用的记忆范围。它把一个工作空间、若干项目和若干 Actor 绑定成单一引用：
 
-- 使用 [Memory Router](/features/memory-router/overview) 时，您在 LLM 调用上以 `?boundary_id=` 传入它——通常每个终端用户对应一个 Boundary，这样每个用户的会话只读写自己的记忆。
+- 使用 [Memory Router](/features/memory-router/overview) 时，您在 LLM 调用上以 `?boundary_id=` 传入它——通常每个终端用户对应一个 Boundary，这样每个用户的调用只召回自己的记忆。
 - 使用 [MCP](/features/memorylake/mcp-servers/creating-api-keys) 时，客户端连接时在 OAuth 授权页面上选择工作空间和 Boundary。
 
 您可以在控制台创建 Boundary，也可以用 [Boundary API](/features/memorylake/api-reference/boundaries/overview) 管理。

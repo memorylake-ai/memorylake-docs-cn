@@ -107,7 +107,7 @@ curl -s "https://app.memorylake.cn/openapi/memorylake/router/openai/v1/images/ge
 ## 注意事项
 
 - **仅支持生成。** 不支持图片编辑（`/images/edits`）和变体。
-- **不使用记忆。** `boundary_id` 只适用于 Chat Completions、Responses 和 Messages。图像请求不会读取或写入记忆。
+- **不使用记忆。** `boundary_id` 只适用于 Chat Completions、Responses 和 Messages。图像请求不使用记忆。
 - **只走 OpenAI base URL。** 图像模型经 `/openapi/memorylake/router/openai/v1` 调用，不能经 Anthropic 的 base URL 调用。
 - **Playground 不支持。** 控制台的 Playground 中无法选择图像模型，请通过 API 调用。
 - **响应体较大。** 一张图片的 base64 可能远超 1 MB，请为客户端设置足够长的超时。
