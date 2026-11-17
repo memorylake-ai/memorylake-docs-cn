@@ -1,6 +1,6 @@
 ---
 title: "工作原理"
-description: "一个透明网关，负责拦截、召回、转发与记忆——范围由 Boundary 划定"
+description: "一个透明网关，负责拦截、召回与转发——范围由 Boundary 划定"
 ---
 
 ## 透明网关
@@ -9,7 +9,7 @@ Memory Router 位于您的应用与模型厂商之间。您的应用与 Router �
 
 因为 Router 使用与您的模型厂商相同的协议，接入它只需**更换 base URL 加上一个 `boundary_id` 查询参数**。代码的其他部分都不用动。
 
-## 四个步骤
+## 三个步骤
 
 <Steps>
 <Step title="拦截">
@@ -23,15 +23,11 @@ Router 在该 Boundary 的范围内检索历史记忆，只把相关上下文注
 <Step title="转发">
 增强后的请求发往模型——可以是您自己的模型厂商（BYOK），也可以是 MemoryLake 托管模型。
 </Step>
-
-<Step title="记忆">
-新记忆在后台异步提取并存储——响应绝不会因此延迟。
-</Step>
 </Steps>
 
 ## Boundary 定义范围
 
-每个启用记忆的请求都带有 `boundary_id`。**Boundary** 将会话绑定到一个工作空间、一个或多个项目、一个人类 Actor 和一个助手 Actor——这样 Router 就能准确知道该读谁的记忆、该把新记忆写到哪里。
+每个启用记忆的请求都带有 `boundary_id`。**Boundary** 将会话绑定到一个工作空间、一个或多个项目、一个人类 Actor 和一个助手 Actor——这样 Router 就能准确知道该读谁的记忆。
 
 - 一个用户对一个助手？一个 Boundary。
 - 同一个产品服务大量用户？为每个用户（或每个用户—助手组合）建一个 Boundary，记忆就绝不会在用户之间泄漏。
@@ -39,12 +35,12 @@ Router 在该 Boundary 的范围内检索历史记忆，只把相关上下文注
 - [图像生成](/features/memory-router/image-generation)请求不使用记忆：`boundary_id` 只适用于 Chat Completions、Responses 和 Messages。
 
 <Info>
-记忆的提取与存储是**异步**进行的。模型响应一旦就绪即刻返回；写入新记忆绝不会给调用增加延迟。
+Memory Router 只**读取**记忆，不会从您的请求或模型的回复中提取或存储任何内容。要添加记忆，请在控制台把文件上传到项目，或通过 [MemoryLake API](/features/memorylake/api-reference/core-memory/overview) 写入。
 </Info>
 
 ## 共享记忆池
 
-Router 与 [MemoryLake API](/features/memorylake/overview) 操作同一个记忆池。通过 Router 存入的内容可以通过 API 检索（并在控制台中查看），反之亦然——跨会话、跨应用、跨模型都只有一个真实来源。
+Router 与 [MemoryLake API](/features/memorylake/overview) 和控制台读取同一个记忆池。在那里添加的记忆，会在使用对应 Boundary 的 Router 调用中被召回——跨会话、跨应用、跨模型都只有一个真实来源。
 
 ## 后续步骤
 

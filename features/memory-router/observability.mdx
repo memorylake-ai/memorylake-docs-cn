@@ -24,7 +24,7 @@ Memory Router 同时遵循入站的 **W3C Trace Context**（`traceparent` / `tra
 | **Trace ID** | 与响应头 `X-Trace-ID` 一致，便于交叉比对。 |
 
 <Tip>
-用 **Key source** 确认 BYOK 是否真正生效；对比各轮的 Token 数，即可看出记忆注入相较于重放完整历史的效果差异。
+用 **Key source** 确认 BYOK 是否真正生效；对比带与不带 `boundary_id` 的 Token 数，即可看出记忆注入增加了多少上下文。
 </Tip>
 
 ## 错误约定
