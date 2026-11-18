@@ -14,36 +14,62 @@ https://app.memorylake.cn/memorylake/mcp/v2
 中国站已启用该端点，**无需在控制台预先开通**——直接把客户端指向上面的 URL，首次连接时完成 OAuth 授权即可。
 
 <Info>
-连接页面不带作用域：没有项目选择器。工作空间和 Boundary 在 OAuth 授权步骤中选择，因此一个客户端连接可以重新授权到不同作用域，无需改动任何配置。
+连接页面不带作用域：没有项目选择器。个人/团队、工作空间和 Boundary 都在 OAuth 授权页面上选择，并在授权时写入令牌。要换到别的作用域，需要在客户端中移除并重新添加这个 MCP Server，再授权一次（见下方[管理访问权限](#管理访问权限)）。
 </Info>
+
+在控制台中，打开任意工作空间的 **MCP** 标签页，可以看到同样的分客户端接入指引（「接入 MemoryLake MCP」）。旧入口「集成 → MCP」会自动跳转到这里。
 
 ## 连接您的客户端
 
+每个客户端都分三步：添加 MCP Server、在浏览器完成授权、验证连接。授权页会依次让您：用 MemoryLake 账号登录（已登录则跳过）、选择个人/团队、选择工作空间与 Boundary。
+
 <Tabs>
 <Tab title="Claude Code">
+**1. 添加 MCP Server**：在终端运行：
+
 ```bash
-claude mcp add --transport http --scope user memorylake https://app.memorylake.cn/memorylake/mcp/v2
+claude mcp add --transport http memorylake https://app.memorylake.cn/memorylake/mcp/v2
 ```
 
-Claude Code 首次使用时会打开 MemoryLake 授权页面。批准授权、选择工作空间和 Boundary，工具即会出现。
+**2. 在浏览器完成授权**：在终端运行 `claude` 进入会话，输入 `/mcp`，选中 `memorylake` 后选择 **Authenticate**，浏览器会打开授权页。Claude Code 没有独立的登录命令，授权只能在会话内触发。
+
+**3. 验证连接**：
+
+```bash
+claude mcp list
+```
+
+输出里 `memorylake` 一行应显示 `✓ Connected`；若显示 `! Needs authentication`，说明第 2 步的授权还没完成。
 </Tab>
 
 <Tab title="Codex">
-将该服务器添加到您的 Codex 配置中：
+**1. 添加 MCP Server**：在终端运行：
+
+```bash
+codex mcp add memorylake --url https://app.memorylake.cn/memorylake/mcp/v2
+```
+
+这条命令会把下面的配置写进 `~/.codex/config.toml`（也可以手动添加）：
 
 ```toml
 [mcp_servers.memorylake]
 url = "https://app.memorylake.cn/memorylake/mcp/v2"
 ```
 
-然后登录：
+服务名可以自定义，但后面的登录命令要跟着改。
+
+**2. 在浏览器完成授权**：
 
 ```bash
 codex mcp login memorylake
 ```
+
+**3. 验证连接**：运行 `codex mcp list`，`memorylake` 应显示为已连接。
 </Tab>
 
-<Tab title="Cursor / Claude Desktop">
+<Tab title="Cursor">
+**1. 添加 MCP Server**：在控制台工作空间的 **MCP** 标签页点击 **一键装进 Cursor**，或手动把下面的配置写进 `~/.cursor/mcp.json`（全局可用）或项目里的 `.cursor/mcp.json`（只对该项目生效）：
+
 ```json
 {
   "mcpServers": {
@@ -54,11 +80,46 @@ codex mcp login memorylake
 }
 ```
 
-重启客户端；首次连接时它会提示进行 OAuth 授权。
+保存后 Cursor 会自动重新加载。
+
+**2. 在浏览器完成授权**：打开 Settings → MCP，`memorylake` 会提示需要登录；点击登录，浏览器会打开授权页。
+
+**3. 验证连接**：回到 Settings → MCP，`memorylake` 应显示为已连接并列出可用工具。
+</Tab>
+
+<Tab title="VS Code">
+**1. 添加 MCP Server**：在控制台工作空间的 **MCP** 标签页点击 **一键装进 VS Code**，或手动把下面的配置写进工作区的 `.vscode/mcp.json`（只对该项目生效），也可以用命令面板执行 `MCP: Add Server`：
+
+```json
+{
+  "servers": {
+    "memorylake": {
+      "type": "http",
+      "url": "https://app.memorylake.cn/memorylake/mcp/v2"
+    }
+  }
+}
+```
+
+**2. 在浏览器完成授权**：启动该服务器时 VS Code 会提示授权，确认后浏览器会打开授权页。
+
+**3. 验证连接**：在 MCP 服务器列表里，`memorylake` 应显示为运行中。
+</Tab>
+
+<Tab title="Claude Desktop">
+**1. 添加 MCP Server**：打开 Settings → Connectors → Add custom connector，把上面的服务器 URL 粘贴进去。
+
+**2. 在浏览器完成授权**：确认添加后 Claude Desktop 会弹出授权窗口，按提示完成登录与授权。
+
+**3. 验证连接**：回到 Connectors 列表，`memorylake` 应显示为已连接，对话里即可看到它的工具。
 </Tab>
 
 <Tab title="其他客户端">
-任何支持通过 HTTP + OAuth2 接入远程 MCP 服务器的客户端都可以使用。把它指向上面的服务器 URL 即可——不需要 API Key，也不需要自定义 header。客户端会走标准的 OAuth2 授权码流程，并自行保存得到的 token。
+任何支持 OAuth 2.1 的远程 MCP 客户端都能接入——把上面的服务器 URL 填进客户端即可，不需要 API Key，也不需要自定义 header。其余步骤由客户端自动完成：
+
+- 首次调用收到 401 后，从站点根路径的 `.well-known` 自动发现授权服务器
+- 通过动态客户端注册（DCR）加 PKCE 走浏览器授权，无需预先配置 `client_id`
+- 拿到令牌后自动携带，过期由 refresh token 自动续期
 </Tab>
 </Tabs>
 
@@ -79,8 +140,14 @@ OpenAI 协议的客户端会自动获得这些工具的简化版 `search` / `fet
 
 ## 管理访问权限
 
-- **重设作用域**：重新走一遍 OAuth 流程即可授权到不同的工作空间或 Boundary，无需修改配置。
-- **吊销**：在控制台移除该授权，客户端的 token 会立即失效。
+- **换工作空间或 Boundary**：个人/团队、工作空间和 Boundary 在授权时写入令牌，事后改不了。在客户端里删掉这个 MCP Server 再重新添加，然后重新授权一次，即可选择新的作用域。以 Claude Code 为例，执行下面两条命令后，在会话里用 `/mcp` 重新 Authenticate：
+
+  ```bash
+  claude mcp remove memorylake
+  claude mcp add --transport http memorylake https://app.memorylake.cn/memorylake/mcp/v2
+  ```
+
+- **撤销授权**：在控制台 **账号设置 → 登录与安全 → 已授权的应用** 中撤销该客户端。撤销后该客户端的刷新令牌和已持有的访问令牌立即失效，要再使用需要在客户端里重新授权。如需同时从客户端移除，Claude Code 执行 `claude mcp remove memorylake`。
 - **Token 有效期**：访问 token 生命周期很短，由客户端自动刷新。
 
 <Note>
@@ -102,7 +169,15 @@ OpenAI 协议的客户端会自动获得这些工具的简化版 `search` / `fet
 授权的作用域可能指向了一个空项目。请在控制台确认您所选的工作空间和项目中确实有文档或记忆。
 </Accordion>
 
+<Accordion title="浏览器没有自动弹出授权页">
+终端会打印一条包含 `/oauth2/mcp/authorize` 的链接，手动复制到浏览器打开即可。SSH 或远程开发环境基本都是这种情况。
+</Accordion>
+
+<Accordion title="一直提示 401 / Unauthorized">
+多半是令牌过期或已失效，重新授权一次即可。Claude Code：在会话里输入 `/mcp`，选中 `memorylake` 后重新 Authenticate。Codex：运行 `codex mcp login memorylake`。其他客户端在各自的 MCP 设置里重新登录。
+</Accordion>
+
 <Accordion title="我的控制台里看不到 MCP">
-不影响使用。中国站的 MCP 服务端（OAuth2）已启用，连接不依赖控制台里的任何卡片——按上面的方式配置客户端并完成 OAuth 授权即可。私有化部署的功能集由部署方配置决定，如果授权失败，请联系您环境的管理员或商务确认。
+工作空间的 **MCP** 标签页与 MCP 服务端由同一个开关控制。如果看不到该标签页，或页面提示「当前部署未启用 OAuth2 MCP」，说明您所在的环境没有启用 OAuth2 MCP（私有化部署的功能集由部署方配置决定），请联系您环境的管理员或商务确认。
 </Accordion>
 </AccordionGroup>

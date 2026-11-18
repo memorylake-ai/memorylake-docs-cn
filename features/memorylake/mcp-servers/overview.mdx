@@ -13,13 +13,11 @@ description: "把 MemoryLake 记忆接入您的 Agent 和应用——OpenClaw �
 | **QClaw 插件** | ✅ 可用 | 同一个插件，运行于 QClaw（`~/.qclaw/openclaw.json`） |
 | **Hermes Agent** | ✅ 可用 | 一行命令安装一个已连接记忆的 Agent（macOS） |
 | **REST API** | ✅ 可用 | 任意语言下的完整编程控制 |
-| **MCP 服务器（OAuth2）** | ✅ 可用 | Claude Code、Codex、Cursor、Claude Desktop 以及任何支持 OAuth2 的 MCP 客户端 |
-| **Claude / ChatGPT / Gemini 客户端** | ✅ 可用 | 控制台按客户端提供引导式配置 |
-| **Chrome 扩展** | ✅ 可用 | 控制台提供引导式安装与配置 |
+| **MCP 服务器（OAuth2）** | ✅ 可用 | 支持远程 MCP 与 OAuth 登录的客户端，例如 Claude Code、Codex、Cursor、VS Code、Claude Desktop |
 | **聊天历史导入** | ⛔ 中国站暂未开放 | 从 Claude / ChatGPT / Gemini 批量导入历史对话——中国站尚未启用 |
 | **Memory Router** | ✅ 可用 | 调用级记忆网关，详见 [Memory Router](/features/memory-router/overview) |
 
-在[控制台](https://app.memorylake.cn)侧边栏打开 **Integrations**，即可查看您的账户已启用哪些集成——每张可用卡片都会生成预填了项目 id 和 API Key 的配置命令。控制台中实际显示的卡片即为当前中国站可用的范围。
+在[控制台](https://app.memorylake.cn)侧边栏打开 **Integrations**，即可查看您的账户已启用哪些集成，点击卡片进入对应的接入指引（例如 OpenClaw 卡片会生成预填了项目 id 和 API Key 的安装命令）。控制台中实际显示、且未标注「即将上线」的卡片即为当前中国站可用的范围。
 
 ## OpenClaw / QClaw 插件
 
@@ -43,7 +41,7 @@ description: "把 MemoryLake 记忆接入您的 Agent 和应用——OpenClaw �
 - **认证**：`Authorization: Bearer sk-…`（[创建 Key](/authentication)）
 - **在线 spec**：`https://app.memorylake.cn/openapi/memorylake/api-docs/open-api`
 
-控制台的 **Integrations → API** 卡片还会生成一段描述各端点的 AI 就绪提示词，您可以直接把 API 能力交给 Agent。完整文档见 [API 参考](/features/memorylake/api-reference/overview)。
+控制台工作空间的 **API** 标签页还会生成一段描述各端点的 AI 就绪提示词，您可以直接把 API 能力交给 Agent。完整文档见 [API 参考](/features/memorylake/api-reference/overview)。
 
 ## MCP 服务器
 
@@ -53,7 +51,7 @@ MemoryLake 运行着一个**远程 MCP 服务器**（基于 HTTP 的 Model Conte
 https://app.memorylake.cn/memorylake/mcp/v2
 ```
 
-一条命令即可连接 Claude Code——`claude mcp add --transport http --scope user memorylake <url>`——或者把 Codex、Cursor、Claude Desktop 指向同一个 URL。工作空间和 Boundary 在 OAuth 授权页面选择，因此不会有任何密钥落到配置文件里。分客户端的配置方式见[通过 MCP 连接](/features/memorylake/mcp-servers/creating-api-keys)。
+一条命令即可添加到 Claude Code——`claude mcp add --transport http memorylake <url>`——或者把 Codex、Cursor、VS Code、Claude Desktop 指向同一个 URL。工作空间和 Boundary 在 OAuth 授权页面选择，因此不会有任何密钥落到配置文件里。控制台中打开任意工作空间的 **MCP** 标签页，可以看到同样的分客户端接入指引。分客户端的配置方式见[通过 MCP 连接](/features/memorylake/mcp-servers/creating-api-keys)。
 
 已连接的客户端可对作用域内的记忆和文档使用搜索与分析工具：
 
@@ -64,7 +62,7 @@ https://app.memorylake.cn/memorylake/mcp/v2
 | `get_memorylake_metadata` | 项目概览——按类型统计文件数、电子表格的 sheet 名称、文档统计 |
 | `create_memory_code_runner` / `run_memory_code` | 沙箱化 Python（pandas、numpy 等）分析项目文件，状态在多次调用间保持 |
 
-OpenAI 协议的客户端（例如 ChatGPT）会自动获得这些工具的简化版 `search` / `fetch` 变体——同一个端点自适应不同客户端。
+OpenAI 协议的客户端会自动获得这些工具的简化版 `search` / `fetch` 变体——同一个端点自适应不同客户端。
 
 ## 我该选择哪种集成？
 
@@ -81,6 +79,6 @@ OpenAI 协议的客户端（例如 ChatGPT）会自动获得这些工具的简�
 </Card>
 
 <Card title="通过 MCP 连接" icon="plug" href="/features/memorylake/mcp-servers/creating-api-keys">
-Claude Code、Codex、Cursor 与 Desktop 的分客户端配置
+Claude Code、Codex、Cursor、VS Code 与 Claude Desktop 的分客户端配置
 </Card>
 </CardGroup>
