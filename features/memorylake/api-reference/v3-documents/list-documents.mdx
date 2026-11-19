@@ -67,6 +67,13 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a
     </Expandable>
     </ResponseField>
     <ResponseField name="document_type" type="string">文档类型：`drive_file`。</ResponseField>
+    <ResponseField name="drive_item" type="object">
+    该文档导入自的文件库条目。如需下载原始文件，请调用[下载文档](/features/memorylake/api-reference/v3-documents/download-document)，或将 `drive_item.id` 传给[下载条目](/features/memorylake/api-reference/library/download-item)。
+    <Expandable title="文件库条目">
+      <ResponseField name="id" type="string">文件库条目 ID。</ResponseField>
+      <ResponseField name="uri" type="string">文件库条目的资源 URI（`drive://…`），可用于任何接受 `drive://` 引用的地方。无法解析条目位置时不返回此字段。</ResponseField>
+    </Expandable>
+    </ResponseField>
     <ResponseField name="created_at" type="string">文档导入时的 ISO 8601 时间戳。</ResponseField>
   </Expandable>
   </ResponseField>
@@ -89,6 +96,10 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a
           "files_process_tokens": 15230
         },
         "document_type": "drive_file",
+        "drive_item": {
+          "id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5",
+          "uri": "drive://drive-6fd400a155134e5d9d6d6b17d2623f11/sc-5c6bf0f82d624a20a6fa4696997bdd46:7d8cf1e93f634b31b5"
+        },
         "created_at": "2025-03-10T14:22:00Z"
       },
       {
@@ -100,6 +111,10 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a
           "files_process_tokens": 0
         },
         "document_type": "drive_file",
+        "drive_item": {
+          "id": "sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7",
+          "uri": "drive://drive-6fd400a155134e5d9d6d6b17d2623f11/sc-5c6bf0f82d624a20a6fa4696997bdd46:2a8cf1e93f634b31b7"
+        },
         "created_at": "2025-03-11T09:15:00Z"
       }
     ],
