@@ -32,7 +32,7 @@ POST /openapi/memorylake/api/v3/conversations/{conversationId}/messages
 
 **文本块：** `{ "block_type": "TEXT", "text": "message content" }`
 
-**图片块：** `{ "block_type": "IMAGE", "uri": "drive://...", "mime_type": "image/png" }`
+**图片块：** `{ "block_type": "IMAGE", "uri": "drive://...", "mime_type": "image/png" }` `uri` 请填写文件库文件的 `uri`，即[获取条目](/features/memorylake/api-reference/library/get-item)或[列出条目](/features/memorylake/api-reference/library/list-items)返回的值。
 </ParamField>
 
 <ParamField body="actor_id" type="string" required>
@@ -93,7 +93,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/conversations/
       },
       {
         "block_type": "IMAGE",
-        "uri": "drive://items/item_abc123/chart.png",
+        "uri": "drive://drive-6fd400a155134e5d9d6d6b17d2623f11/sc-5c6bf0f82d624a20a6fa4696997bdd46:9f3de2a71c844a52c1",
         "mime_type": "image/png"
       }
     ],
