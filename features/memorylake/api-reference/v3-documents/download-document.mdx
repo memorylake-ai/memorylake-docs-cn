@@ -1,0 +1,99 @@
+---
+title: "下载文档"
+description: "下载项目文档导入时使用的原始文件"
+---
+
+```
+GET /openapi/memorylake/api/v3/workspaces/{workspaceId}/projects/{projectId}/memories/documents/{documentId}/download
+```
+
+下载文档导入时使用的原始文件，返回的是您上传的原始字节，不是抽取出来的记忆。通常响应是 `303` 跳转，指向一个提供该文件的存储地址。如果文件所在的存储无法通过普通 URL 读取，MemoryLake 会以 `200` 直接把内容流式返回。无论哪种情况，只要跟随跳转就能拿到文件。
+
+同一个文件也可以通过文件库下载：把[获取文档](/features/memorylake/api-reference/v3-documents/get-document)或[列出文档](/features/memorylake/api-reference/v3-documents/list-documents)返回的 `drive_item.id` 传给[下载条目](/features/memorylake/api-reference/library/download-item)。
+
+<Note>
+**所需权限（两项都需要）：**
+
+- [`project:doc_read`](/features/team-collaboration/permission-reference#读取单个文档) · `instance`
+- [`drive:item_read`](/features/team-collaboration/permission-reference#读取文件) · `service`
+</Note>
+
+### 路径参数
+
+<ParamField path="workspaceId" type="string" required>
+拥有该项目的工作空间 ID。
+</ParamField>
+
+<ParamField path="projectId" type="string" required>
+文档所属的项目。
+</ParamField>
+
+<ParamField path="documentId" type="string" required>
+要下载的文档 ID。
+</ParamField>
+
+### 跟随跳转
+
+`Location` 头里的存储地址自带签名：
+
+- **请求它时不要带您的 API Key。** 如果请求同时带了 `Authorization` 头，存储会拒绝。`curl -L` 和 Python 的 `requests` 跟随跳转时会自动去掉这个头。如果您的 HTTP 客户端跟随跳转时会转发请求头，请关闭自动跳转，自己去请求 `Location` 里的地址。
+- **拿到后立即使用。** 这个地址很快会过期。之后还需要这个文件时，请重新调用本接口，不要保存这个地址。
+
+文件会以附件形式下载，文件名与文件库中的条目名称相同。
+
+<RequestExample>
+```bash cURL
+curl -L 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-a1b2c3d4e5f6/projects/proj-7g8h9i0j1k2l/memories/documents/doc-3m4n5o6p7q8r/download' \
+  -H 'Authorization: Bearer sk_xxxxxx' \
+  -o quarterly-report.pdf
+```
+
+```python Python
+import requests
+
+BASE = "https://app.memorylake.cn/openapi/memorylake/api/v3"
+HEADERS = {"Authorization": "Bearer sk_xxxxxx"}
+
+def download_document(workspace_id: str, project_id: str, document_id: str, path: str) -> None:
+    """把项目文档的原始文件下载到本地路径。"""
+    resp = requests.get(
+        f"{BASE}/workspaces/{workspace_id}/projects/{project_id}/memories/documents/{document_id}/download",
+        headers=HEADERS,
+        stream=True,  # 会跟随 303，并在跳转时去掉 API Key
+    )
+    resp.raise_for_status()
+    with open(path, "wb") as f:
+        for chunk in resp.iter_content(chunk_size=1024 * 1024):
+            f.write(chunk)
+```
+</RequestExample>
+
+### 响应
+
+| 状态码 | 响应体 | 何时出现 |
+|--------|--------|----------|
+| `303` | 空 | 大多数文件。`Location` 头是提供该文件的存储地址 |
+| `200` | 文件内容 | 文件所在的存储无法通过普通 URL 读取时，由 MemoryLake 直接流式返回 |
+
+### 错误
+
+| 状态码 | 错误码 | 何时出现 |
+|--------|--------|----------|
+| `404` | `NOT_FOUND` | 项目中没有这个 `documentId` 的文档，或工作空间中没有这个项目 |
+| `400` | `DOWNLOAD_NOT_SUPPORTED` | 该文档不是文件，不能下载 |
+
+<ResponseExample>
+```text Redirect (303)
+HTTP/1.1 303 See Other
+Location: https://<storage-host>/<path>?<signature>
+Content-Length: 0
+```
+
+```json Not found (404)
+{
+  "success": false,
+  "message": "Document not found with id: doc-3m4n5o6p7q8r",
+  "error_code": "NOT_FOUND"
+}
+```
+</ResponseExample>
