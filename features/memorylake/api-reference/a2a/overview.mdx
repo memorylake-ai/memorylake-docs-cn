@@ -59,7 +59,7 @@ MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议�
 
 这是与普通 A2A 服务器的核心区别 —— 这些字段将 Agent 连接到 MemoryLake 中的工作空间、项目和 Actor。对象里的字段分两类：
 
-- **[记忆与身份](#记忆与身份)**：`actorId`、`readWriteProjectId`、`readOnlyProjectIds`、`skipMemory`，决定 Agent 使用谁的记忆、读写哪些项目。
+- **[记忆与身份](#记忆与身份)**：`actorId`、`readWriteProjectIds`、`readOnlyProjectIds`、`fileImportProjectId`、`skipMemory`，决定 Agent 使用谁的记忆、读写哪些项目，以及附带的文件导入到哪里。
 - **[运行配置](#运行配置)**：`overrides`、`runtimeOptions`，调整 Agent 处理这条消息的方式。
 
 请使用本页列出的驼峰字段名。未知字段会被忽略而不是报错，所以某个设置看起来没生效时，请先检查拼写。`metadata` 下除 `memorylake` 以外的键，Agent 都不会读取。
@@ -78,21 +78,31 @@ MemoryLake 通过 `metadata.memorylake` 命名空间扩展了标准 A2A 协议�
 - **权限：** 需要对该 Actor 有 `workspace_actor:fact_add` 和 `workspace_actor:fact_search`。会话开始时校验一次；之后某条消息带来会话里还没有过的 Actor 时，会再校验。
 </ParamField>
 
-<ParamField body="readWriteProjectId" type="string">
-Agent 工作所在的项目（`proj-` 加 32 位十六进制字符）。Agent 会检索这个项目的文档和记忆，会话也记在这个项目下，从会话中提取的记忆就保存在这里。会话历史本身存储在工作空间层级。
+<ParamField body="readWriteProjectIds" type="string[] | string">
+Agent 工作所在的项目（`proj-` 加 32 位十六进制字符），第一个是主项目。Agent 会检索其中每个项目的文档和记忆，会话也记在这些项目下，从会话中提取的记忆就保存在这里。会话历史本身存储在工作空间层级。也可以传单个字符串代替数组。
 
-- **一个会话只绑定一个项目。** 会话（`contextId`）的第一条消息绑定项目，之后的消息可以不传，沿用该项目。传入不同的项目，或者给一个开始时没有项目的会话补上项目，都会返回 `400`。
-- **只能是同一工作空间的项目。** 其他工作空间的项目返回 `404`。
-- **权限：** 需要对该项目有 `project:mem_add`、`project:doc_add`、`project:mem_search` 和 `project:doc_search`，在会话开始时校验。
-- **带文件时必填。** 消息里的文件（文件库里的文件或 inline 内容，见[附带文件](#附带文件)）会作为文档导入这个项目，inline 文件还会另存到文件库。带文件的消息必须自己写明项目，不能靠从会话继承，否则请求返回 `400`。
+- **旧字段名 `readWriteProjectId` 仍然可用**，取值同样可以是字符串或数组。两个名字只能传一个，同一请求里两个都传会返回 `400`；值为 `null` 的不算。
+- **一个会话默认最多 5 个项目。** 重复的项目只算一次，保留第一次出现的位置。有空白项时返回 `400`；会话的第一条消息传入的项目超过上限时，也返回 `400`。
+- **会话的项目在第一条消息时就固定了。** 会话（`contextId`）的第一条消息绑定项目，之后的消息可以不传，沿用这些项目；如果传了，必须是同一组项目，顺序可以不同。传入不同的项目，或者给一个开始时没有项目的会话补上项目，都会返回 `400`。
+- **只能是同一工作空间的项目。** 项目不存在，或者属于其他工作空间，都返回 `404`。
+- **权限：** 需要对每个项目都有 `project:mem_add`、`project:doc_add`、`project:mem_search` 和 `project:doc_search`，在会话开始时校验。
+- **附带的文件默认导入主项目。** 消息里的文件库文件和 inline 内容会作为文档导入主项目，除非用 `fileImportProjectId` 指定了别的项目。见[附带文件](#附带文件)。
 </ParamField>
 
 <ParamField body="readOnlyProjectIds" type="string[]">
 Agent 可以检索（文档和记忆）但不会写入的其他项目。用于让 Agent 访问共享知识库。
 
 - **只对这一条消息生效。** 它不会存到会话里，所以每条需要看到这些项目的消息都要带上。
+- **只能是同一工作空间的项目。** 找不到对应项目的 ID 返回 `404`，属于其他工作空间的项目也一样。唯一的例外是本工作空间里已经删除的项目：它会被跳过，不报错。这样客户端一直在发的项目列表，不会因为其中某个项目被删除就开始报错。
 - **权限：** 需要对每个项目有 `project:mem_search` 和 `project:doc_search`，缺任何一项都返回 `403`。
-- 找不到对应项目的 ID 会被跳过，不报错。
+</ParamField>
+
+<ParamField body="fileImportProjectId" type="string">
+这条消息附带的文件库文件和 inline 内容要导入的项目。不传时导入会话的主读写项目。见[附带文件](#附带文件)。
+
+- **必须是本次请求里的项目：** 会话的读写项目之一，或这条消息的 `readOnlyProjectIds` 之一。其他项目返回 `400`，即使这条消息没有带文件也一样。项目在本工作空间里不存在时返回 `404`。
+- **只对这一条消息生效。** 它不会存到会话里。
+- **权限：** 需要对该项目有 `project:doc_add`，每条带待导入文件的消息都会校验。
 </ParamField>
 
 <ParamField body="skipMemory" type="boolean" default="false">
@@ -215,7 +225,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     "metadata": {
       "memorylake": {
         "actorId": "actor-33d6b73298fb43482a765643ff92444b",
-        "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
+        "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"],
         "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"],
         "overrides": {
           "model": "gpt-4o",
@@ -269,7 +279,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     "metadata": {
       "memorylake": {
         "actorId": "actor-33d6b73298fb43482a765643ff92444b",
-        "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"
+        "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"]
       }
     }
   }'
@@ -327,7 +337,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       "metadata": {
         "memorylake": {
           "actorId": "actor-33d6b73298fb43482a765643ff92444b",
-          "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8",
+          "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"],
           "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"],
           "overrides": {
             "model": "gpt-4o"
@@ -390,7 +400,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       "metadata": {
         "memorylake": {
           "actorId": "actor-33d6b73298fb43482a765643ff92444b",
-          "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"
+          "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"]
         }
       }
     }
@@ -427,14 +437,16 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
 
 ## 附带文件
 
-消息可以在文字之外附带文件，有两种方式：
+消息可以在文字之外附带文件，有三种方式：
 
 - **文件库里的文件。** 传入文件的 `uri`（`drive://…`），即[列出条目](/features/memorylake/api-reference/library/list-items)或[获取条目](/features/memorylake/api-reference/library/get-item)返回的值。
 - **inline 内容。** 传入文件字节的 base64 编码（标准或 URL-safe 都可以，也接受 `data:<type>;base64,` 前缀）。请给文件一个带扩展名的 `name`，或者给出它的 MIME 类型，MemoryLake 据此判断它是哪种文档。
+- **项目里已有的文档。** 传入 `document://{projectId}/{documentId}`，其中 `documentId` 是[列出文档](/features/memorylake/api-reference/v3-documents/list-documents)或[获取文档](/features/memorylake/api-reference/v3-documents/get-document)返回的文档 `id`。Agent 直接读取这份文档，不会再导入一次。见[引用项目里的文档](#引用项目里的文档)。
 
-两种方式下，文件都会作为文档导入消息的 `readWriteProjectId` 项目，agent 从那里读取。注意：
+文件库里的文件和 inline 内容会作为文档导入某个项目，agent 从那里读取。注意：
 
-- **必须有项目。** 带文件的消息必须自己写明 `readWriteProjectId`，即使会话已经绑定了项目也一样，否则请求返回 `400`。
+- **必须有可导入的项目。** 文件导入 `fileImportProjectId` 指定的项目；不传时导入会话的主读写项目（`readWriteProjectIds` 的第一个）。同一会话的后续消息不必再写明读写项目，会沿用会话里存的。没有可导入的项目时，请求返回 `400`。
+- **权限：** 需要对文件导入的项目有 `project:doc_add`。每条带这类文件的消息都会校验，不只是会话的第一条消息。
 - **inline 文件每次发送都会另存到文件库。** 每个 inline 文件除了导入项目，还会作为一个新文件保存在工作空间根目录（`MY_SPACE`）的顶层。同一个文件再发一次就再存一份；重名时自动加后缀：`report.pdf`、`report_1.pdf`、`report_2.pdf`，依此类推。这些副本不会去重，也不会自动清理，不再需要的可以用[删除条目](/features/memorylake/api-reference/library/delete-item)删掉。保存需要 [`drive:item_add`](/features/team-collaboration/permission-reference#上传和创建文件) 权限。如果不想每次都多存一份，先把文件上传到文件库，再传它的 `uri`。
 - **支持的类型**包括 PDF、Word、Excel、PowerPoint、CSV 与 TSV、纯文本、Markdown，以及图片（PNG、JPEG、GIF、BMP、WebP、TIFF）。其他类型的文件返回 `400`。inline 文件的类型先看 `name` 的扩展名，扩展名不受支持时再看 MIME 类型。
 
@@ -452,7 +464,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     ]
   },
   "metadata": {
-    "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+    "memorylake": { "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"] }
   }
 }
 ```
@@ -473,7 +485,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
       ]
     },
     "metadata": {
-      "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+      "memorylake": { "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"] }
     }
   }
 }
@@ -491,7 +503,7 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
   },
   "configuration": { "blocking": true },
   "metadata": {
-    "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+    "memorylake": { "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"] }
   }
 }
 ```
@@ -513,20 +525,47 @@ curl -X POST 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-
     },
     "configuration": { "blocking": true },
     "metadata": {
-      "memorylake": { "readWriteProjectId": "proj-b93e8d95a8705bcc4ec42a65ba4cc7f8" }
+      "memorylake": { "readWriteProjectIds": ["proj-b93e8d95a8705bcc4ec42a65ba4cc7f8"] }
     }
   }
 }
 ```
 </CodeGroup>
 
-| 路由族 | 文件库里的文件 | inline 内容 | 名称与类型 |
+| 路由族 | 文件库里的文件或项目里的文档 | inline 内容 | 名称与类型 |
 |---|---|---|---|
 | v1.0 REST 与 JSON-RPC | `url` | `raw` | `filename`、`mediaType` |
 | v0.3 REST | `file.fileWithUri`（也可写作 `file_with_uri` 或 `uri`） | `file.fileWithBytes`（也可写作 `file_with_bytes` 或 `bytes`） | `file.name`、`file.mimeType`（也可写作 `mime_type`） |
 | v0.3 JSON-RPC | `file.uri` | `file.bytes` | `file.name`、`file.mimeType` |
 
-每个 file part 只能给两种来源中的一种。在 v0.3 REST 上，一个 part 还必须且只能设置 `text`、`file`、`data` 中的一项。违反任一条的 part，例如只有 `name` 和 `mimeType` 的 `file`、两种来源都给了的 `file`、或者空 part，都会在保存任何内容、发给 agent 之前返回 `400 INVALID_ARGUMENT`，错误信息会指出是哪个 part，例如 `message.content[1].file`。在 v1.0 上，既没有 `url` 也没有 `raw` 的 part 不会被当作文件。
+每个 file part 只能给一种来源：引用或 inline 内容。在 v0.3 REST 上，一个 part 还必须且只能设置 `text`、`file`、`data` 中的一项。违反任一条的 part，例如只有 `name` 和 `mimeType` 的 `file`、两种来源都给了的 `file`、或者空 part，都会在保存任何内容、发给 agent 之前返回 `400 INVALID_ARGUMENT`，错误信息会指出是哪个 part，例如 `message.content[1].file`。引用必须是 `drive://` 或 `document://` URI，其他 scheme 同样返回 `400 INVALID_ARGUMENT`。在 v1.0 上，既没有 `url` 也没有 `raw` 的 part 不会被当作文件。
+
+### 引用项目里的文档
+
+`document://{projectId}/{documentId}` 引用让 Agent 直接读取项目里已有的文档。它不会导入任何内容，所以不需要可导入的项目，也不需要 `project:doc_add`。它和文件库文件的 `drive://` URI 放在同一个字段，见上表。下面的 v1.0 REST 示例把文档所在的项目作为只读项目传入：
+
+```json v1.0 REST
+{
+  "message": {
+    "role": "ROLE_USER",
+    "parts": [
+      { "text": "总结这份报告里的风险。" },
+      { "url": "document://proj-cd2e83f761eec93c75977f51667889cd/doc-3451335835b6cda07544335dc13e6183" }
+    ]
+  },
+  "metadata": {
+    "memorylake": { "readOnlyProjectIds": ["proj-cd2e83f761eec93c75977f51667889cd"] }
+  }
+}
+```
+
+- **项目必须是本次请求里的项目：** 会话的读写项目之一，或这条消息的 `readOnlyProjectIds` 之一，否则请求返回 `400`。要引用其他项目里的文档，请把那个项目加到 `readOnlyProjectIds`；注意这样 Agent 能检索整个项目，而不只是您引用的这份文档。
+- **不需要额外的权限。** 项目作为读写项目或只读项目本来就要求的权限，就是引用所需的全部权限。
+- **文档必须是可以读取的文件。**
+  - 文档不在该项目里，或者项目是本次请求里的项目但已被删除：返回 `404`。
+  - 文档不是文件（`document_type` 不是 `drive_file`），或者处理失败（`status` 为 `error`）：返回 `400`。
+  - 仍在处理中的文档也可以引用，Agent 读取已经处理完的部分。还不能读取时，请求返回 `400 STATE_NOT_READY`，请稍后重试。
+- **格式必须完全一致。** 两个 ID 用 `/` 分隔，此外不能有别的内容：不能有更多路径段、查询字符串或片段。其他写法返回 `400`。
 
 ## 响应
 
@@ -684,7 +723,7 @@ Agent 的工具调用以 `data` part 的形式出现，用 `metadata.adk_type` �
 | 400 | `INVALID_ARGUMENT` | 请求不合法。 |
 | 402 | `QUOTA_EXCEEDED` | 配额已用完。 |
 | 403 | `ACCESS_DENIED` | 缺少请求所需的权限。 |
-| 404 | `NOT_FOUND` | Agent 不存在，或不在这个工作空间里。 |
+| 404 | `NOT_FOUND` | Agent，或请求里指定的项目、文档不存在，或不在这个工作空间里。 |
 
 **Agent 拒绝请求。** Agent 自己的拒绝遵循 A2A 规范，按 Agent 返回的原样（包括状态码和响应体）交给您。
 

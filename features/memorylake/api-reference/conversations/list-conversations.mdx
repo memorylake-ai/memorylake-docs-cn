@@ -48,7 +48,7 @@ curl -X GET 'https://app.memorylake.cn/openapi/memorylake/api/v3/workspaces/ws-f
     <ResponseField name="kind" type="string">会话类型：`DIRECT` 或 `GROUP`</ResponseField>
     <ResponseField name="metadata" type="object">附加到会话的任意键值元数据</ResponseField>
     <ResponseField name="custom_id" type="string">调用方定义的唯一标识符，用于外部引用</ResponseField>
-    <ResponseField name="rw_project_ids" type="array">此会话读写记忆的项目 ID 列表</ResponseField>
+    <ResponseField name="rw_project_ids" type="array">此会话读写记忆的项目 ID 列表，第一个是主项目</ResponseField>
     <ResponseField name="actor_ids" type="array">参与会话的 Actor ID 列表</ResponseField>
     <ResponseField name="current_message_id" type="string">会话中最新消息的 ID</ResponseField>
     <ResponseField name="created_at" type="string">创建时间戳</ResponseField>
